@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { hasSupabaseEnv } from "@/lib/env";
+import { buildFallbackNumberTiles, FALLBACK_TOTAL_NUMBERS } from "@/lib/landing-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 interface RaffleNumbersRouteContext {
@@ -16,18 +17,26 @@ function normalizeStatus(status: string | null): "available" | "reserved" | "sol
 }
 
 export async function GET(request: NextRequest, context: RaffleNumbersRouteContext) {
+  const page = Math.max(1, Number(request.nextUrl.searchParams.get("page") ?? 1));
+  const pageSize = Math.min(500, Math.max(20, Number(request.nextUrl.searchParams.get("pageSize") ?? 200)));
+
   if (!hasSupabaseEnv()) {
-    return NextResponse.json(
-      { error: "Supabase não configurado. Defina as variáveis de ambiente." },
-      { status: 503 },
-    );
+    return NextResponse.json({
+      success: true,
+      page,
+      pageSize,
+      total: FALLBACK_TOTAL_NUMBERS,
+      numbers: buildFallbackNumberTiles({
+        page,
+        pageSize,
+        totalNumbers: FALLBACK_TOTAL_NUMBERS,
+      }),
+      fallback: true,
+    });
   }
 
   try {
     const { slug } = await context.params;
-    const page = Math.max(1, Number(request.nextUrl.searchParams.get("page") ?? 1));
-    const pageSize = Math.min(500, Math.max(20, Number(request.nextUrl.searchParams.get("pageSize") ?? 200)));
-
     const offset = (page - 1) * pageSize;
 
     const supabase = await createSupabaseServerClient();

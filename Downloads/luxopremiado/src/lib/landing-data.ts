@@ -1,25 +1,48 @@
 import { RaffleLandingData, NumberTile } from "@/types/raffle";
 
-function buildNumberTiles(total: number): NumberTile[] {
-  return Array.from({ length: total }, (_, index) => {
-    const number = index + 1;
+export const FALLBACK_TOTAL_NUMBERS = 10_000;
+export const FALLBACK_INITIAL_PAGE_SIZE = 200;
 
-    if (number % 9 === 0) {
-      return { number, status: "sold" };
-    }
+function fallbackStatusForNumber(number: number): NumberTile["status"] {
+  if (number % 9 === 0) {
+    return "sold";
+  }
 
-    if (number % 5 === 0) {
-      return { number, status: "reserved" };
-    }
+  if (number % 5 === 0) {
+    return "reserved";
+  }
 
-    return { number, status: "available" };
+  return "available";
+}
+
+export function buildFallbackNumberTiles(params: {
+  page: number;
+  pageSize: number;
+  totalNumbers?: number;
+}): NumberTile[] {
+  const totalNumbers = params.totalNumbers ?? FALLBACK_TOTAL_NUMBERS;
+  const page = Math.max(1, params.page);
+  const pageSize = Math.max(1, params.pageSize);
+  const start = (page - 1) * pageSize + 1;
+  const end = Math.min(totalNumbers, start + pageSize - 1);
+
+  if (start > totalNumbers) {
+    return [];
+  }
+
+  return Array.from({ length: end - start + 1 }, (_, index) => {
+    const number = start + index;
+    return {
+      number,
+      status: fallbackStatusForNumber(number),
+    };
   });
 }
 
 export const fallbackRaffleData: RaffleLandingData = {
   raffleId: null,
   slug: "luxo-premiado",
-  totalNumbers: 120,
+  totalNumbers: FALLBACK_TOTAL_NUMBERS,
   maxNumbersPerUser: 50,
   hero: {
     title: "Luxo Premiado",
@@ -65,7 +88,11 @@ export const fallbackRaffleData: RaffleLandingData = {
       description: "Veja resultado, auditoria e histórico no painel do usuário.",
     },
   ],
-  numberTiles: buildNumberTiles(120),
+  numberTiles: buildFallbackNumberTiles({
+    page: 1,
+    pageSize: FALLBACK_INITIAL_PAGE_SIZE,
+    totalNumbers: FALLBACK_TOTAL_NUMBERS,
+  }),
   buyerRanking: [
     { position: 1, participant: "Marina #A13", totalNumbers: 92 },
     { position: 2, participant: "Rodrigo #BC7", totalNumbers: 87 },
