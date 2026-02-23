@@ -19,6 +19,12 @@ function normalizeNumberStatus(status: string | null): NumberStatus {
   return "available";
 }
 
+interface BuyerRankingRow {
+  position: number | string | null;
+  participant: string | null;
+  total_numbers: number | string | null;
+}
+
 export async function getRaffleLandingData(slug: string): Promise<RaffleLandingData> {
   if (!hasSupabaseEnv()) {
     return createFallback(slug);
@@ -29,7 +35,7 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
 
     const { data: raffle } = await supabase
       .from("raffles")
-      .select("id, title, description, cover_image_url, price_cents, draw_date")
+      .select("id, title, description, cover_image_url, price_cents, draw_date, max_numbers_per_user")
       .eq("slug", slug)
       .maybeSingle();
 
@@ -37,7 +43,8 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
       return createFallback(slug);
     }
 
-    const [imagesResult, numbersResult, socialProofResult, faqResult, transparencyResult] = await Promise.all([
+    const [imagesResult, numbersResult, socialProofResult, faqResult, transparencyResult, rankingResult] =
+      await Promise.all([
       supabase
         .from("raffle_images")
         .select("url")
@@ -61,6 +68,10 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
         .select("draw_method, organizer_name, organizer_doc, contact, rules")
         .eq("raffle_id", raffle.id)
         .maybeSingle(),
+      supabase.rpc("get_raffle_buyer_ranking", {
+        p_raffle_id: raffle.id,
+        p_limit: 10,
+      }),
     ]);
 
     const drawDateText = raffle.draw_date
@@ -72,7 +83,9 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
 
     return {
       ...fallbackRaffleData,
+      raffleId: String(raffle.id),
       slug,
+      maxNumbersPerUser: Number(raffle.max_numbers_per_user ?? fallbackRaffleData.maxNumbersPerUser),
       hero: {
         ...fallbackRaffleData.hero,
         title: raffle.title,
@@ -95,6 +108,14 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
           status: normalizeNumberStatus(typeof item.status === "string" ? item.status : null),
         })) ??
         fallbackRaffleData.numberTiles,
+      buyerRanking:
+        rankingResult.data?.length
+          ? (rankingResult.data as BuyerRankingRow[]).map((item) => ({
+              position: Number(item.position ?? 0),
+              participant: String(item.participant ?? "Participante"),
+              totalNumbers: Number(item.total_numbers ?? 0),
+            }))
+          : fallbackRaffleData.buyerRanking,
       socialProof:
         socialProofResult.data?.length
           ? socialProofResult.data.map((item) => ({

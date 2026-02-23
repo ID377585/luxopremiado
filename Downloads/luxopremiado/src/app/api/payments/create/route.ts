@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { hasSupabaseEnv } from "@/lib/env";
 import { createPaymentProvider } from "@/lib/payments/providers";
+import { enforceAntiBot } from "@/lib/security/anti-bot";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { paymentSchema } from "@/lib/validators/payment";
@@ -35,6 +36,18 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const antiBotResult = await enforceAntiBot({
+      request,
+      action: "payment",
+      userId: user.id,
+      botTrap: parsed.data.botTrap,
+      turnstileToken: parsed.data.turnstileToken,
+    });
+
+    if (!antiBotResult.ok) {
+      return NextResponse.json({ error: antiBotResult.error }, { status: antiBotResult.status });
     }
 
     const { data: order, error: orderError } = await supabase

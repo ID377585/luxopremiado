@@ -10,6 +10,8 @@ import { SocialProof } from "@/components/raffle/SocialProof";
 import { Transparency } from "@/components/raffle/Transparency";
 import { UserArea } from "@/components/raffle/UserArea";
 import { Checkout } from "@/components/raffle/Checkout";
+import { BuyerRanking } from "@/components/raffle/BuyerRanking";
+import { AffiliateTracker } from "@/components/raffle/AffiliateTracker";
 import { getRaffleLandingData } from "@/lib/raffles";
 import { getSessionUser } from "@/lib/session";
 
@@ -32,13 +34,20 @@ export default async function RafflePage({ params }: RafflePageProps) {
 
   return (
     <main>
+      <AffiliateTracker />
       <Hero data={raffle.hero} />
       <Prize data={raffle.prize} />
       <HowItWorks steps={raffle.howItWorks} />
       <UserArea userName={user?.name ?? user?.email} />
-      <NumberPicker numbers={raffle.numberTiles} />
+      <NumberPicker
+        maxNumbersPerUser={raffle.maxNumbersPerUser}
+        numbers={raffle.numberTiles}
+        raffleId={raffle.raffleId}
+        raffleSlug={raffle.slug}
+      />
       <Checkout methods={raffle.checkoutMethods} />
       <Transparency data={raffle.transparency} />
+      <BuyerRanking entries={raffle.buyerRanking} />
       <SocialProof entries={raffle.socialProof} />
       <FAQ items={raffle.faq} />
       <Footer />

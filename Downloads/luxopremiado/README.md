@@ -8,6 +8,7 @@ Plataforma de rifas premium com:
 - Área admin: `/admin`, `/admin/rifas`, `/admin/provas`, `/admin/transparencia`
 - Fluxo backend: reserva transacional de números + criação de pagamento + webhook idempotente
 - SQL completo: schema + RLS + RPCs para Supabase Postgres
+- Extras de produção: realtime da grade, anti-bot, limite por usuário, afiliados e ranking de compradores
 
 ## Stack
 
@@ -38,6 +39,8 @@ cp .env.example .env.local
 - `NEXT_PUBLIC_SITE_URL`
 - `WEBHOOK_SECRET` (opcional)
 - `CRON_SECRET` (opcional)
+- `TURNSTILE_SECRET_KEY` (opcional, recomendado para anti-bot)
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (opcional para frontend com Turnstile)
 
 4. Rode o projeto:
 
@@ -52,6 +55,7 @@ npm run dev
 Execute no SQL Editor do Supabase:
 
 - `supabase/migrations/20260223152000_init_luxo_premiado.sql`
+- `supabase/migrations/20260223201500_growth_features_realtime_antibot_affiliates.sql`
 
 ### Seed opcional
 
@@ -79,6 +83,8 @@ select public.generate_raffle_numbers('<RAFFLE_ID>');
 - `POST /api/payments/create`
 - `POST /api/webhooks/[provider]`
 - `POST /api/cron/expire-reservations`
+- `POST /api/affiliates/enroll`
+- `GET /api/affiliates/me`
 
 ## Fluxo crítico
 

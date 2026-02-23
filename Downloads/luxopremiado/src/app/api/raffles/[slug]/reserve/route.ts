@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { attachAffiliateToOrder, getAffiliateCodeFromRequest } from "@/lib/affiliates";
 import { hasSupabaseEnv } from "@/lib/env";
+import { enforceAntiBot } from "@/lib/security/anti-bot";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { reserveSchema } from "@/lib/validators/reserve";
 
@@ -40,6 +42,18 @@ export async function POST(request: NextRequest, context: ReserveRouteContext) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const antiBotResult = await enforceAntiBot({
+      request,
+      action: "reserve",
+      userId: user.id,
+      botTrap: parsed.data.botTrap,
+      turnstileToken: parsed.data.turnstileToken,
+    });
+
+    if (!antiBotResult.ok) {
+      return NextResponse.json({ error: antiBotResult.error }, { status: antiBotResult.status });
+    }
+
     const { data, error } = await supabase.rpc("reserve_raffle_numbers", {
       p_raffle_slug: slug,
       p_numbers: parsed.data.numbers ?? null,
@@ -49,6 +63,14 @@ export async function POST(request: NextRequest, context: ReserveRouteContext) {
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    const reserveRow = Array.isArray(data) ? data[0] : null;
+    const orderId = reserveRow?.order_id as string | undefined;
+    const affiliateCode = parsed.data.affiliateCode ?? getAffiliateCodeFromRequest(request);
+
+    if (orderId && affiliateCode) {
+      await attachAffiliateToOrder(orderId, affiliateCode);
     }
 
     return NextResponse.json({ success: true, data });

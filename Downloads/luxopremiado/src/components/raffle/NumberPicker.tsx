@@ -1,11 +1,15 @@
 import { NumberTile } from "@/types/raffle";
 import styles from "@/components/raffle/sections.module.css";
+import { NumberGridLive } from "@/components/raffle/NumberGridLive";
 
 interface NumberPickerProps {
+  raffleSlug: string;
   numbers: NumberTile[];
+  raffleId: string | null;
+  maxNumbersPerUser: number;
 }
 
-export function NumberPicker({ numbers }: NumberPickerProps) {
+export function NumberPicker({ raffleSlug, numbers, raffleId, maxNumbersPerUser }: NumberPickerProps) {
   return (
     <section className={styles.section} id="escolher-numeros">
       <div className={styles.container}>
@@ -16,19 +20,12 @@ export function NumberPicker({ numbers }: NumberPickerProps) {
 
         <div className={styles.numberPickerWrap}>
           <div>
-            <div className={styles.filterRow}>
-              <span className={styles.filterTag}>Disponíveis</span>
-              <span className={styles.filterTag}>Reservados</span>
-              <span className={styles.filterTag}>Vendidos</span>
-              <span className={styles.filterTag}>Gerar aleatórios</span>
-            </div>
-            <div className={styles.numbersGrid}>
-              {numbers.map((item) => (
-                <span className={`${styles.numberTile} ${styles[item.status]}`} key={item.number}>
-                  {item.number}
-                </span>
-              ))}
-            </div>
+            <NumberGridLive
+              initialNumbers={numbers}
+              maxNumbersPerUser={maxNumbersPerUser}
+              raffleId={raffleId}
+              raffleSlug={raffleSlug}
+            />
           </div>
 
           <aside className={styles.card}>

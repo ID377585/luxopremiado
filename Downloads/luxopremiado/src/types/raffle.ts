@@ -36,6 +36,12 @@ export interface CheckoutMethod {
   description: string;
 }
 
+export interface BuyerRankingEntry {
+  position: number;
+  participant: string;
+  totalNumbers: number;
+}
+
 export interface TransparencyData {
   drawMethod: string;
   organizer: string;
@@ -56,11 +62,14 @@ export interface FaqItem {
 }
 
 export interface RaffleLandingData {
+  raffleId: string | null;
   slug: string;
+  maxNumbersPerUser: number;
   hero: HeroData;
   prize: PrizeData;
   howItWorks: HowItWorksStep[];
   numberTiles: NumberTile[];
+  buyerRanking: BuyerRankingEntry[];
   checkoutMethods: CheckoutMethod[];
   transparency: TransparencyData;
   socialProof: SocialProofEntry[];

@@ -20,6 +20,14 @@ export interface DashboardProfile {
   role: string;
 }
 
+export interface DashboardAffiliate {
+  code: string;
+  commission_bps: number;
+  is_active: boolean;
+  approved_commission_cents: number;
+  total_referred_orders: number;
+}
+
 export async function getDashboardSummary(userId: string): Promise<DashboardSummary> {
   if (!hasSupabaseEnv()) {
     return {
@@ -179,4 +187,45 @@ export async function getMySoldNumbers(userId: string): Promise<number[]> {
     .limit(100);
 
   return data?.map((item) => item.number as number) ?? [];
+}
+
+export async function getMyAffiliate(userId: string): Promise<DashboardAffiliate | null> {
+  if (!hasSupabaseEnv()) {
+    return {
+      code: "lpdemo123",
+      commission_bps: 500,
+      is_active: true,
+      approved_commission_cents: 2490,
+      total_referred_orders: 3,
+    };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data: affiliate } = await supabase
+    .from("affiliates")
+    .select("id, code, commission_bps, is_active")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (!affiliate) {
+    return null;
+  }
+
+  const { data: referrals } = await supabase
+    .from("order_affiliates")
+    .select("commission_cents, status")
+    .eq("affiliate_id", affiliate.id);
+
+  const approvedCommissionCents =
+    referrals
+      ?.filter((row) => row.status === "approved" || row.status === "paid")
+      .reduce((acc, row) => acc + Number(row.commission_cents ?? 0), 0) ?? 0;
+
+  return {
+    code: String(affiliate.code),
+    commission_bps: Number(affiliate.commission_bps ?? 0),
+    is_active: Boolean(affiliate.is_active),
+    approved_commission_cents: approvedCommissionCents,
+    total_referred_orders: referrals?.length ?? 0,
+  };
 }

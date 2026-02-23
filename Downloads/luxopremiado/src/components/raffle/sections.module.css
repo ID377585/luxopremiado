@@ -323,19 +323,71 @@
   padding: 0.32rem 0.62rem;
 }
 
+.liveOn {
+  border-color: rgba(34, 197, 94, 0.65);
+  color: #86efac;
+}
+
+.liveOff {
+  border-color: rgba(239, 68, 68, 0.52);
+  color: #fca5a5;
+}
+
+.liveMeta {
+  color: #cbd5e1;
+  font-size: 0.82rem;
+  margin-bottom: 0.8rem;
+}
+
 .numbersGrid {
   display: grid;
   gap: 0.48rem;
   grid-template-columns: repeat(10, minmax(0, 1fr));
 }
 
+.actionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-bottom: 0.75rem;
+}
+
+.actionButton,
+.actionButtonGhost {
+  border-radius: 0.65rem;
+  cursor: pointer;
+  font-size: 0.84rem;
+  font-weight: 700;
+  padding: 0.5rem 0.72rem;
+}
+
+.actionButton {
+  background: linear-gradient(95deg, #fb923c, #ea580c);
+  border: none;
+  color: #fff;
+}
+
+.actionButtonGhost {
+  background: transparent;
+  border: 1px solid rgba(148, 163, 184, 0.44);
+  color: #e2e8f0;
+}
+
 .numberTile {
+  appearance: none;
   border: 1px solid rgba(148, 163, 184, 0.24);
   border-radius: 0.62rem;
   color: #fff;
+  cursor: pointer;
   font-size: 0.78rem;
   padding: 0.45rem 0.25rem;
   text-align: center;
+  width: 100%;
+}
+
+.selected {
+  border-color: rgba(251, 146, 60, 0.88);
+  box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.3) inset;
 }
 
 .available {
@@ -412,6 +464,39 @@
   font-size: 0.9rem;
 }
 
+.rankingList {
+  display: grid;
+  gap: 0.62rem;
+  list-style: none;
+}
+
+.rankingItem {
+  align-items: center;
+  background: rgba(15, 23, 42, 0.82);
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 0.76rem;
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: 70px 1fr auto;
+  padding: 0.7rem 0.8rem;
+}
+
+.rankingPosition {
+  color: #fdba74;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.rankingName {
+  color: #f8fafc;
+  font-size: 0.9rem;
+}
+
+.rankingValue {
+  color: #cbd5e1;
+  font-size: 0.86rem;
+}
+
 @media (max-width: 1100px) {
   .heroGrid,
   .prizeGrid,
@@ -458,6 +543,10 @@
 
   .numbersGrid {
     grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .rankingItem {
+    grid-template-columns: 1fr;
   }
 
   .footerGrid {

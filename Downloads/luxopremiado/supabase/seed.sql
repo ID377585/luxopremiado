@@ -8,6 +8,7 @@ insert into public.raffles (
   cover_image_url,
   price_cents,
   total_numbers,
+  max_numbers_per_user,
   draw_date,
   draw_method,
   status
@@ -20,6 +21,7 @@ values (
   '/images/prize/compass-1.svg',
   1990,
   10000,
+  50,
   now() + interval '60 days',
   'loteria_federal',
   'active'

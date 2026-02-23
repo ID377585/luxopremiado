@@ -17,7 +17,9 @@ function buildNumberTiles(total: number): NumberTile[] {
 }
 
 export const fallbackRaffleData: RaffleLandingData = {
+  raffleId: null,
   slug: "luxo-premiado",
+  maxNumbersPerUser: 50,
   hero: {
     title: "Luxo Premiado",
     subtitle:
@@ -63,6 +65,13 @@ export const fallbackRaffleData: RaffleLandingData = {
     },
   ],
   numberTiles: buildNumberTiles(120),
+  buyerRanking: [
+    { position: 1, participant: "Marina #A13", totalNumbers: 92 },
+    { position: 2, participant: "Rodrigo #BC7", totalNumbers: 87 },
+    { position: 3, participant: "Leila #9DF", totalNumbers: 69 },
+    { position: 4, participant: "Carlos #1A2", totalNumbers: 62 },
+    { position: 5, participant: "Amanda #7C1", totalNumbers: 55 },
+  ],
   checkoutMethods: [
     {
       name: "PIX",
