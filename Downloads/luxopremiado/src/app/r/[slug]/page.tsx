@@ -44,6 +44,7 @@ export default async function RafflePage({ params }: RafflePageProps) {
         numbers={raffle.numberTiles}
         raffleId={raffle.raffleId}
         raffleSlug={raffle.slug}
+        totalNumbers={raffle.totalNumbers}
       />
       <Checkout methods={raffle.checkoutMethods} />
       <Transparency data={raffle.transparency} />

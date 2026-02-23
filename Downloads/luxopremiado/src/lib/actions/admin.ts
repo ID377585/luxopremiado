@@ -57,6 +57,22 @@ const deleteTransparencySchema = z.object({
   raffleId: z.string().uuid(),
 });
 
+const affiliateStatusSchema = z.object({
+  affiliateId: z.string().uuid(),
+  isActive: z.boolean(),
+});
+
+const affiliateConfigSchema = z.object({
+  affiliateId: z.string().uuid(),
+  displayName: z.string().trim().optional(),
+  commissionBps: z.coerce.number().int().min(0).max(10000),
+});
+
+const orderAffiliateStatusSchema = z.object({
+  orderAffiliateId: z.string().uuid(),
+  status: z.enum(["pending", "approved", "paid", "canceled"]),
+});
+
 function withMessage(path: string, type: "success" | "error", message: string): string {
   const separator = path.includes("?") ? "&" : "?";
   return `${path}${separator}${type}=${encodeURIComponent(message)}`;
@@ -392,6 +408,94 @@ export async function deleteTransparencyAction(formData: FormData) {
     redirect(withMessage(redirectTo, "success", "Registro de transparência removido."));
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erro ao remover transparência.";
+    redirect(withMessage(redirectTo, "error", message));
+  }
+}
+
+export async function updateAffiliateStatusAction(formData: FormData) {
+  const redirectTo = String(formData.get("redirect_to") ?? "/admin/afiliados");
+
+  try {
+    const parsed = affiliateStatusSchema.parse({
+      affiliateId: formData.get("affiliate_id"),
+      isActive: formData.get("is_active") === "true",
+    });
+
+    const { supabase } = await requireAdminContext();
+
+    const { error } = await supabase
+      .from("affiliates")
+      .update({ is_active: parsed.isActive })
+      .eq("id", parsed.affiliateId);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    revalidatePath("/admin/afiliados");
+    redirect(withMessage(redirectTo, "success", "Status de afiliado atualizado."));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Erro ao atualizar afiliado.";
+    redirect(withMessage(redirectTo, "error", message));
+  }
+}
+
+export async function updateAffiliateConfigAction(formData: FormData) {
+  const redirectTo = String(formData.get("redirect_to") ?? "/admin/afiliados");
+
+  try {
+    const parsed = affiliateConfigSchema.parse({
+      affiliateId: formData.get("affiliate_id"),
+      displayName: formData.get("display_name"),
+      commissionBps: formData.get("commission_bps"),
+    });
+
+    const { supabase } = await requireAdminContext();
+
+    const { error } = await supabase
+      .from("affiliates")
+      .update({
+        display_name: normalizeOptional(parsed.displayName),
+        commission_bps: parsed.commissionBps,
+      })
+      .eq("id", parsed.affiliateId);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    revalidatePath("/admin/afiliados");
+    redirect(withMessage(redirectTo, "success", "Configuração do afiliado atualizada."));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Erro ao atualizar configuração do afiliado.";
+    redirect(withMessage(redirectTo, "error", message));
+  }
+}
+
+export async function updateOrderAffiliateStatusAction(formData: FormData) {
+  const redirectTo = String(formData.get("redirect_to") ?? "/admin/afiliados");
+
+  try {
+    const parsed = orderAffiliateStatusSchema.parse({
+      orderAffiliateId: formData.get("order_affiliate_id"),
+      status: formData.get("status"),
+    });
+
+    const { supabase } = await requireAdminContext();
+
+    const { error } = await supabase
+      .from("order_affiliates")
+      .update({ status: parsed.status })
+      .eq("id", parsed.orderAffiliateId);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    revalidatePath("/admin/afiliados");
+    redirect(withMessage(redirectTo, "success", "Status da comissão atualizado."));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Erro ao atualizar comissão.";
     redirect(withMessage(redirectTo, "error", message));
   }
 }

@@ -1,3 +1,4 @@
+import { Redis } from "@upstash/redis";
 import { NextRequest } from "next/server";
 
 interface AntiBotOptions {
@@ -21,20 +22,36 @@ interface RateEntry {
 
 const USER_AGENT_BLOCKLIST = /(bot|crawler|spider|scrapy|curl|wget|python|httpclient|headless|phantom|go-http-client)/i;
 const DEFAULT_LIMITS: Record<AntiBotOptions["action"], { max: number; windowMs: number }> = {
-  reserve: { max: 20, windowMs: 60_000 },
-  payment: { max: 10, windowMs: 60_000 },
+  reserve: { max: 30, windowMs: 60_000 },
+  payment: { max: 12, windowMs: 60_000 },
 };
 
 const globalStore = globalThis as typeof globalThis & {
   __lpRateLimiter?: Map<string, RateEntry>;
+  __lpUpstashRedis?: Redis;
 };
 
-function getStore(): Map<string, RateEntry> {
+function getInMemoryStore(): Map<string, RateEntry> {
   if (!globalStore.__lpRateLimiter) {
     globalStore.__lpRateLimiter = new Map<string, RateEntry>();
   }
 
   return globalStore.__lpRateLimiter;
+}
+
+function getUpstashRedis(): Redis | null {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (!url || !token) {
+    return null;
+  }
+
+  if (!globalStore.__lpUpstashRedis) {
+    globalStore.__lpUpstashRedis = new Redis({ url, token });
+  }
+
+  return globalStore.__lpUpstashRedis;
 }
 
 function clientIp(request: NextRequest): string {
@@ -46,9 +63,9 @@ function clientIp(request: NextRequest): string {
   return request.headers.get("x-real-ip") ?? "unknown";
 }
 
-function rateLimit(key: string, max: number, windowMs: number): boolean {
+function rateLimitInMemory(key: string, max: number, windowMs: number): boolean {
   const now = Date.now();
-  const store = getStore();
+  const store = getInMemoryStore();
   const current = store.get(key);
 
   if (!current || current.resetAt <= now) {
@@ -63,6 +80,28 @@ function rateLimit(key: string, max: number, windowMs: number): boolean {
   current.count += 1;
   store.set(key, current);
   return true;
+}
+
+async function rateLimit(options: {
+  key: string;
+  action: AntiBotOptions["action"];
+  max: number;
+  windowMs: number;
+}): Promise<boolean> {
+  const upstash = getUpstashRedis();
+
+  if (upstash) {
+    const storageKey = `luxopremiado:antibot:${options.action}:${options.key}`;
+    const count = Number(await upstash.incr(storageKey));
+
+    if (count === 1) {
+      await upstash.pexpire(storageKey, options.windowMs);
+    }
+
+    return count <= options.max;
+  }
+
+  return rateLimitInMemory(`${options.action}:${options.key}`, options.max, options.windowMs);
 }
 
 async function verifyTurnstileToken(token: string, ip: string): Promise<boolean> {
@@ -93,7 +132,7 @@ async function verifyTurnstileToken(token: string, ip: string): Promise<boolean>
     return false;
   }
 
-  const result = (await response.json()) as { success?: boolean };
+  const result = (await response.json()) as { success?: boolean; action?: string; cdata?: string };
   return result.success === true;
 }
 
@@ -118,9 +157,15 @@ export async function enforceAntiBot(options: AntiBotOptions): Promise<AntiBotRe
 
   const ip = clientIp(options.request);
   const limits = DEFAULT_LIMITS[options.action];
-  const key = `${options.action}:${options.userId}:${ip}`;
 
-  if (!rateLimit(key, limits.max, limits.windowMs)) {
+  const allowed = await rateLimit({
+    key: `${options.userId}:${ip}`,
+    action: options.action,
+    max: limits.max,
+    windowMs: limits.windowMs,
+  });
+
+  if (!allowed) {
     return {
       ok: false,
       status: 429,
@@ -129,7 +174,7 @@ export async function enforceAntiBot(options: AntiBotOptions): Promise<AntiBotRe
   }
 
   const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
-  if (turnstileSecret) {
+  if (turnstileSecret && options.action === "reserve") {
     const validToken = await verifyTurnstileToken(options.turnstileToken ?? "", ip);
 
     if (!validToken) {

@@ -38,6 +38,32 @@ export interface AdminTransparency {
   updated_at: string;
 }
 
+export interface AdminAffiliateSummary {
+  affiliate_id: string;
+  user_id: string;
+  name: string;
+  code: string;
+  commission_bps: number;
+  is_active: boolean;
+  total_orders: number;
+  approved_orders: number;
+  paid_orders: number;
+  pending_orders: number;
+  total_commission_cents: number;
+  approved_commission_cents: number;
+  paid_commission_cents: number;
+}
+
+export interface AdminOrderAffiliateRow {
+  id: string;
+  order_id: string;
+  affiliate_id: string;
+  code: string;
+  commission_cents: number;
+  status: "pending" | "approved" | "paid" | "canceled";
+  created_at: string;
+}
+
 function fallbackRaffles(): AdminRaffle[] {
   return [
     {
@@ -258,4 +284,125 @@ export async function getRaffleNumberStats(raffleId: string): Promise<{
         status: String(row.status ?? "available"),
       })) ?? [],
   };
+}
+
+export async function getAdminAffiliateSummary(): Promise<AdminAffiliateSummary[]> {
+  if (!hasSupabaseEnv()) {
+    return [];
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  const [{ data: affiliates }, { data: profiles }, { data: orderAffiliates }] = await Promise.all([
+    supabase
+      .from("affiliates")
+      .select("id, user_id, code, display_name, commission_bps, is_active")
+      .order("created_at", { ascending: false }),
+    supabase.from("profiles").select("id, name"),
+    supabase
+      .from("order_affiliates")
+      .select("affiliate_id, status, commission_cents")
+      .order("created_at", { ascending: false }),
+  ]);
+
+  if (!affiliates || affiliates.length === 0) {
+    return [];
+  }
+
+  const profileMap = new Map<string, string>();
+  (profiles ?? []).forEach((profile) => {
+    profileMap.set(String(profile.id), String(profile.name ?? ""));
+  });
+
+  const commissionMap = new Map<
+    string,
+    {
+      total_orders: number;
+      approved_orders: number;
+      paid_orders: number;
+      pending_orders: number;
+      total_commission_cents: number;
+      approved_commission_cents: number;
+      paid_commission_cents: number;
+    }
+  >();
+
+  (orderAffiliates ?? []).forEach((row) => {
+    const affiliateId = String(row.affiliate_id);
+    const current = commissionMap.get(affiliateId) ?? {
+      total_orders: 0,
+      approved_orders: 0,
+      paid_orders: 0,
+      pending_orders: 0,
+      total_commission_cents: 0,
+      approved_commission_cents: 0,
+      paid_commission_cents: 0,
+    };
+
+    const commission = Number(row.commission_cents ?? 0);
+    const status = String(row.status ?? "pending");
+
+    current.total_orders += 1;
+    current.total_commission_cents += commission;
+
+    if (status === "approved") {
+      current.approved_orders += 1;
+      current.approved_commission_cents += commission;
+    } else if (status === "paid") {
+      current.paid_orders += 1;
+      current.paid_commission_cents += commission;
+    } else if (status === "pending") {
+      current.pending_orders += 1;
+    }
+
+    commissionMap.set(affiliateId, current);
+  });
+
+  return affiliates.map((affiliate) => {
+    const entry = commissionMap.get(String(affiliate.id));
+    const mappedName = profileMap.get(String(affiliate.user_id));
+
+    return {
+      affiliate_id: String(affiliate.id),
+      user_id: String(affiliate.user_id),
+      name: String(affiliate.display_name ?? mappedName ?? `Usuário ${String(affiliate.user_id).slice(0, 6)}`),
+      code: String(affiliate.code),
+      commission_bps: Number(affiliate.commission_bps ?? 0),
+      is_active: Boolean(affiliate.is_active),
+      total_orders: entry?.total_orders ?? 0,
+      approved_orders: entry?.approved_orders ?? 0,
+      paid_orders: entry?.paid_orders ?? 0,
+      pending_orders: entry?.pending_orders ?? 0,
+      total_commission_cents: entry?.total_commission_cents ?? 0,
+      approved_commission_cents: entry?.approved_commission_cents ?? 0,
+      paid_commission_cents: entry?.paid_commission_cents ?? 0,
+    };
+  });
+}
+
+export async function getAdminOrderAffiliateRows(): Promise<AdminOrderAffiliateRow[]> {
+  if (!hasSupabaseEnv()) {
+    return [];
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase
+    .from("order_affiliates")
+    .select("id, order_id, affiliate_id, code, commission_cents, status, created_at")
+    .order("created_at", { ascending: false })
+    .limit(200);
+
+  if (!data) {
+    return [];
+  }
+
+  return data.map((row) => ({
+    id: String(row.id),
+    order_id: String(row.order_id),
+    affiliate_id: String(row.affiliate_id),
+    code: String(row.code),
+    commission_cents: Number(row.commission_cents ?? 0),
+    status: (row.status as "pending" | "approved" | "paid" | "canceled") ?? "pending",
+    created_at: String(row.created_at ?? new Date().toISOString()),
+  }));
 }

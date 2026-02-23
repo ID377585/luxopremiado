@@ -35,7 +35,7 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
 
     const { data: raffle } = await supabase
       .from("raffles")
-      .select("id, title, description, cover_image_url, price_cents, draw_date, max_numbers_per_user")
+      .select("id, title, description, cover_image_url, price_cents, draw_date, max_numbers_per_user, total_numbers")
       .eq("slug", slug)
       .maybeSingle();
 
@@ -55,7 +55,7 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
         .select("number, status")
         .eq("raffle_id", raffle.id)
         .order("number", { ascending: true })
-        .limit(120),
+        .limit(200),
       supabase.from("social_proof").select("title, content").eq("raffle_id", raffle.id).limit(3),
       supabase
         .from("faq")
@@ -85,6 +85,7 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
       ...fallbackRaffleData,
       raffleId: String(raffle.id),
       slug,
+      totalNumbers: Number(raffle.total_numbers ?? fallbackRaffleData.totalNumbers),
       maxNumbersPerUser: Number(raffle.max_numbers_per_user ?? fallbackRaffleData.maxNumbersPerUser),
       hero: {
         ...fallbackRaffleData.hero,

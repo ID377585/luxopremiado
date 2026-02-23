@@ -352,6 +352,10 @@
   margin-bottom: 0.75rem;
 }
 
+.turnstileWrap {
+  margin-bottom: 0.75rem;
+}
+
 .actionButton,
 .actionButtonGhost {
   border-radius: 0.65rem;
@@ -371,6 +375,67 @@
   background: transparent;
   border: 1px solid rgba(148, 163, 184, 0.44);
   color: #e2e8f0;
+}
+
+.checkoutControls {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+}
+
+.checkoutLabel {
+  color: #dbeafe;
+  display: grid;
+  font-size: 0.84rem;
+  gap: 0.35rem;
+}
+
+.checkoutSelect {
+  background: rgba(2, 6, 23, 0.64);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 0.6rem;
+  color: #f8fafc;
+  padding: 0.5rem 0.65rem;
+}
+
+.pixBox {
+  background: rgba(2, 6, 23, 0.62);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  border-radius: 0.65rem;
+  margin-top: 0.75rem;
+  padding: 0.7rem;
+}
+
+.pixBox strong {
+  color: #bbf7d0;
+}
+
+.pixBox p {
+  color: #e2e8f0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  margin-top: 0.35rem;
+  word-break: break-all;
+}
+
+.checkoutSuccess,
+.checkoutWarning {
+  border-radius: 0.65rem;
+  font-size: 0.84rem;
+  margin-top: 0.65rem;
+  padding: 0.62rem 0.7rem;
+}
+
+.checkoutSuccess {
+  background: rgba(34, 197, 94, 0.16);
+  border: 1px solid rgba(34, 197, 94, 0.42);
+  color: #bbf7d0;
+}
+
+.checkoutWarning {
+  background: rgba(239, 68, 68, 0.16);
+  border: 1px solid rgba(239, 68, 68, 0.42);
+  color: #fecaca;
 }
 
 .numberTile {

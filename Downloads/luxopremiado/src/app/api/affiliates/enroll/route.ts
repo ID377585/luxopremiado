@@ -10,6 +10,11 @@ const enrollSchema = z.object({
     .trim()
     .regex(/^[a-zA-Z0-9_-]{3,40}$/)
     .optional(),
+  raffleSlug: z
+    .string()
+    .trim()
+    .regex(/^[a-z0-9-]{2,90}$/)
+    .optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -46,11 +51,24 @@ export async function POST(request: NextRequest) {
     }
 
     const site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+    let raffleSlug = parsed.data.raffleSlug ?? null;
+
+    if (!raffleSlug) {
+      const { data: raffle } = await supabase
+        .from("raffles")
+        .select("slug")
+        .in("status", ["active", "draft"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      raffleSlug = (raffle?.slug as string | undefined) ?? "luxo-premiado";
+    }
 
     return NextResponse.json({
       success: true,
       code: data,
-      referralUrl: `${site}/r/luxo-premiado?ref=${encodeURIComponent(String(data))}`,
+      referralUrl: `${site}/r/${raffleSlug}?ref=${encodeURIComponent(String(data))}`,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erro inesperado";

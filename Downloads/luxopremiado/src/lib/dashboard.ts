@@ -229,3 +229,20 @@ export async function getMyAffiliate(userId: string): Promise<DashboardAffiliate
     total_referred_orders: referrals?.length ?? 0,
   };
 }
+
+export async function getDefaultAffiliateRaffleSlug(): Promise<string> {
+  if (!hasSupabaseEnv()) {
+    return "luxo-premiado";
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase
+    .from("raffles")
+    .select("slug")
+    .in("status", ["active", "draft"])
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return (data?.slug as string | undefined) ?? "luxo-premiado";
+}

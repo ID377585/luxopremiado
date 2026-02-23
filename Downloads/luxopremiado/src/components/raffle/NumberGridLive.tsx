@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import styles from "@/components/raffle/sections.module.css";
+import { TurnstileWidget } from "@/components/security/TurnstileWidget";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { NumberStatus, NumberTile } from "@/types/raffle";
 
@@ -10,7 +11,15 @@ interface NumberGridLiveProps {
   raffleId: string | null;
   raffleSlug: string;
   initialNumbers: NumberTile[];
+  totalNumbers: number;
   maxNumbersPerUser: number;
+  onReservationCreated?: (reservation: {
+    orderId: string;
+    raffleId: string;
+    reservedNumbers: number[];
+    amountCents: number;
+    expiresAt: string | null;
+  }) => void;
 }
 
 function normalizeStatus(status: unknown): NumberStatus {
@@ -25,19 +34,75 @@ export function NumberGridLive({
   raffleId,
   raffleSlug,
   initialNumbers,
+  totalNumbers,
   maxNumbersPerUser,
+  onReservationCreated,
 }: NumberGridLiveProps) {
+  const pageSize = 200;
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const [numbers, setNumbers] = useState(initialNumbers);
+  const [page, setPage] = useState(1);
+  const [pageLoading, setPageLoading] = useState(false);
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
   const [message, setMessage] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [isLive, setIsLive] = useState(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
+  const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
 
   useEffect(() => {
     setNumbers(initialNumbers);
+    setPage(1);
   }, [initialNumbers]);
+
+  useEffect(() => {
+    if (page === 1) {
+      return;
+    }
+
+    const controller = new AbortController();
+    setPageLoading(true);
+
+    const fetchPage = async () => {
+      try {
+        const response = await fetch(
+          `/api/raffles/${encodeURIComponent(raffleSlug)}/numbers?page=${page}&pageSize=${pageSize}`,
+          {
+            method: "GET",
+            cache: "no-store",
+            signal: controller.signal,
+          },
+        );
+
+        const data = (await response.json()) as {
+          error?: string;
+          numbers?: NumberTile[];
+        };
+
+        if (!response.ok || !data.numbers) {
+          setMessage(data.error ?? "Falha ao carregar os números desta página.");
+          return;
+        }
+
+        setNumbers(data.numbers);
+      } catch {
+        if (!controller.signal.aborted) {
+          setMessage("Erro de conexão ao carregar página de números.");
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setPageLoading(false);
+        }
+      }
+    };
+
+    void fetchPage();
+
+    return () => {
+      controller.abort();
+    };
+  }, [page, pageSize, raffleSlug]);
 
   useEffect(() => {
     setSelectedNumbers((current) =>
@@ -96,6 +161,7 @@ export function NumberGridLive({
   const available = numbers.filter((item) => item.status === "available").length;
   const reserved = numbers.filter((item) => item.status === "reserved").length;
   const sold = numbers.filter((item) => item.status === "sold").length;
+  const totalPages = Math.max(1, Math.ceil(totalNumbers / pageSize));
 
   function toggleNumberSelection(number: number, status: NumberStatus) {
     if (status !== "available" || loading) {
@@ -113,6 +179,11 @@ export function NumberGridLive({
     setMessage("");
 
     try {
+      if (turnstileEnabled && !turnstileToken) {
+        setMessage("Complete a validação de segurança para continuar.");
+        return;
+      }
+
       const affiliateCode = localStorage.getItem("lp_ref") ?? undefined;
 
       const response = await fetch(`/api/raffles/${encodeURIComponent(raffleSlug)}/reserve`, {
@@ -125,10 +196,21 @@ export function NumberGridLive({
           qty: payload.qty,
           affiliateCode,
           botTrap: "",
+          turnstileToken: turnstileToken ?? undefined,
         }),
       });
 
-      const data = (await response.json()) as { error?: string; success?: boolean };
+      const data = (await response.json()) as {
+        error?: string;
+        success?: boolean;
+        reservation?: {
+          orderId: string;
+          raffleId: string;
+          reservedNumbers: number[];
+          amountCents: number;
+          expiresAt: string | null;
+        } | null;
+      };
 
       if (!response.ok) {
         setMessage(data.error ?? "Não foi possível reservar os números.");
@@ -137,6 +219,9 @@ export function NumberGridLive({
 
       setSelectedNumbers([]);
       setMessage("Reserva criada com sucesso. Siga para o pagamento.");
+      if (data.reservation) {
+        onReservationCreated?.(data.reservation);
+      }
     } catch {
       setMessage("Erro de conexão ao tentar reservar os números.");
     } finally {
@@ -164,9 +249,31 @@ export function NumberGridLive({
         <span className={styles.filterTag}>Reservados: {reserved}</span>
         <span className={styles.filterTag}>Vendidos: {sold}</span>
         <span className={styles.filterTag}>Limite por usuário: {maxNumbersPerUser || "sem limite"}</span>
+        <span className={styles.filterTag}>
+          Página {page}/{totalPages}
+        </span>
         <span className={`${styles.filterTag} ${isLive ? styles.liveOn : styles.liveOff}`}>
           {isLive ? "Ao vivo" : "Offline"}
         </span>
+      </div>
+
+      <div className={styles.actionRow}>
+        <button
+          className={styles.actionButtonGhost}
+          disabled={page <= 1 || pageLoading}
+          onClick={() => setPage((current) => Math.max(1, current - 1))}
+          type="button"
+        >
+          Página anterior
+        </button>
+        <button
+          className={styles.actionButtonGhost}
+          disabled={page >= totalPages || pageLoading}
+          onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+          type="button"
+        >
+          Próxima página
+        </button>
       </div>
 
       <div className={styles.actionRow}>
@@ -178,7 +285,14 @@ export function NumberGridLive({
         </button>
       </div>
 
+      {turnstileEnabled ? (
+        <div className={styles.turnstileWrap}>
+          <TurnstileWidget onTokenChange={setTurnstileToken} />
+        </div>
+      ) : null}
+
       {message ? <p className={styles.liveMeta}>{message}</p> : null}
+      {pageLoading ? <p className={styles.liveMeta}>Carregando página de números...</p> : null}
 
       {lastUpdatedAt ? (
         <p className={styles.liveMeta}>Última atualização: {lastUpdatedAt.toLocaleTimeString("pt-BR")}</p>

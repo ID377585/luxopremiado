@@ -64,6 +64,7 @@ export interface FaqItem {
 export interface RaffleLandingData {
   raffleId: string | null;
   slug: string;
+  totalNumbers: number;
   maxNumbersPerUser: number;
   hero: HeroData;
   prize: PrizeData;

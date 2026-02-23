@@ -39,6 +39,7 @@ cp .env.example .env.local
 - `NEXT_PUBLIC_SITE_URL`
 - `WEBHOOK_SECRET` (opcional)
 - `CRON_SECRET` (opcional)
+- `ALERT_WEBHOOK_URL` (opcional, para alertas operacionais)
 - `TURNSTILE_SECRET_KEY` (opcional, recomendado para anti-bot)
 - `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (opcional para frontend com Turnstile)
 
@@ -56,6 +57,7 @@ Execute no SQL Editor do Supabase:
 
 - `supabase/migrations/20260223152000_init_luxo_premiado.sql`
 - `supabase/migrations/20260223201500_growth_features_realtime_antibot_affiliates.sql`
+- `supabase/migrations/20260223214000_observability_platform_events.sql`
 
 ### Seed opcional
 
@@ -85,6 +87,18 @@ select public.generate_raffle_numbers('<RAFFLE_ID>');
 - `POST /api/cron/expire-reservations`
 - `POST /api/affiliates/enroll`
 - `GET /api/affiliates/me`
+
+## Testes
+
+```bash
+npm run test
+```
+
+Para cobertura:
+
+```bash
+npm run test:coverage
+```
 
 ## Fluxo crítico
 

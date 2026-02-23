@@ -19,6 +19,7 @@ function buildNumberTiles(total: number): NumberTile[] {
 export const fallbackRaffleData: RaffleLandingData = {
   raffleId: null,
   slug: "luxo-premiado",
+  totalNumbers: 120,
   maxNumbersPerUser: 50,
   hero: {
     title: "Luxo Premiado",

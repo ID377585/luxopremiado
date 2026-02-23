@@ -41,6 +41,9 @@ export default async function AdminLayout({
           <Link className={styles.dashboardLink} href="/admin/provas">
             Provas
           </Link>
+          <Link className={styles.dashboardLink} href="/admin/afiliados">
+            Afiliados
+          </Link>
           <Link className={styles.dashboardLink} href="/admin/transparencia">
             Transparência
           </Link>
