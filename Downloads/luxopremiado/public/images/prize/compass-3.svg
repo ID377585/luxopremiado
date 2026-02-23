@@ -1,0 +1,8 @@
+<svg width="800" height="500" viewBox="0 0 800 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="500" rx="24" fill="#0F172A"/>
+  <rect x="60" y="70" width="680" height="360" rx="20" fill="#111827"/>
+  <path d="M175 292C175 265.49 196.49 244 223 244H577C603.51 244 625 265.49 625 292V310H175V292Z" fill="#FB923C"/>
+  <circle cx="260" cy="330" r="36" fill="#020617"/>
+  <circle cx="540" cy="330" r="36" fill="#020617"/>
+  <text x="85" y="108" fill="#FDBA74" font-family="Arial" font-size="24" font-weight="700">Prêmio principal com entrega nacional</text>
+</svg>

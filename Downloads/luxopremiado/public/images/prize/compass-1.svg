@@ -1,0 +1,8 @@
+<svg width="800" height="500" viewBox="0 0 800 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="500" rx="24" fill="#111827"/>
+  <rect x="40" y="60" width="720" height="380" rx="18" fill="#F59E0B"/>
+  <path d="M180 290C180 250.235 212.235 218 252 218H548C587.765 218 620 250.235 620 290V300H180V290Z" fill="#0F172A"/>
+  <circle cx="260" cy="324" r="34" fill="#111827"/>
+  <circle cx="540" cy="324" r="34" fill="#111827"/>
+  <text x="60" y="110" fill="#111827" font-family="Arial" font-size="38" font-weight="700">Luxo Premiado</text>
+</svg>

@@ -1,0 +1,121 @@
+import { fallbackRaffleData } from "@/lib/landing-data";
+import { formatBrlFromCents } from "@/lib/format";
+import { hasSupabaseEnv } from "@/lib/env";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { NumberStatus, RaffleLandingData } from "@/types/raffle";
+
+function createFallback(slug: string): RaffleLandingData {
+  return {
+    ...fallbackRaffleData,
+    slug,
+  };
+}
+
+function normalizeNumberStatus(status: string | null): NumberStatus {
+  if (status === "reserved" || status === "sold") {
+    return status;
+  }
+
+  return "available";
+}
+
+export async function getRaffleLandingData(slug: string): Promise<RaffleLandingData> {
+  if (!hasSupabaseEnv()) {
+    return createFallback(slug);
+  }
+
+  try {
+    const supabase = await createSupabaseServerClient();
+
+    const { data: raffle } = await supabase
+      .from("raffles")
+      .select("id, title, description, cover_image_url, price_cents, draw_date")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (!raffle) {
+      return createFallback(slug);
+    }
+
+    const [imagesResult, numbersResult, socialProofResult, faqResult, transparencyResult] = await Promise.all([
+      supabase
+        .from("raffle_images")
+        .select("url")
+        .eq("raffle_id", raffle.id)
+        .order("sort_order", { ascending: true }),
+      supabase
+        .from("v_raffle_numbers_public")
+        .select("number, status")
+        .eq("raffle_id", raffle.id)
+        .order("number", { ascending: true })
+        .limit(120),
+      supabase.from("social_proof").select("title, content").eq("raffle_id", raffle.id).limit(3),
+      supabase
+        .from("faq")
+        .select("question, answer")
+        .or(`raffle_id.eq.${raffle.id},raffle_id.is.null`)
+        .order("sort_order", { ascending: true })
+        .limit(6),
+      supabase
+        .from("transparency")
+        .select("draw_method, organizer_name, organizer_doc, contact, rules")
+        .eq("raffle_id", raffle.id)
+        .maybeSingle(),
+    ]);
+
+    const drawDateText = raffle.draw_date
+      ? new Date(raffle.draw_date).toLocaleString("pt-BR", {
+          dateStyle: "short",
+          timeStyle: "short",
+        })
+      : fallbackRaffleData.hero.drawDateLabel;
+
+    return {
+      ...fallbackRaffleData,
+      slug,
+      hero: {
+        ...fallbackRaffleData.hero,
+        title: raffle.title,
+        subtitle: raffle.description ?? fallbackRaffleData.hero.subtitle,
+        drawDateLabel: `Sorteio: ${drawDateText}`,
+        priceLabel: `${formatBrlFromCents(raffle.price_cents)} por número`,
+      },
+      prize: {
+        ...fallbackRaffleData.prize,
+        title: raffle.title,
+        description: raffle.description ?? fallbackRaffleData.prize.description,
+        images:
+          imagesResult.data?.length && imagesResult.data.every((item) => Boolean(item.url))
+            ? (imagesResult.data.map((item) => item.url) as string[])
+            : fallbackRaffleData.prize.images,
+      },
+      numberTiles:
+        numbersResult.data?.map((item) => ({
+          number: Number(item.number),
+          status: normalizeNumberStatus(typeof item.status === "string" ? item.status : null),
+        })) ??
+        fallbackRaffleData.numberTiles,
+      socialProof:
+        socialProofResult.data?.length
+          ? socialProofResult.data.map((item) => ({
+              title: item.title ?? "Depoimento",
+              content: item.content ?? "",
+              author: "Participante",
+            }))
+          : fallbackRaffleData.socialProof,
+      faq:
+        faqResult.data?.length
+          ? faqResult.data.map((item) => ({ question: item.question, answer: item.answer }))
+          : fallbackRaffleData.faq,
+      transparency: {
+        drawMethod: transparencyResult.data?.draw_method ?? fallbackRaffleData.transparency.drawMethod,
+        organizer: transparencyResult.data?.organizer_name ?? fallbackRaffleData.transparency.organizer,
+        organizerDoc: transparencyResult.data?.organizer_doc ?? fallbackRaffleData.transparency.organizerDoc,
+        contact: transparencyResult.data?.contact ?? fallbackRaffleData.transparency.contact,
+        rulesSummary: transparencyResult.data?.rules ?? fallbackRaffleData.transparency.rulesSummary,
+      },
+    };
+  } catch {
+    return createFallback(slug);
+  }
+}

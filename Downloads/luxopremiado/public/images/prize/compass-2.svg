@@ -1,0 +1,13 @@
+<svg width="800" height="500" viewBox="0 0 800 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="800" y2="500" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B1220"/>
+      <stop offset="1" stop-color="#1E293B"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" rx="24" fill="url(#g)"/>
+  <rect x="100" y="155" width="600" height="205" rx="32" fill="#F97316"/>
+  <circle cx="230" cy="372" r="42" fill="#0F172A"/>
+  <circle cx="570" cy="372" r="42" fill="#0F172A"/>
+  <text x="130" y="130" fill="#F8FAFC" font-family="Arial" font-size="28" font-weight="700">Jeep Compass Série S</text>
+</svg>
