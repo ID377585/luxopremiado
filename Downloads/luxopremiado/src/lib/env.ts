@@ -8,8 +8,25 @@ function requireEnv(name: string): string {
   return value;
 }
 
+function getDefaultSiteUrl(): string {
+  const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL;
+
+  if (vercelHost) {
+    const host = vercelHost.replace(/^https?:\/\//i, "").trim().replace(/\/+$/, "");
+    if (host) {
+      return `https://${host}`;
+    }
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    return "https://luxopremiado.vercel.app";
+  }
+
+  return "http://localhost:3000";
+}
+
 function normalizeSiteUrl(rawValue: string | undefined): string {
-  const fallback = "http://localhost:3000";
+  const fallback = getDefaultSiteUrl();
   const normalized = (rawValue ?? "").trim().replace(/\s+/g, "");
 
   if (!normalized) {
