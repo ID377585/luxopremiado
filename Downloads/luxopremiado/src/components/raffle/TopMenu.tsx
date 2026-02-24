@@ -8,15 +8,17 @@ const primaryItems: Array<{ label: string; href: string; icon?: "lock" }> = [
   { label: "Início", href: "#inicio" },
   { label: "Prêmio", href: "#premio" },
   { label: "Como Funciona", href: "#como-funciona" },
+  { label: "Ranking", href: "#ranking-compradores" },
+  { label: "Transparência", href: "#transparencia" },
+  { label: "FAQ", href: "#faq" },
   { label: "Área do Usuário", href: "/area-do-usuario", icon: "lock" },
 ];
 
 const quickMenuItems: Array<{ label: string; href: string }> = [
   { label: "Escolher Números", href: "/app/comprar" },
+  { label: "Pacotes", href: "#pacotes" },
   { label: "Pagamento", href: "/app/comprar#pagamento" },
-  { label: "Transparência", href: "#transparencia" },
   { label: "Prova Social", href: "#prova-social" },
-  { label: "FAQ", href: "#faq" },
 ];
 
 export function TopMenu() {
@@ -87,6 +89,9 @@ export function TopMenu() {
               </a>
             ))}
           </div>
+          <a className={styles.topMenuCta} href="/app/comprar">
+            Comprar agora
+          </a>
 
           <button
             aria-controls="menu-rapido-campanha"

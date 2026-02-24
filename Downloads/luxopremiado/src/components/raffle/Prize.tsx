@@ -12,8 +12,10 @@ export function Prize({ data }: PrizeProps) {
     <section className={styles.section} id="premio">
       <div className={styles.container}>
         <header className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Prêmio</h2>
-          <p className={styles.sectionSubtitle}>Visualização oficial do prêmio principal da campanha.</p>
+          <h2 className={styles.sectionTitle}>Prêmio principal: {data.title}</h2>
+          <p className={styles.sectionSubtitle}>
+            Prêmio real com entrega registrada e atualização transparente em cada etapa.
+          </p>
         </header>
 
         <div className={styles.prizeGrid}>
@@ -42,6 +44,7 @@ export function Prize({ data }: PrizeProps) {
                 </li>
               ))}
             </ul>
+            <p className={styles.prizeTrustText}>Entrega com registro público para reforçar segurança e confiança.</p>
           </article>
         </div>
       </div>

@@ -10,8 +10,10 @@ export function Transparency({ data }: TransparencyProps) {
     <section className={styles.section} id="transparencia">
       <div className={styles.container}>
         <header className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Transparência</h2>
-          <p className={styles.sectionSubtitle}>Regras, método de sorteio e identificação do organizador.</p>
+          <h2 className={styles.sectionTitle}>Transparência de verdade</h2>
+          <p className={styles.sectionSubtitle}>
+            Método do sorteio, regras e dados do organizador publicados para você participar com tranquilidade.
+          </p>
         </header>
 
         <ul className={styles.transparencyList}>
@@ -36,6 +38,7 @@ export function Transparency({ data }: TransparencyProps) {
             <span>{data.rulesSummary}</span>
           </li>
         </ul>
+        <p className={styles.transparencyFootnote}>Tudo que é combinado fica registrado na página da campanha.</p>
       </div>
     </section>
   );

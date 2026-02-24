@@ -14,6 +14,7 @@ interface NumberGridLiveProps {
   initialNumbers: NumberTile[];
   totalNumbers: number;
   maxNumbersPerUser: number;
+  recommendedPackQty?: number | null;
   isAuthenticated?: boolean;
   onReservationCreated?: (reservation: {
     orderId: string;
@@ -38,6 +39,7 @@ export function NumberGridLive({
   initialNumbers,
   totalNumbers,
   maxNumbersPerUser,
+  recommendedPackQty = null,
   isAuthenticated = false,
   onReservationCreated,
 }: NumberGridLiveProps) {
@@ -253,8 +255,8 @@ export function NumberGridLive({
     await reserve({ numbers: selectedNumbers });
   }
 
-  async function reserveRandom() {
-    await reserve({ qty: 5 });
+  async function reserveRandom(qty = 5) {
+    await reserve({ qty });
   }
 
   return (
@@ -298,8 +300,37 @@ export function NumberGridLive({
         <button className={styles.actionButton} disabled={!isAuthenticated || loading} onClick={reserveSelected} type="button">
           {loading ? "Reservando..." : `Reservar selecionados (${selectedNumbers.length})`}
         </button>
-        <button className={styles.actionButtonGhost} disabled={!isAuthenticated || loading} onClick={reserveRandom} type="button">
+        <button
+          className={`${styles.actionButtonGhost} ${recommendedPackQty === 5 ? styles.actionButtonHot : ""}`}
+          disabled={!isAuthenticated || loading}
+          onClick={() => reserveRandom(5)}
+          type="button"
+        >
           Reservar 5 aleatórios
+        </button>
+        <button
+          className={`${styles.actionButtonGhost} ${recommendedPackQty === 10 ? styles.actionButtonHot : ""}`}
+          disabled={!isAuthenticated || loading}
+          onClick={() => reserveRandom(10)}
+          type="button"
+        >
+          Reservar 10 (Popular)
+        </button>
+        <button
+          className={`${styles.actionButtonGhost} ${recommendedPackQty === 25 ? styles.actionButtonHot : ""}`}
+          disabled={!isAuthenticated || loading}
+          onClick={() => reserveRandom(25)}
+          type="button"
+        >
+          Reservar 25 (Turbo)
+        </button>
+        <button
+          className={`${styles.actionButtonGhost} ${recommendedPackQty === 50 ? styles.actionButtonHot : ""}`}
+          disabled={!isAuthenticated || loading}
+          onClick={() => reserveRandom(50)}
+          type="button"
+        >
+          Reservar 50 (Top)
         </button>
       </div>
 
@@ -312,6 +343,9 @@ export function NumberGridLive({
       {message ? <p className={styles.liveMeta}>{message}</p> : null}
       {pageLoading ? <p className={styles.liveMeta}>Carregando página de números...</p> : null}
       {!isAuthenticated ? <p className={styles.liveMeta}>Faça login para liberar seleção e pagamento.</p> : null}
+      {recommendedPackQty ? (
+        <p className={styles.liveMeta}>Pacote sugerido ativo: {recommendedPackQty} números. Clique no botão correspondente.</p>
+      ) : null}
 
       {lastUpdatedAt ? (
         <p className={styles.liveMeta}>Última atualização: {lastUpdatedAt.toLocaleTimeString("pt-BR")}</p>

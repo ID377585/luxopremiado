@@ -45,13 +45,13 @@ export const fallbackRaffleData: RaffleLandingData = {
   totalNumbers: FALLBACK_TOTAL_NUMBERS,
   maxNumbersPerUser: 50,
   hero: {
-    title: "Luxo Premiado",
+    title: "Sua chance de concorrer a um prêmio grande começa com poucos cliques.",
     subtitle:
-      "Concorra a um Jeep Compass Série S 0km com sorteio público e números rastreáveis.",
+      "Escolha seus números, pague no PIX e acompanhe tudo com transparência. Compra rápida, confirmação automática e sorteio auditável.",
     drawDateLabel: "Sorteio: 30/04/2026 às 19:00",
     priceLabel: "R$ 19,90 por número",
-    badges: ["PIX imediato", "Sorteio auditável", "Suporte 7 dias"],
-    ctaLabel: "Escolher números",
+    badges: ["PIX imediato (sem enrolação)", "Números rastreáveis em tempo real", "Ranking de compradores"],
+    ctaLabel: "QUERO ESCOLHER MEUS NÚMEROS AGORA",
   },
   prize: {
     title: "Jeep Compass Série S 0km",
@@ -72,20 +72,19 @@ export const fallbackRaffleData: RaffleLandingData = {
   howItWorks: [
     {
       title: "1. Crie sua conta",
-      description: "Cadastro rápido com e-mail e senha para acompanhar seus pedidos.",
+      description: "Cadastro rápido para acompanhar números, pagamento e confirmação em um só painel.",
     },
     {
       title: "2. Selecione os números",
-      description:
-        "Escolha números específicos ou use seleção aleatória inteligente.",
+      description: "Escolha manualmente ou use pacotes aleatórios para ganhar velocidade na compra.",
     },
     {
       title: "3. Finalize pagamento",
-      description: "Pague por PIX ou cartão e receba confirmação automática.",
+      description: "Finalize no PIX e acompanhe o status em tempo real direto no checkout.",
     },
     {
       title: "4. Acompanhe o sorteio",
-      description: "Veja resultado, auditoria e histórico no painel do usuário.",
+      description: "Resultado, auditoria e histórico publicados com transparência na campanha.",
     },
   ],
   numberTiles: buildFallbackNumberTiles({
@@ -100,6 +99,37 @@ export const fallbackRaffleData: RaffleLandingData = {
     { position: 4, participant: "Carlos #1A2", totalNumbers: 62, trendDelta: -2 },
     { position: 5, participant: "Amanda #7C1", totalNumbers: 55, trendDelta: 1 },
   ],
+  packages: [
+    {
+      id: "popular",
+      name: "Pacote Popular",
+      quantity: 10,
+      totalCents: 19900,
+      badge: "Mais vendido",
+      description: "Entrada rápida na disputa com mais chance de confirmação.",
+      highlight: true,
+    },
+    {
+      id: "turbo",
+      name: "Pacote Turbo",
+      quantity: 25,
+      totalCents: 49750,
+      description: "Mais volume para subir no ranking e aumentar alcance no sorteio.",
+    },
+    {
+      id: "top-ranking",
+      name: "Pacote Top Ranking",
+      quantity: 50,
+      totalCents: 99500,
+      description: "Foco total em posição no ranking e maior cobertura de números.",
+    },
+  ],
+  stats: {
+    availableNumbers: 8412,
+    reservedNumbers: 1142,
+    soldNumbers: 7846,
+    averagePerUser: 4.8,
+  },
   checkoutMethods: [
     {
       name: "PIX",
@@ -120,21 +150,18 @@ export const fallbackRaffleData: RaffleLandingData = {
   },
   socialProof: [
     {
-      title: "Entrega registrada",
-      content:
-        "Recebi meu prêmio sem dor de cabeça, com toda documentação pronta e transmissão ao vivo.",
-      author: "Marina, Salvador/BA",
+      title: "Pagamento confirmado em minutos",
+      content: "Paguei no PIX e meus números apareceram confirmados no painel na mesma hora.",
+      author: "João, Campinas/SP",
     },
     {
-      title: "Compra simples",
-      content:
-        "Escolhi meus números no celular e paguei no PIX em menos de 2 minutos.",
+      title: "Compra pelo celular",
+      content: "Escolhi os números no celular e finalizei em menos de 2 minutos.",
       author: "Rodrigo, Campinas/SP",
     },
     {
-      title: "Plataforma confiável",
-      content:
-        "Curti a transparência do sorteio e o histórico de ganhadores no próprio site.",
+      title: "Transparência no sorteio",
+      content: "Consegui acompanhar tudo e conferir o resultado com clareza na própria página.",
       author: "Leila, Recife/PE",
     },
   ],

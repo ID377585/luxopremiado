@@ -36,6 +36,23 @@ export interface CheckoutMethod {
   description: string;
 }
 
+export interface PackageOffer {
+  id: string;
+  name: string;
+  quantity: number;
+  totalCents: number;
+  badge?: string;
+  description: string;
+  highlight?: boolean;
+}
+
+export interface CampaignStats {
+  availableNumbers: number;
+  reservedNumbers: number;
+  soldNumbers: number;
+  averagePerUser: number;
+}
+
 export interface BuyerRankingEntry {
   position: number;
   participant: string;
@@ -72,6 +89,8 @@ export interface RaffleLandingData {
   howItWorks: HowItWorksStep[];
   numberTiles: NumberTile[];
   buyerRanking: BuyerRankingEntry[];
+  packages: PackageOffer[];
+  stats: CampaignStats;
   checkoutMethods: CheckoutMethod[];
   transparency: TransparencyData;
   socialProof: SocialProofEntry[];

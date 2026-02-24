@@ -60,6 +60,13 @@ function mergeFaqItems(items: FaqItem[]): FaqItem[] {
   return merged;
 }
 
+function buildPackagesForUnitPrice(unitPriceCents: number) {
+  return fallbackRaffleData.packages.map((pack) => ({
+    ...pack,
+    totalCents: unitPriceCents * pack.quantity,
+  }));
+}
+
 export async function getRaffleLandingData(slug: string): Promise<RaffleLandingData> {
   if (!hasSupabaseEnv()) {
     return createFallback(slug);
@@ -78,7 +85,7 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
       return createFallback(slug);
     }
 
-    const [imagesResult, numbersResult, socialProofResult, faqResult, transparencyResult, rankingResult] =
+    const [imagesResult, numbersResult, socialProofResult, faqResult, transparencyResult, rankingResult, soldCountResult, reservedCountResult] =
       await Promise.all([
       supabase
         .from("raffle_images")
@@ -91,13 +98,13 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
         .eq("raffle_id", raffle.id)
         .order("number", { ascending: true })
         .limit(200),
-      supabase.from("social_proof").select("title, content").eq("raffle_id", raffle.id).limit(3),
+      supabase.from("social_proof").select("title, content").eq("raffle_id", raffle.id).limit(8),
       supabase
         .from("faq")
         .select("question, answer")
         .or(`raffle_id.eq.${raffle.id},raffle_id.is.null`)
         .order("sort_order", { ascending: true })
-        .limit(12),
+        .limit(8),
       supabase
         .from("transparency")
         .select("draw_method, organizer_name, organizer_doc, contact, rules")
@@ -107,6 +114,12 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
         p_raffle_id: raffle.id,
         p_limit: 10,
       }),
+      supabase.from("raffle_numbers").select("id", { count: "exact", head: true }).eq("raffle_id", raffle.id).eq("status", "sold"),
+      supabase
+        .from("raffle_numbers")
+        .select("id", { count: "exact", head: true })
+        .eq("raffle_id", raffle.id)
+        .eq("status", "reserved"),
     ]);
 
     const drawDateText = raffle.draw_date
@@ -115,19 +128,23 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
           timeStyle: "short",
         })
       : fallbackRaffleData.hero.drawDateLabel;
+    const soldNumbers = Number(soldCountResult.count ?? fallbackRaffleData.stats.soldNumbers);
+    const reservedNumbers = Number(reservedCountResult.count ?? fallbackRaffleData.stats.reservedNumbers);
+    const totalNumbers = Number(raffle.total_numbers ?? fallbackRaffleData.totalNumbers);
+    const unitPriceCents = Number(raffle.price_cents ?? 1990);
+    const availableNumbers = Math.max(0, totalNumbers - soldNumbers - reservedNumbers);
 
     return {
       ...fallbackRaffleData,
       raffleId: String(raffle.id),
       slug,
-      totalNumbers: Number(raffle.total_numbers ?? fallbackRaffleData.totalNumbers),
+      totalNumbers,
       maxNumbersPerUser: Number(raffle.max_numbers_per_user ?? fallbackRaffleData.maxNumbersPerUser),
       hero: {
         ...fallbackRaffleData.hero,
-        title: raffle.title,
-        subtitle: raffle.description ?? fallbackRaffleData.hero.subtitle,
+        subtitle: fallbackRaffleData.hero.subtitle,
         drawDateLabel: `Sorteio: ${drawDateText}`,
-        priceLabel: `${formatBrlFromCents(raffle.price_cents)} por número`,
+        priceLabel: `${formatBrlFromCents(unitPriceCents)} por número`,
       },
       prize: {
         ...fallbackRaffleData.prize,
@@ -160,6 +177,13 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
                     ),
             }))
           : fallbackRaffleData.buyerRanking,
+      packages: buildPackagesForUnitPrice(unitPriceCents),
+      stats: {
+        availableNumbers,
+        reservedNumbers,
+        soldNumbers,
+        averagePerUser: fallbackRaffleData.stats.averagePerUser,
+      },
       socialProof:
         socialProofResult.data?.length
           ? socialProofResult.data.map((item) => ({
@@ -170,7 +194,7 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
           : fallbackRaffleData.socialProof,
       faq:
         faqResult.data?.length
-          ? mergeFaqItems(faqResult.data.map((item) => ({ question: item.question, answer: item.answer })))
+          ? mergeFaqItems(faqResult.data.map((item) => ({ question: item.question, answer: item.answer }))).slice(0, 8)
           : fallbackRaffleData.faq,
       transparency: {
         drawMethod: transparencyResult.data?.draw_method ?? fallbackRaffleData.transparency.drawMethod,

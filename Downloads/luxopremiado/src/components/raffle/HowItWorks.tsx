@@ -10,8 +10,10 @@ export function HowItWorks({ steps }: HowItWorksProps) {
     <section className={styles.section} id="como-funciona">
       <div className={styles.container}>
         <header className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Como Funciona</h2>
-          <p className={styles.sectionSubtitle}>Fluxo pensado para compra rápida, segura e rastreável.</p>
+          <h2 className={styles.sectionTitle}>Como participar (é bem simples)</h2>
+          <p className={styles.sectionSubtitle}>
+            Fluxo objetivo para você comprar rápido, confirmar no PIX e acompanhar tudo com transparência.
+          </p>
         </header>
 
         <div className={styles.stepsGrid}>

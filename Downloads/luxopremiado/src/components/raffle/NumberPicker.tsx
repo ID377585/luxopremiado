@@ -30,6 +30,7 @@ interface NumberPickerProps {
   totalNumbers: number;
   raffleId: string | null;
   maxNumbersPerUser: number;
+  recommendedPackQty?: number | null;
 }
 
 function formatBrl(cents: number): string {
@@ -59,6 +60,7 @@ export function NumberPicker({
   totalNumbers,
   raffleId,
   maxNumbersPerUser,
+  recommendedPackQty = null,
 }: NumberPickerProps) {
   const [reservation, setReservation] = useState<ReservationState | null>(null);
   const [payment, setPayment] = useState<PaymentState | null>(null);
@@ -225,7 +227,9 @@ export function NumberPicker({
       <div className={styles.container}>
         <header className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Escolher Números</h2>
-          <p className={styles.sectionSubtitle}>Seleção manual ou aleatória com reserva temporária automática.</p>
+          <p className={styles.sectionSubtitle}>
+            Seleção manual ou pacotes aleatórios com reserva temporária automática para fechar no PIX.
+          </p>
         </header>
 
         <div className={styles.numberPickerWrap}>
@@ -237,6 +241,7 @@ export function NumberPicker({
               onReservationCreated={handleReservationCreated}
               raffleId={raffleId}
               raffleSlug={raffleSlug}
+              recommendedPackQty={recommendedPackQty}
               totalNumbers={totalNumbers}
             />
           </div>

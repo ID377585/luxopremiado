@@ -26,9 +26,9 @@ export function BuyerRanking({ entries }: BuyerRankingProps) {
     <section className={styles.section} id="ranking-compradores">
       <div className={styles.container}>
         <header className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Ranking de Compradores</h2>
+          <h2 className={styles.sectionTitle}>Ranking de compradores — suba de posição</h2>
           <p className={styles.sectionSubtitle}>
-            Top participantes por quantidade de números confirmados nesta campanha.
+            Aqui a disputa é real: quem confirma mais números aparece no topo e pressiona a concorrência.
           </p>
         </header>
 
@@ -65,6 +65,9 @@ export function BuyerRanking({ entries }: BuyerRankingProps) {
             );
           })}
         </ol>
+        <a className={styles.rankingCta} href="/app/comprar">
+          QUERO SUBIR NO RANKING
+        </a>
       </div>
     </section>
   );
