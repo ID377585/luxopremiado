@@ -58,6 +58,8 @@ export function NumberGridLive({
 
   useEffect(() => {
     if (page === 1) {
+      setNumbers(initialNumbers);
+      setPageLoading(false);
       return;
     }
 
@@ -102,7 +104,7 @@ export function NumberGridLive({
     return () => {
       controller.abort();
     };
-  }, [page, pageSize, raffleSlug]);
+  }, [initialNumbers, page, pageSize, raffleSlug]);
 
   useEffect(() => {
     setSelectedNumbers((current) =>

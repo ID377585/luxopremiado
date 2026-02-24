@@ -4,11 +4,11 @@ import { useEffect, useRef, useState } from "react";
 
 import styles from "@/components/raffle/sections.module.css";
 
-const primaryItems: Array<{ label: string; href: string }> = [
+const primaryItems: Array<{ label: string; href: string; icon?: "lock" }> = [
   { label: "Início", href: "#inicio" },
   { label: "Prêmio", href: "#premio" },
   { label: "Como Funciona", href: "#como-funciona" },
-  { label: "Área do Usuário", href: "#area-usuario" },
+  { label: "Área do Usuário", href: "#area-usuario", icon: "lock" },
 ];
 
 const quickMenuItems: Array<{ label: string; href: string }> = [
@@ -56,6 +56,33 @@ export function TopMenu() {
           <div className={styles.topMenuPrimary}>
             {primaryItems.map((item) => (
               <a className={styles.topMenuLink} href={item.href} key={item.href}>
+                {item.icon === "lock" ? (
+                  <svg
+                    aria-hidden
+                    className={styles.topMenuLock}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M8 10V7.75C8 5.679 9.679 4 11.75 4H12.25C14.321 4 16 5.679 16 7.75V10"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.9"
+                    />
+                    <rect
+                      height="9"
+                      rx="2"
+                      stroke="currentColor"
+                      strokeLinejoin="round"
+                      strokeWidth="1.9"
+                      width="12"
+                      x="6"
+                      y="10"
+                    />
+                  </svg>
+                ) : null}
                 {item.label}
               </a>
             ))}

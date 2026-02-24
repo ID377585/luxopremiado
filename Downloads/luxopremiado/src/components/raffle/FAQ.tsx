@@ -15,10 +15,17 @@ export function FAQ({ items }: FAQProps) {
         </header>
 
         <ul className={styles.faqList}>
-          {items.map((item) => (
-            <li className={styles.faqItem} key={item.question}>
-              <strong>{item.question}</strong>
-              <span>{item.answer}</span>
+          {items.map((item, index) => (
+            <li className={styles.faqItem} key={`${item.question}-${index}`}>
+              <details className={styles.faqDisclosure}>
+                <summary className={styles.faqQuestion}>
+                  <span>{item.question}</span>
+                  <span aria-hidden className={styles.faqMarker}>
+                    +
+                  </span>
+                </summary>
+                <p className={styles.faqAnswer}>{item.answer}</p>
+              </details>
             </li>
           ))}
         </ul>
