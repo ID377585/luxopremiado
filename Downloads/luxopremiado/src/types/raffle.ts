@@ -41,6 +41,10 @@ export interface PackageOffer {
   name: string;
   quantity: number;
   totalCents: number;
+  referenceTotalCents?: number;
+  savingsCents?: number;
+  savingsPercent?: number;
+  pricePerNumberCents?: number;
   badge?: string;
   description: string;
   highlight?: boolean;
@@ -72,6 +76,32 @@ export interface SocialProofEntry {
   title: string;
   content: string;
   author: string;
+  avatarUrl?: string;
+}
+
+export interface WinnerWallEntry {
+  name: string;
+  prize: string;
+  city: string;
+  mediaUrl?: string;
+  mediaType?: "image" | "video";
+  verifiedAtLabel?: string;
+}
+
+export interface RetentionFeature {
+  title: string;
+  description: string;
+  channel: "email" | "whatsapp" | "painel";
+}
+
+export interface RetentionData {
+  title: string;
+  subtitle: string;
+  features: RetentionFeature[];
+  ctaPrimaryLabel: string;
+  ctaPrimaryHref: string;
+  ctaSecondaryLabel: string;
+  ctaSecondaryHref: string;
 }
 
 export interface FaqItem {
@@ -94,5 +124,7 @@ export interface RaffleLandingData {
   checkoutMethods: CheckoutMethod[];
   transparency: TransparencyData;
   socialProof: SocialProofEntry[];
+  winnerWall: WinnerWallEntry[];
+  retention: RetentionData;
   faq: FaqItem[];
 }

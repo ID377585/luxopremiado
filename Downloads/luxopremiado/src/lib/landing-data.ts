@@ -2,6 +2,33 @@ import { RaffleLandingData, NumberTile } from "@/types/raffle";
 
 export const FALLBACK_TOTAL_NUMBERS = 10_000;
 export const FALLBACK_INITIAL_PAGE_SIZE = 200;
+const DEFAULT_UNIT_PRICE_CENTS = 1990;
+
+const packageTemplates = [
+  {
+    id: "popular",
+    name: "Pacote Popular",
+    quantity: 10,
+    discountPercent: 5,
+    badge: "Mais vendido",
+    description: "Entrada rápida na disputa com economia por número e confirmação mais ágil.",
+    highlight: true,
+  },
+  {
+    id: "turbo",
+    name: "Pacote Turbo",
+    quantity: 25,
+    discountPercent: 10,
+    description: "Mais volume para subir no ranking e aumentar alcance no sorteio.",
+  },
+  {
+    id: "top-ranking",
+    name: "Pacote Top Ranking",
+    quantity: 50,
+    discountPercent: 15,
+    description: "Foco total em posição no ranking e maior cobertura de números com melhor custo.",
+  },
+] as const;
 
 function fallbackStatusForNumber(number: number): NumberTile["status"] {
   if (number % 9 === 0) {
@@ -35,6 +62,25 @@ export function buildFallbackNumberTiles(params: {
     return {
       number,
       status: fallbackStatusForNumber(number),
+    };
+  });
+}
+
+export function buildPackageOffersForUnitPrice(unitPriceCents: number) {
+  return packageTemplates.map((template) => {
+    const { discountPercent, ...baseTemplate } = template;
+    const referenceTotalCents = unitPriceCents * template.quantity;
+    const discountMultiplier = (100 - discountPercent) / 100;
+    const totalCents = Math.round(referenceTotalCents * discountMultiplier);
+    const savingsCents = Math.max(0, referenceTotalCents - totalCents);
+
+    return {
+      ...baseTemplate,
+      totalCents,
+      referenceTotalCents,
+      savingsCents,
+      savingsPercent: discountPercent,
+      pricePerNumberCents: Math.round(totalCents / template.quantity),
     };
   });
 }
@@ -99,31 +145,7 @@ export const fallbackRaffleData: RaffleLandingData = {
     { position: 4, participant: "Carlos #1A2", totalNumbers: 62, trendDelta: -2 },
     { position: 5, participant: "Amanda #7C1", totalNumbers: 55, trendDelta: 1 },
   ],
-  packages: [
-    {
-      id: "popular",
-      name: "Pacote Popular",
-      quantity: 10,
-      totalCents: 19900,
-      badge: "Mais vendido",
-      description: "Entrada rápida na disputa com mais chance de confirmação.",
-      highlight: true,
-    },
-    {
-      id: "turbo",
-      name: "Pacote Turbo",
-      quantity: 25,
-      totalCents: 49750,
-      description: "Mais volume para subir no ranking e aumentar alcance no sorteio.",
-    },
-    {
-      id: "top-ranking",
-      name: "Pacote Top Ranking",
-      quantity: 50,
-      totalCents: 99500,
-      description: "Foco total em posição no ranking e maior cobertura de números.",
-    },
-  ],
+  packages: buildPackageOffersForUnitPrice(DEFAULT_UNIT_PRICE_CENTS),
   stats: {
     availableNumbers: 8412,
     reservedNumbers: 1142,
@@ -153,18 +175,103 @@ export const fallbackRaffleData: RaffleLandingData = {
       title: "Pagamento confirmado em minutos",
       content: "Paguei no PIX e meus números apareceram confirmados no painel na mesma hora.",
       author: "João, Campinas/SP",
+      avatarUrl: "/images/social/joao.svg",
     },
     {
       title: "Compra pelo celular",
       content: "Escolhi os números no celular e finalizei em menos de 2 minutos.",
       author: "Rodrigo, Campinas/SP",
+      avatarUrl: "/images/social/rodrigo.svg",
     },
     {
       title: "Transparência no sorteio",
       content: "Consegui acompanhar tudo e conferir o resultado com clareza na própria página.",
       author: "Leila, Recife/PE",
+      avatarUrl: "/images/social/leila.svg",
+    },
+    {
+      title: "Suporte respondeu rápido",
+      content: "Tive uma dúvida e o suporte respondeu com clareza no mesmo dia.",
+      author: "Karina, Belo Horizonte/MG",
+      avatarUrl: "/images/social/karina.svg",
+    },
+    {
+      title: "Sem taxa escondida",
+      content: "Foi exatamente o valor anunciado, sem cobrança surpresa no final.",
+      author: "Bruna, Porto Alegre/RS",
+      avatarUrl: "/images/social/bruna.svg",
+    },
+    {
+      title: "Navegação simples",
+      content: "Consegui escolher e pagar sem pedir ajuda para ninguém.",
+      author: "Eduardo, Florianópolis/SC",
+      avatarUrl: "/images/social/eduardo.svg",
+    },
+    {
+      title: "Atualizações em cada etapa",
+      content: "Recebi aviso de reserva, pagamento e confirmação no fluxo completo.",
+      author: "Fernanda, Manaus/AM",
+      avatarUrl: "/images/social/fernanda.svg",
+    },
+    {
+      title: "Entrega registrada",
+      content: "A entrega foi registrada e a equipe acompanhou até finalizar tudo.",
+      author: "Rafael, Goiânia/GO",
+      avatarUrl: "/images/social/rafael.svg",
     },
   ],
+  winnerWall: [
+    {
+      name: "Luciana M.",
+      prize: "Jeep Compass Série S 0km",
+      city: "Fortaleza/CE",
+      mediaUrl: "/images/winners/winner-1.svg",
+      mediaType: "image",
+      verifiedAtLabel: "Entrega validada em 12/01/2026",
+    },
+    {
+      name: "Carlos A.",
+      prize: "R$ 80.000 em PIX",
+      city: "Belo Horizonte/MG",
+      mediaUrl: "/images/winners/winner-2.svg",
+      mediaType: "image",
+      verifiedAtLabel: "Entrega validada em 05/12/2025",
+    },
+    {
+      name: "Vanessa R.",
+      prize: "Moto 0km + documentação",
+      city: "Campinas/SP",
+      mediaUrl: "/images/winners/winner-3.svg",
+      mediaType: "video",
+      verifiedAtLabel: "Vídeo de entrega publicado",
+    },
+  ],
+  retention: {
+    title: "Ative alertas e aumente recompra",
+    subtitle:
+      "Receba aviso de pagamento confirmado, lembrete do sorteio e alerta de ranking para voltar antes da próxima rodada.",
+    features: [
+      {
+        title: "E-mail automático por etapa",
+        description: "Confirmação de pagamento, lembrete do sorteio e resultado final no mesmo fluxo.",
+        channel: "email",
+      },
+      {
+        title: "Atualização por WhatsApp",
+        description: "Status do pedido, mudança de posição no ranking e aviso de campanha ativa.",
+        channel: "whatsapp",
+      },
+      {
+        title: "Painel com recompra rápida",
+        description: "Histórico de pedidos com atalho para comprar novamente em poucos cliques.",
+        channel: "painel",
+      },
+    ],
+    ctaPrimaryLabel: "ATIVAR ALERTAS NO PAINEL",
+    ctaPrimaryHref: "/area-do-usuario",
+    ctaSecondaryLabel: "QUERO COMPRAR MAIS NÚMEROS",
+    ctaSecondaryHref: "/app/comprar",
+  },
   faq: [
     {
       question: "Como sei que meus números foram confirmados?",

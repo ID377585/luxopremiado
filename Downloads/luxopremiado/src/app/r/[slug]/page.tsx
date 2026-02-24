@@ -7,6 +7,7 @@ import { HowItWorks } from "@/components/raffle/HowItWorks";
 import { Packages } from "@/components/raffle/Packages";
 import { Prize } from "@/components/raffle/Prize";
 import { ProgressStats } from "@/components/raffle/ProgressStats";
+import { RetentionLoop } from "@/components/raffle/RetentionLoop";
 import { SocialProof } from "@/components/raffle/SocialProof";
 import { StickyMobileCTA } from "@/components/raffle/StickyMobileCTA";
 import { Transparency } from "@/components/raffle/Transparency";
@@ -42,9 +43,10 @@ export default async function RafflePage({ params }: RafflePageProps) {
       <Prize data={raffle.prize} />
       <HowItWorks steps={raffle.howItWorks} />
       <BuyerRanking entries={raffle.buyerRanking} />
-      <SocialProof entries={raffle.socialProof} />
+      <SocialProof entries={raffle.socialProof} winnerWall={raffle.winnerWall} />
       <Transparency data={raffle.transparency} />
       <FAQ items={raffle.faq} />
+      <RetentionLoop data={raffle.retention} />
       <Footer />
       <StickyMobileCTA raffleSlug={raffle.slug} />
     </main>

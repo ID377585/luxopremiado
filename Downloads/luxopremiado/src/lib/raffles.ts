@@ -1,4 +1,4 @@
-import { fallbackRaffleData } from "@/lib/landing-data";
+import { buildPackageOffersForUnitPrice, fallbackRaffleData } from "@/lib/landing-data";
 import { formatBrlFromCents } from "@/lib/format";
 import { hasSupabaseEnv } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -60,12 +60,22 @@ function mergeFaqItems(items: FaqItem[]): FaqItem[] {
   return merged;
 }
 
-function buildPackagesForUnitPrice(unitPriceCents: number) {
-  return fallbackRaffleData.packages.map((pack) => ({
-    ...pack,
-    totalCents: unitPriceCents * pack.quantity,
-  }));
-}
+const fallbackAvatarPool = [
+  "/images/social/joao.svg",
+  "/images/social/rodrigo.svg",
+  "/images/social/leila.svg",
+  "/images/social/karina.svg",
+  "/images/social/bruna.svg",
+  "/images/social/eduardo.svg",
+  "/images/social/fernanda.svg",
+  "/images/social/rafael.svg",
+];
+
+const fallbackWinnerMedia = [
+  "/images/winners/winner-1.svg",
+  "/images/winners/winner-2.svg",
+  "/images/winners/winner-3.svg",
+];
 
 export async function getRaffleLandingData(slug: string): Promise<RaffleLandingData> {
   if (!hasSupabaseEnv()) {
@@ -98,7 +108,7 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
         .eq("raffle_id", raffle.id)
         .order("number", { ascending: true })
         .limit(200),
-      supabase.from("social_proof").select("title, content").eq("raffle_id", raffle.id).limit(8),
+      supabase.from("social_proof").select("type, title, content, media_url").eq("raffle_id", raffle.id).limit(20),
       supabase
         .from("faq")
         .select("question, answer")
@@ -133,6 +143,9 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
     const totalNumbers = Number(raffle.total_numbers ?? fallbackRaffleData.totalNumbers);
     const unitPriceCents = Number(raffle.price_cents ?? 1990);
     const availableNumbers = Math.max(0, totalNumbers - soldNumbers - reservedNumbers);
+    const socialRows = socialProofResult.data ?? [];
+    const testimonialRows = socialRows.filter((item) => item.type !== "winner");
+    const winnerRows = socialRows.filter((item) => item.type === "winner");
 
     return {
       ...fallbackRaffleData,
@@ -177,7 +190,7 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
                     ),
             }))
           : fallbackRaffleData.buyerRanking,
-      packages: buildPackagesForUnitPrice(unitPriceCents),
+      packages: buildPackageOffersForUnitPrice(unitPriceCents),
       stats: {
         availableNumbers,
         reservedNumbers,
@@ -185,13 +198,32 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
         averagePerUser: fallbackRaffleData.stats.averagePerUser,
       },
       socialProof:
-        socialProofResult.data?.length
-          ? socialProofResult.data.map((item) => ({
+        testimonialRows.length
+          ? testimonialRows.slice(0, 8).map((item, index) => ({
               title: item.title ?? "Depoimento",
               content: item.content ?? "",
-              author: "Participante",
+              author: "Participante verificado",
+              avatarUrl: fallbackAvatarPool[index % fallbackAvatarPool.length],
             }))
           : fallbackRaffleData.socialProof,
+      winnerWall:
+        winnerRows.length
+          ? winnerRows.slice(0, 6).map((item, index) => {
+              const mediaUrl = item.media_url ?? fallbackWinnerMedia[index % fallbackWinnerMedia.length];
+              const lowerMedia = String(mediaUrl).toLowerCase();
+              const mediaType = lowerMedia.endsWith(".mp4") || lowerMedia.includes("video") ? "video" : "image";
+
+              return {
+                name: item.title?.trim() || `Ganhador ${index + 1}`,
+                prize: item.content?.trim() || "Prêmio entregue na campanha",
+                city: "Brasil",
+                mediaUrl,
+                mediaType: mediaType as "image" | "video",
+                verifiedAtLabel: "Ganhador verificado",
+              };
+            })
+          : fallbackRaffleData.winnerWall,
+      retention: fallbackRaffleData.retention,
       faq:
         faqResult.data?.length
           ? mergeFaqItems(faqResult.data.map((item) => ({ question: item.question, answer: item.answer }))).slice(0, 8)

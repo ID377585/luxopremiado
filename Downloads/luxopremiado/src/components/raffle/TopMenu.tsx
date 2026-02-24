@@ -9,7 +9,9 @@ const primaryItems: Array<{ label: string; href: string; icon?: "lock" }> = [
   { label: "Prêmio", href: "#premio" },
   { label: "Como Funciona", href: "#como-funciona" },
   { label: "Ranking", href: "#ranking-compradores" },
+  { label: "Vencedores", href: "#prova-social" },
   { label: "Transparência", href: "#transparencia" },
+  { label: "Alertas", href: "#alertas" },
   { label: "FAQ", href: "#faq" },
   { label: "Área do Usuário", href: "/area-do-usuario", icon: "lock" },
 ];
@@ -19,6 +21,7 @@ const quickMenuItems: Array<{ label: string; href: string }> = [
   { label: "Pacotes", href: "#pacotes" },
   { label: "Pagamento", href: "/app/comprar#pagamento" },
   { label: "Prova Social", href: "#prova-social" },
+  { label: "Alertas", href: "#alertas" },
 ];
 
 export function TopMenu() {
