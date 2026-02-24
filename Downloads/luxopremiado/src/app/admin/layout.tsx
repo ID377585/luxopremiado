@@ -14,7 +14,7 @@ export default async function AdminLayout({
 
   if (hasSupabaseEnv()) {
     if (!user) {
-      redirect("/login?error=Faça login para acessar o admin");
+      redirect(`/login?error=${encodeURIComponent("Faça login para acessar o admin")}&next=${encodeURIComponent("/admin")}`);
     }
 
     const isAdmin = await isAdminUser(user.id);

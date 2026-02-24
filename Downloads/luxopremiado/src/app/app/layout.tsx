@@ -14,7 +14,7 @@ export default async function UserAppLayout({
   const user = await getSessionUser();
 
   if (hasSupabaseEnv() && !user) {
-    redirect("/login?error=Faça login para continuar");
+    redirect(`/login?error=${encodeURIComponent("Faça login para continuar")}&next=${encodeURIComponent("/app/comprar")}`);
   }
 
   return (

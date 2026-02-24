@@ -8,7 +8,15 @@ import { signInAction, signInWithGoogleAction } from "@/lib/actions/auth";
 import { getRaffleLandingData } from "@/lib/raffles";
 
 interface LoginPageProps {
-  searchParams: Promise<{ error?: string; success?: string }>;
+  searchParams: Promise<{ error?: string; success?: string; next?: string }>;
+}
+
+function normalizeNextPath(next?: string): string {
+  if (!next || !next.startsWith("/") || next.startsWith("//")) {
+    return "/app/comprar";
+  }
+
+  return next;
 }
 
 function mapFriendlyError(error?: string): string | undefined {
@@ -34,6 +42,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const soldPercent = Math.min(100, Math.max(0, (raffle.stats.soldNumbers / Math.max(raffle.totalNumbers, 1)) * 100));
   const topBuyer = raffle.buyerRanking[0];
   const friendlyError = mapFriendlyError(params.error);
+  const nextPath = normalizeNextPath(params.next);
   const whatsAppLoginUrl = `https://wa.me/?text=${encodeURIComponent(
     "Quero acesso rapido para finalizar minha compra na Luxo Premiado.",
   )}`;
@@ -83,6 +92,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           <p className={loginStyles.subtitle}>
             Seus números só ficam garantidos após o login. Faça agora e finalize em menos de 1 minuto.
           </p>
+          <p className={loginStyles.urgencyLine}>
+            Seus números podem ser escolhidos por outra pessoa a qualquer momento.
+          </p>
 
           <AuthMessage error={friendlyError} success={params.success} />
 
@@ -99,6 +111,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </div>
 
           <form action={signInAction} className={authStyles.form}>
+            <input name="next" type="hidden" value={nextPath} />
             <input className={authStyles.input} name="email" placeholder="Seu e-mail" required type="email" />
             <input className={authStyles.input} name="password" placeholder="Sua senha" required type="password" />
             <button className={`${authStyles.button} ${loginStyles.mainButton}`} type="submit">
@@ -108,6 +121,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
           <div className={loginStyles.socialGrid}>
             <form action={signInWithGoogleAction}>
+              <input name="next" type="hidden" value={nextPath} />
               <button className={loginStyles.socialButton} type="submit">
                 Continuar com Google
               </button>

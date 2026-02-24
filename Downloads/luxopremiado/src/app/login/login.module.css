@@ -155,6 +155,12 @@
   margin-top: 0.68rem;
 }
 
+.urgencyLine {
+  color: #fde68a;
+  font-size: 0.82rem;
+  margin-top: 0.45rem;
+}
+
 .benefitList {
   display: grid;
   gap: 0.45rem;

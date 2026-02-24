@@ -9,6 +9,16 @@ function redirectWithMessage(path: string, key: "error" | "success", value: stri
   redirect(`${path}?${key}=${encodeURIComponent(value)}`);
 }
 
+function resolveNextPath(rawValue: FormDataEntryValue | null | undefined, fallback = "/app/comprar"): string {
+  const value = typeof rawValue === "string" ? rawValue.trim() : "";
+
+  if (!value.startsWith("/") || value.startsWith("//")) {
+    return fallback;
+  }
+
+  return value;
+}
+
 export async function signInAction(formData: FormData) {
   if (!hasSupabaseEnv()) {
     redirectWithMessage("/login", "error", "Configure as variáveis do Supabase para autenticação.");
@@ -16,6 +26,7 @@ export async function signInAction(formData: FormData) {
 
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "").trim();
+  const nextPath = resolveNextPath(formData.get("next"));
 
   if (!email || !password) {
     redirectWithMessage("/login", "error", "E-mail e senha são obrigatórios.");
@@ -28,16 +39,17 @@ export async function signInAction(formData: FormData) {
     redirectWithMessage("/login", "error", error.message);
   }
 
-  redirect("/app/comprar");
+  redirect(nextPath);
 }
 
-export async function signInWithGoogleAction() {
+export async function signInWithGoogleAction(formData: FormData) {
   if (!hasSupabaseEnv()) {
     redirectWithMessage("/login", "error", "Configure as variáveis do Supabase para autenticação.");
   }
 
   const supabase = await createSupabaseServerClient();
-  const callbackUrl = `${getSiteUrl()}/auth/callback?next=/app/comprar`;
+  const nextPath = resolveNextPath(formData.get("next"));
+  const callbackUrl = `${getSiteUrl()}/auth/callback?next=${encodeURIComponent(nextPath)}`;
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
