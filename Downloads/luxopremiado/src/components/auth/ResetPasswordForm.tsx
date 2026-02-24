@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import styles from "@/components/auth/auth.module.css";
@@ -11,6 +11,63 @@ export function ResetPasswordForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [status, setStatus] = useState<{ type: "error" | "success"; message: string } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function bootstrapRecoverySession() {
+      if (!supabase) {
+        if (mounted) {
+          setSessionReady(true);
+        }
+        return;
+      }
+
+      try {
+        const hash = typeof window !== "undefined" ? window.location.hash : "";
+        const hashParams = new URLSearchParams(hash.startsWith("#") ? hash.slice(1) : hash);
+        const accessToken = hashParams.get("access_token");
+        const refreshToken = hashParams.get("refresh_token");
+        const recoveryType = hashParams.get("type");
+
+        if (accessToken && refreshToken) {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+
+          if (error) {
+            if (mounted) {
+              setStatus({
+                type: "error",
+                message: "Link de recuperação inválido ou expirado. Solicite um novo e-mail.",
+              });
+            }
+          } else if (mounted && hash) {
+            window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+          }
+        } else if (recoveryType === "recovery") {
+          if (mounted) {
+            setStatus({
+              type: "error",
+              message: "Sessão de recuperação incompleta. Abra novamente o link mais recente do e-mail.",
+            });
+          }
+        }
+      } finally {
+        if (mounted) {
+          setSessionReady(true);
+        }
+      }
+    }
+
+    bootstrapRecoverySession();
+
+    return () => {
+      mounted = false;
+    };
+  }, [supabase]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -35,6 +92,19 @@ export function ResetPasswordForm() {
 
     setLoading(true);
     setStatus(null);
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      setStatus({
+        type: "error",
+        message: "Sessão de recuperação ausente. Abra novamente o link de redefinição enviado por e-mail.",
+      });
+      setLoading(false);
+      return;
+    }
 
     const { error } = await supabase.auth.updateUser({ password });
 
@@ -79,8 +149,8 @@ export function ResetPasswordForm() {
         value={confirmPassword}
       />
 
-      <button className={styles.button} disabled={loading} type="submit">
-        {loading ? "Atualizando..." : "Atualizar senha"}
+      <button className={styles.button} disabled={loading || !sessionReady} type="submit">
+        {loading ? "Atualizando..." : sessionReady ? "Atualizar senha" : "Preparando link..."}
       </button>
     </form>
   );
