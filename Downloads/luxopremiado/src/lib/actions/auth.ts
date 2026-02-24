@@ -135,13 +135,18 @@ export async function forgotPasswordAction(formData: FormData) {
   });
 
   if (error) {
+    const normalized = error.message.toLowerCase();
+    if (normalized.includes("rate limit") || normalized.includes("security purposes")) {
+      redirectWithMessage("/recuperar-senha", "error", "Muitas tentativas. Aguarde cerca de 60 segundos e tente de novo.");
+    }
+
     redirectWithMessage("/recuperar-senha", "error", error.message);
   }
 
   redirectWithMessage(
     "/recuperar-senha",
     "success",
-    "Se o e-mail existir, você receberá um link de redefinição.",
+    "Pronto! Enviamos o link para você voltar e finalizar sua participação.",
   );
 }
 
