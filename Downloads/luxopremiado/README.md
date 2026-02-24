@@ -102,6 +102,10 @@ Aplicar migrations nesta ordem:
 - `supabase/migrations/20260223152000_init_luxo_premiado.sql`
 - `supabase/migrations/20260223201500_growth_features_realtime_antibot_affiliates.sql`
 - `supabase/migrations/20260223214000_observability_platform_events.sql`
+- `supabase/migrations/20260224011000_raffle_numbers_bigint_12_digits.sql`
+
+Observação:
+- Após a migration de 12 dígitos, o domínio de numeração passa a ser `000000000000` até `999999999999` (armazenado como `bigint`).
 
 Se usar CLI:
 

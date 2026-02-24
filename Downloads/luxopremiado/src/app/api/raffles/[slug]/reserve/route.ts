@@ -134,7 +134,9 @@ export async function POST(request: NextRequest, context: ReserveRouteContext) {
         ? {
             orderId: reserveRow.order_id as string,
             raffleId: reserveRow.raffle_id as string,
-            reservedNumbers: (reserveRow.reserved_numbers as number[]) ?? [],
+            reservedNumbers: Array.isArray(reserveRow.reserved_numbers)
+              ? reserveRow.reserved_numbers.map((value: unknown) => Number(value))
+              : [],
             amountCents: Number(reserveRow.amount_cents ?? 0),
             expiresAt: (reserveRow.expires_at as string | null) ?? null,
           }

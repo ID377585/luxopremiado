@@ -40,6 +40,7 @@ export interface BuyerRankingEntry {
   position: number;
   participant: string;
   totalNumbers: number;
+  trendDelta?: number;
 }
 
 export interface TransparencyData {

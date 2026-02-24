@@ -23,10 +23,10 @@ export function buildFallbackNumberTiles(params: {
   const totalNumbers = params.totalNumbers ?? FALLBACK_TOTAL_NUMBERS;
   const page = Math.max(1, params.page);
   const pageSize = Math.max(1, params.pageSize);
-  const start = (page - 1) * pageSize + 1;
-  const end = Math.min(totalNumbers, start + pageSize - 1);
+  const start = (page - 1) * pageSize;
+  const end = Math.min(totalNumbers - 1, start + pageSize - 1);
 
-  if (start > totalNumbers) {
+  if (start >= totalNumbers) {
     return [];
   }
 
@@ -94,11 +94,11 @@ export const fallbackRaffleData: RaffleLandingData = {
     totalNumbers: FALLBACK_TOTAL_NUMBERS,
   }),
   buyerRanking: [
-    { position: 1, participant: "Marina #A13", totalNumbers: 92 },
-    { position: 2, participant: "Rodrigo #BC7", totalNumbers: 87 },
-    { position: 3, participant: "Leila #9DF", totalNumbers: 69 },
-    { position: 4, participant: "Carlos #1A2", totalNumbers: 62 },
-    { position: 5, participant: "Amanda #7C1", totalNumbers: 55 },
+    { position: 1, participant: "Marina #A13", totalNumbers: 92, trendDelta: 2 },
+    { position: 2, participant: "Rodrigo #BC7", totalNumbers: 87, trendDelta: -1 },
+    { position: 3, participant: "Leila #9DF", totalNumbers: 69, trendDelta: 1 },
+    { position: 4, participant: "Carlos #1A2", totalNumbers: 62, trendDelta: -2 },
+    { position: 5, participant: "Amanda #7C1", totalNumbers: 55, trendDelta: 1 },
   ],
   checkoutMethods: [
     {
@@ -158,6 +158,46 @@ export const fallbackRaffleData: RaffleLandingData = {
       question: "Como funciona a auditoria do sorteio?",
       answer:
         "Publicamos regras, método, prova do resultado e validação dos números vencedores na área de transparência.",
+    },
+    {
+      question: "Qual é a data e o horário oficiais do sorteio?",
+      answer:
+        "A data e o horário ficam destacados no topo da campanha. Qualquer alteração é publicada com antecedência e registrada na seção de transparência.",
+    },
+    {
+      question: "Onde vejo o resultado do sorteio?",
+      answer:
+        "Após a apuração, publicamos o número vencedor na página da campanha e também no painel do usuário com status atualizado.",
+    },
+    {
+      question: "Quanto tempo leva para receber o prêmio?",
+      answer:
+        "Depois da validação dos documentos do ganhador, iniciamos a entrega conforme o regulamento. O prazo exato depende do tipo de prêmio e localidade.",
+    },
+    {
+      question: "Preciso pagar alguma taxa extra para receber o prêmio?",
+      answer:
+        "Não cobramos taxas ocultas na plataforma. Custos e responsabilidades da entrega seguem as regras publicadas no regulamento da campanha.",
+    },
+    {
+      question: "Posso comprar números em mais de um pedido?",
+      answer:
+        "Sim. Você pode realizar novas compras enquanto houver disponibilidade de números e dentro do limite máximo por usuário.",
+    },
+    {
+      question: "Como funciona o estorno se o pagamento falhar?",
+      answer:
+        "Se houver cobrança com falha de confirmação, abrimos análise com o gateway e registramos tudo no seu histórico para correção ou estorno.",
+    },
+    {
+      question: "Como entro em contato com o suporte?",
+      answer:
+        "Use os canais informados no rodapé e na seção de transparência. O suporte responde com prioridade para dúvidas de pagamento e confirmação.",
+    },
+    {
+      question: "Posso transferir meus números para outra pessoa?",
+      answer:
+        "A transferência depende das regras da campanha ativa. Consulte o regulamento da rifa para saber os critérios e prazos permitidos.",
     },
   ],
 };

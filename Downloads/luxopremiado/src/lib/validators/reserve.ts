@@ -3,7 +3,7 @@ import { z } from "zod";
 export const reserveSchema =
   z
     .object({
-      numbers: z.array(z.number().int().positive()).min(1).max(200).optional(),
+      numbers: z.array(z.number().int().min(0).max(999_999_999_999)).min(1).max(200).optional(),
       qty: z.number().int().positive().max(200).optional(),
       affiliateCode: z
         .string()

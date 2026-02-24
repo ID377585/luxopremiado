@@ -8,5 +8,5 @@ export function formatBrlFromCents(valueInCents: number): string {
 }
 
 export function formatRaffleNumber(value: number): string {
-  return String(value).padStart(6, "0");
+  return String(value).padStart(12, "0");
 }

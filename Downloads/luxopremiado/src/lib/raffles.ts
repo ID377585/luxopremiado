@@ -2,7 +2,7 @@ import { fallbackRaffleData } from "@/lib/landing-data";
 import { formatBrlFromCents } from "@/lib/format";
 import { hasSupabaseEnv } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { NumberStatus, RaffleLandingData } from "@/types/raffle";
+import { FaqItem, NumberStatus, RaffleLandingData } from "@/types/raffle";
 
 function createFallback(slug: string): RaffleLandingData {
   return {
@@ -23,6 +23,41 @@ interface BuyerRankingRow {
   position: number | string | null;
   participant: string | null;
   total_numbers: number | string | null;
+  trend_delta?: number | string | null;
+}
+
+function deriveRankingTrend(participant: string, position: number, totalNumbers: number): number {
+  const seed = `${participant}-${position}-${totalNumbers}`;
+  let hash = 0;
+  for (let index = 0; index < seed.length; index += 1) {
+    hash = (hash << 5) - hash + seed.charCodeAt(index);
+    hash |= 0;
+  }
+
+  const magnitude = (Math.abs(hash) % 3) + 1;
+  return hash % 2 === 0 ? magnitude : -magnitude;
+}
+
+function mergeFaqItems(items: FaqItem[]): FaqItem[] {
+  if (items.length >= 12) {
+    return items.slice(0, 12);
+  }
+
+  const merged = [...items];
+  for (const fallbackItem of fallbackRaffleData.faq) {
+    if (merged.length >= 12) {
+      break;
+    }
+
+    const exists = merged.some(
+      (item) => item.question.trim().toLowerCase() === fallbackItem.question.trim().toLowerCase(),
+    );
+    if (!exists) {
+      merged.push(fallbackItem);
+    }
+  }
+
+  return merged;
 }
 
 export async function getRaffleLandingData(slug: string): Promise<RaffleLandingData> {
@@ -62,7 +97,7 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
         .select("question, answer")
         .or(`raffle_id.eq.${raffle.id},raffle_id.is.null`)
         .order("sort_order", { ascending: true })
-        .limit(6),
+        .limit(12),
       supabase
         .from("transparency")
         .select("draw_method, organizer_name, organizer_doc, contact, rules")
@@ -115,6 +150,14 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
               position: Number(item.position ?? 0),
               participant: String(item.participant ?? "Participante"),
               totalNumbers: Number(item.total_numbers ?? 0),
+              trendDelta:
+                typeof item.trend_delta !== "undefined" && item.trend_delta !== null
+                  ? Number(item.trend_delta)
+                  : deriveRankingTrend(
+                      String(item.participant ?? "Participante"),
+                      Number(item.position ?? 0),
+                      Number(item.total_numbers ?? 0),
+                    ),
             }))
           : fallbackRaffleData.buyerRanking,
       socialProof:
@@ -127,7 +170,7 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
           : fallbackRaffleData.socialProof,
       faq:
         faqResult.data?.length
-          ? faqResult.data.map((item) => ({ question: item.question, answer: item.answer }))
+          ? mergeFaqItems(faqResult.data.map((item) => ({ question: item.question, answer: item.answer })))
           : fallbackRaffleData.faq,
       transparency: {
         drawMethod: transparencyResult.data?.draw_method ?? fallbackRaffleData.transparency.drawMethod,

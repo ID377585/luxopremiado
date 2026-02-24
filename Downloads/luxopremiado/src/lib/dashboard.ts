@@ -186,7 +186,7 @@ export async function getMySoldNumbers(userId: string): Promise<number[]> {
     .order("number", { ascending: true })
     .limit(100);
 
-  return data?.map((item) => item.number as number) ?? [];
+  return data?.map((item) => Number(item.number ?? 0)) ?? [];
 }
 
 export async function getMyAffiliate(userId: string): Promise<DashboardAffiliate | null> {

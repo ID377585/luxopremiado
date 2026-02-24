@@ -104,6 +104,20 @@ function buildTestimonials(entries: SocialProofEntry[]): SocialProofEntry[] {
   return mixed.slice(0, 15);
 }
 
+function getAvatarInitials(author: string): string {
+  const baseName = author.split(",")[0]?.trim() ?? author.trim();
+  const parts = baseName.split(/\s+/).filter(Boolean);
+  if (parts.length === 0) {
+    return "LP";
+  }
+
+  if (parts.length === 1) {
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+
+  return `${parts[0][0] ?? ""}${parts[parts.length - 1][0] ?? ""}`.toUpperCase();
+}
+
 export function SocialProof({ entries }: SocialProofProps) {
   const testimonials = buildTestimonials(entries);
   const trackItems = [...testimonials, ...testimonials];
@@ -123,9 +137,15 @@ export function SocialProof({ entries }: SocialProofProps) {
             {trackItems.map((entry, index) => (
               <li className={styles.proofSlide} key={`${entry.author}-${entry.title}-${index}`}>
                 <article className={styles.proofItem}>
-                  <strong>{entry.title}</strong>
-                  <span>{entry.content}</span>
-                  <span>{entry.author}</span>
+                  <div className={styles.proofHeaderRow}>
+                    <span aria-hidden className={styles.proofAvatar}>
+                      {getAvatarInitials(entry.author)}
+                    </span>
+                    <strong className={styles.proofTitle}>{entry.title}</strong>
+                  </div>
+                  <p className={styles.proofText}>
+                    {entry.content.trim()} <span className={styles.proofAuthor}>{entry.author.trim()}</span>
+                  </p>
                 </article>
               </li>
             ))}

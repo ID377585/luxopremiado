@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import styles from "@/components/raffle/sections.module.css";
+import { formatRaffleNumber } from "@/lib/format";
 import { TurnstileWidget } from "@/components/security/TurnstileWidget";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { NumberStatus, NumberTile } from "@/types/raffle";
@@ -29,10 +30,6 @@ function normalizeStatus(status: unknown): NumberStatus {
   }
 
   return "available";
-}
-
-function formatRaffleNumber(number: number): string {
-  return String(number).padStart(6, "0");
 }
 
 export function NumberGridLive({
