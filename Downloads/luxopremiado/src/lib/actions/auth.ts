@@ -28,7 +28,7 @@ export async function signInAction(formData: FormData) {
     redirectWithMessage("/login", "error", error.message);
   }
 
-  redirect("/app");
+  redirect("/app/comprar");
 }
 
 export async function signUpAction(formData: FormData) {
@@ -57,7 +57,7 @@ export async function signUpAction(formData: FormData) {
       data: {
         name,
       },
-      emailRedirectTo: `${getSiteUrl()}/app`,
+      emailRedirectTo: `${getSiteUrl()}/app/comprar`,
     },
   });
 

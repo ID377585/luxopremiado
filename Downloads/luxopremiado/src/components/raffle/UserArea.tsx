@@ -32,9 +32,14 @@ export function UserArea({ userName }: UserAreaProps) {
 
             <div className={styles.buttonRow}>
               {isLoggedIn ? (
-                <Link className={styles.buttonPrimary} href="/app">
-                  Meu painel
-                </Link>
+                <>
+                  <Link className={styles.buttonPrimary} href="/app/comprar">
+                    Escolher números e pagar
+                  </Link>
+                  <Link className={styles.buttonSecondary} href="/app">
+                    Meu painel
+                  </Link>
+                </>
               ) : (
                 <>
                   <Link className={styles.buttonPrimary} href="/cadastro">

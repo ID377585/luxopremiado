@@ -23,7 +23,7 @@ export function Hero({ data }: HeroProps) {
             <span className={styles.heroMetaItem}>{data.drawDateLabel}</span>
             <span className={styles.heroMetaItem}>{data.priceLabel}</span>
           </div>
-          <a className={styles.heroCta} href="#escolher-numeros">
+          <a className={styles.heroCta} href="/app/comprar">
             {data.ctaLabel}
           </a>
         </div>

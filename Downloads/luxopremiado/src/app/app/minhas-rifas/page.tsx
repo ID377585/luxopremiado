@@ -1,5 +1,5 @@
 import styles from "@/components/auth/auth.module.css";
-import { formatBrlFromCents } from "@/lib/format";
+import { formatBrlFromCents, formatRaffleNumber } from "@/lib/format";
 import { getMyOrders, getMySoldNumbers } from "@/lib/dashboard";
 import { getSessionUser } from "@/lib/session";
 
@@ -11,7 +11,11 @@ export default async function MyRafflesPage() {
     <section className={styles.grid}>
       <article className={styles.panel}>
         <strong>Números adquiridos</strong>
-        <p>{numbers.length > 0 ? numbers.join(", ") : "Nenhum número confirmado no momento."}</p>
+        <p>
+          {numbers.length > 0
+            ? numbers.map((number) => formatRaffleNumber(number)).join(", ")
+            : "Nenhum número confirmado no momento."}
+        </p>
       </article>
 
       <article className={styles.panel}>

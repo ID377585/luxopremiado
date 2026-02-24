@@ -4,17 +4,13 @@ import { FAQ } from "@/components/raffle/FAQ";
 import { Footer } from "@/components/raffle/Footer";
 import { Hero } from "@/components/raffle/Hero";
 import { HowItWorks } from "@/components/raffle/HowItWorks";
-import { NumberPicker } from "@/components/raffle/NumberPicker";
 import { Prize } from "@/components/raffle/Prize";
 import { SocialProof } from "@/components/raffle/SocialProof";
 import { Transparency } from "@/components/raffle/Transparency";
-import { UserArea } from "@/components/raffle/UserArea";
-import { Checkout } from "@/components/raffle/Checkout";
 import { BuyerRanking } from "@/components/raffle/BuyerRanking";
 import { AffiliateTracker } from "@/components/raffle/AffiliateTracker";
 import { TopMenu } from "@/components/raffle/TopMenu";
 import { getRaffleLandingData } from "@/lib/raffles";
-import { getSessionUser } from "@/lib/session";
 
 interface RafflePageProps {
   params: Promise<{ slug: string }>;
@@ -31,7 +27,7 @@ export async function generateMetadata({ params }: RafflePageProps): Promise<Met
 
 export default async function RafflePage({ params }: RafflePageProps) {
   const { slug } = await params;
-  const [raffle, user] = await Promise.all([getRaffleLandingData(slug), getSessionUser()]);
+  const raffle = await getRaffleLandingData(slug);
 
   return (
     <main>
@@ -40,15 +36,6 @@ export default async function RafflePage({ params }: RafflePageProps) {
       <Hero data={raffle.hero} />
       <Prize data={raffle.prize} />
       <HowItWorks steps={raffle.howItWorks} />
-      <UserArea userName={user?.name ?? user?.email} />
-      <NumberPicker
-        maxNumbersPerUser={raffle.maxNumbersPerUser}
-        numbers={raffle.numberTiles}
-        raffleId={raffle.raffleId}
-        raffleSlug={raffle.slug}
-        totalNumbers={raffle.totalNumbers}
-      />
-      <Checkout methods={raffle.checkoutMethods} />
       <Transparency data={raffle.transparency} />
       <BuyerRanking entries={raffle.buyerRanking} />
       <SocialProof entries={raffle.socialProof} />

@@ -8,12 +8,12 @@ const primaryItems: Array<{ label: string; href: string; icon?: "lock" }> = [
   { label: "Início", href: "#inicio" },
   { label: "Prêmio", href: "#premio" },
   { label: "Como Funciona", href: "#como-funciona" },
-  { label: "Área do Usuário", href: "#area-usuario", icon: "lock" },
+  { label: "Área do Usuário", href: "/area-do-usuario", icon: "lock" },
 ];
 
 const quickMenuItems: Array<{ label: string; href: string }> = [
-  { label: "Escolher Números", href: "#escolher-numeros" },
-  { label: "Pagamento", href: "#pagamento" },
+  { label: "Escolher Números", href: "/app/comprar" },
+  { label: "Pagamento", href: "/app/comprar#pagamento" },
   { label: "Transparência", href: "#transparencia" },
   { label: "Prova Social", href: "#prova-social" },
   { label: "FAQ", href: "#faq" },

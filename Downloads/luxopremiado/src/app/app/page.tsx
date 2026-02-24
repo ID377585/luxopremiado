@@ -22,7 +22,7 @@ export default async function UserAppHomePage() {
       </article>
       <article className={styles.panel}>
         <strong>Próximos passos</strong>
-        <p>Escolha novos números na landing, pague no checkout e acompanhe confirmação aqui no painel.</p>
+        <p>Escolha números em &quot;Escolher números&quot;, pague no checkout e acompanhe confirmação aqui no painel.</p>
       </article>
       <article className={styles.panel}>
         <strong>Status da plataforma</strong>

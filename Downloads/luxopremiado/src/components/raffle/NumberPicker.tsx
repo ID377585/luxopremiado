@@ -24,6 +24,7 @@ interface PaymentState {
 }
 
 interface NumberPickerProps {
+  isAuthenticated?: boolean;
   raffleSlug: string;
   numbers: NumberTile[];
   totalNumbers: number;
@@ -52,6 +53,7 @@ function formatCountdown(targetIso: string | null): string {
 }
 
 export function NumberPicker({
+  isAuthenticated = false,
   raffleSlug,
   numbers,
   totalNumbers,
@@ -230,6 +232,7 @@ export function NumberPicker({
           <div>
             <NumberGridLive
               initialNumbers={numbers}
+              isAuthenticated={isAuthenticated}
               maxNumbersPerUser={maxNumbersPerUser}
               onReservationCreated={handleReservationCreated}
               raffleId={raffleId}

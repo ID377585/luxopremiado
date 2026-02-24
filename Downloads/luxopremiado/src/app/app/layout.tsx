@@ -28,6 +28,9 @@ export default async function UserAppLayout({
         </div>
 
         <nav className={styles.dashboardNav}>
+          <Link className={styles.dashboardLink} href="/app/comprar">
+            Escolher números
+          </Link>
           <Link className={styles.dashboardLink} href="/app">
             Visão geral
           </Link>

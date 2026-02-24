@@ -6,3 +6,7 @@ const brlFormatter = new Intl.NumberFormat("pt-BR", {
 export function formatBrlFromCents(valueInCents: number): string {
   return brlFormatter.format(valueInCents / 100);
 }
+
+export function formatRaffleNumber(value: number): string {
+  return String(value).padStart(6, "0");
+}

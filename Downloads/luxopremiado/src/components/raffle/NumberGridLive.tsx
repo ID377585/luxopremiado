@@ -13,6 +13,7 @@ interface NumberGridLiveProps {
   initialNumbers: NumberTile[];
   totalNumbers: number;
   maxNumbersPerUser: number;
+  isAuthenticated?: boolean;
   onReservationCreated?: (reservation: {
     orderId: string;
     raffleId: string;
@@ -30,12 +31,17 @@ function normalizeStatus(status: unknown): NumberStatus {
   return "available";
 }
 
+function formatRaffleNumber(number: number): string {
+  return String(number).padStart(6, "0");
+}
+
 export function NumberGridLive({
   raffleId,
   raffleSlug,
   initialNumbers,
   totalNumbers,
   maxNumbersPerUser,
+  isAuthenticated = false,
   onReservationCreated,
 }: NumberGridLiveProps) {
   const pageSize = 200;
@@ -166,6 +172,11 @@ export function NumberGridLive({
   const totalPages = Math.max(1, Math.ceil(totalNumbers / pageSize));
 
   function toggleNumberSelection(number: number, status: NumberStatus) {
+    if (!isAuthenticated) {
+      setMessage("Faça login para selecionar números e iniciar o pagamento.");
+      return;
+    }
+
     if (status !== "available" || loading) {
       return;
     }
@@ -177,6 +188,11 @@ export function NumberGridLive({
   }
 
   async function reserve(payload: { numbers?: number[]; qty?: number }) {
+    if (!isAuthenticated) {
+      setMessage("Faça login para reservar números.");
+      return;
+    }
+
     setLoading(true);
     setMessage("");
 
@@ -254,15 +270,18 @@ export function NumberGridLive({
         <span className={styles.filterTag}>
           Página {page}/{totalPages}
         </span>
+        <span className={`${styles.filterTag} ${isAuthenticated ? styles.liveOn : styles.liveOff}`}>
+          {isAuthenticated ? "Online" : "Offline"}
+        </span>
         <span className={`${styles.filterTag} ${isLive ? styles.liveOn : styles.liveOff}`}>
-          {isLive ? "Ao vivo" : "Offline"}
+          Tempo real: {isLive ? "Ao vivo" : "Aguardando"}
         </span>
       </div>
 
       <div className={styles.actionRow}>
         <button
           className={styles.actionButtonGhost}
-          disabled={page <= 1 || pageLoading}
+          disabled={!isAuthenticated || page <= 1 || pageLoading}
           onClick={() => setPage((current) => Math.max(1, current - 1))}
           type="button"
         >
@@ -270,7 +289,7 @@ export function NumberGridLive({
         </button>
         <button
           className={styles.actionButtonGhost}
-          disabled={page >= totalPages || pageLoading}
+          disabled={!isAuthenticated || page >= totalPages || pageLoading}
           onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
           type="button"
         >
@@ -279,10 +298,10 @@ export function NumberGridLive({
       </div>
 
       <div className={styles.actionRow}>
-        <button className={styles.actionButton} disabled={loading} onClick={reserveSelected} type="button">
+        <button className={styles.actionButton} disabled={!isAuthenticated || loading} onClick={reserveSelected} type="button">
           {loading ? "Reservando..." : `Reservar selecionados (${selectedNumbers.length})`}
         </button>
-        <button className={styles.actionButtonGhost} disabled={loading} onClick={reserveRandom} type="button">
+        <button className={styles.actionButtonGhost} disabled={!isAuthenticated || loading} onClick={reserveRandom} type="button">
           Reservar 5 aleatórios
         </button>
       </div>
@@ -295,6 +314,7 @@ export function NumberGridLive({
 
       {message ? <p className={styles.liveMeta}>{message}</p> : null}
       {pageLoading ? <p className={styles.liveMeta}>Carregando página de números...</p> : null}
+      {!isAuthenticated ? <p className={styles.liveMeta}>Faça login para liberar seleção e pagamento.</p> : null}
 
       {lastUpdatedAt ? (
         <p className={styles.liveMeta}>Última atualização: {lastUpdatedAt.toLocaleTimeString("pt-BR")}</p>
@@ -310,7 +330,7 @@ export function NumberGridLive({
             onClick={() => toggleNumberSelection(item.number, item.status)}
             type="button"
           >
-            {item.number}
+            {formatRaffleNumber(item.number)}
           </button>
         ))}
       </div>
