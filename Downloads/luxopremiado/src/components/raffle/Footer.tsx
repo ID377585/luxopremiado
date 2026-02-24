@@ -4,7 +4,7 @@ import styles from "@/components/raffle/sections.module.css";
 
 export function Footer() {
   return (
-    <footer className={styles.footer}>
+    <footer className={styles.footer} id="rodape">
       <div className={`${styles.container} ${styles.footerGrid}`}>
         <p>© {new Date().getFullYear()} luxopremiado.com.br. Todos os direitos reservados.</p>
         <nav className={styles.footerLinks}>

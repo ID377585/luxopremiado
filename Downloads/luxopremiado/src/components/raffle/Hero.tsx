@@ -7,7 +7,7 @@ interface HeroProps {
 
 export function Hero({ data }: HeroProps) {
   return (
-    <section className={styles.hero}>
+    <section className={styles.hero} id="inicio">
       <div className={`${styles.container} ${styles.heroGrid}`}>
         <div className={styles.heroPanel}>
           <ul className={styles.heroBadgeList}>

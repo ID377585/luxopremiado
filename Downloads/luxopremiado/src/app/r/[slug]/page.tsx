@@ -12,6 +12,7 @@ import { UserArea } from "@/components/raffle/UserArea";
 import { Checkout } from "@/components/raffle/Checkout";
 import { BuyerRanking } from "@/components/raffle/BuyerRanking";
 import { AffiliateTracker } from "@/components/raffle/AffiliateTracker";
+import { TopMenu } from "@/components/raffle/TopMenu";
 import { getRaffleLandingData } from "@/lib/raffles";
 import { getSessionUser } from "@/lib/session";
 
@@ -35,6 +36,7 @@ export default async function RafflePage({ params }: RafflePageProps) {
   return (
     <main>
       <AffiliateTracker />
+      <TopMenu />
       <Hero data={raffle.hero} />
       <Prize data={raffle.prize} />
       <HowItWorks steps={raffle.howItWorks} />
