@@ -841,7 +841,7 @@
 .numbersGrid {
   display: grid;
   gap: 0.48rem;
-  grid-template-columns: repeat(10, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
 }
 
 .actionRow {
@@ -949,9 +949,21 @@
   border-radius: 0.62rem;
   color: #fff;
   cursor: pointer;
-  font-size: 0.78rem;
-  padding: 0.45rem 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "JetBrains Mono", "Fira Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.69rem;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  min-height: 2.15rem;
+  overflow: hidden;
+  padding: 0.45rem 0.35rem;
   text-align: center;
+  text-overflow: clip;
+  white-space: nowrap;
   width: 100%;
 }
 
@@ -1510,7 +1522,7 @@
   }
 
   .numbersGrid {
-    grid-template-columns: repeat(8, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(102px, 1fr));
   }
 }
 
@@ -1593,7 +1605,7 @@
   }
 
   .numbersGrid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
   }
 
   .packagesGrid,
