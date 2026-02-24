@@ -1,42 +1,136 @@
 import Link from "next/link";
 
+import { LiveActivityPopup } from "@/components/common/LiveActivityPopup";
 import { AuthMessage } from "@/components/auth/AuthMessage";
-import styles from "@/components/auth/auth.module.css";
-import { signInAction } from "@/lib/actions/auth";
+import authStyles from "@/components/auth/auth.module.css";
+import loginStyles from "@/app/login/login.module.css";
+import { signInAction, signInWithGoogleAction } from "@/lib/actions/auth";
+import { getRaffleLandingData } from "@/lib/raffles";
 
 interface LoginPageProps {
   searchParams: Promise<{ error?: string; success?: string }>;
 }
 
+function mapFriendlyError(error?: string): string | undefined {
+  if (!error) {
+    return undefined;
+  }
+
+  const normalized = error.toLowerCase();
+  if (normalized.includes("faça login para continuar")) {
+    return "Você precisa entrar para garantir seus números e continuar o pagamento.";
+  }
+
+  if (normalized.includes("acessar o admin")) {
+    return "Use uma conta autorizada para acessar o painel administrativo.";
+  }
+
+  return error;
+}
+
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
+  const raffle = await getRaffleLandingData("luxo-premiado");
+  const soldPercent = Math.min(100, Math.max(0, (raffle.stats.soldNumbers / Math.max(raffle.totalNumbers, 1)) * 100));
+  const topBuyer = raffle.buyerRanking[0];
+  const friendlyError = mapFriendlyError(params.error);
+  const whatsAppLoginUrl = `https://wa.me/?text=${encodeURIComponent(
+    "Quero acesso rapido para finalizar minha compra na Luxo Premiado.",
+  )}`;
 
   return (
-    <main className={styles.page}>
-      <section className={styles.card}>
-        <h1 className={styles.title}>Entrar</h1>
-        <p className={styles.subtitle}>Acesse sua conta para reservar números e acompanhar seus pedidos.</p>
-        <AuthMessage error={params.error} success={params.success} />
+    <main className={loginStyles.page}>
+      <LiveActivityPopup scope="login" />
 
-        <form action={signInAction} className={styles.form}>
-          <input className={styles.input} name="email" placeholder="Seu e-mail" required type="email" />
-          <input className={styles.input} name="password" placeholder="Sua senha" required type="password" />
-          <button className={styles.button} type="submit">
-            Entrar
-          </button>
-        </form>
+      <section className={loginStyles.layout}>
+        <aside className={loginStyles.showcase}>
+          <p className={loginStyles.showcaseKicker}>Área VIP do Participante</p>
+          <h2 className={loginStyles.showcaseTitle}>Jeep Compass 0km pode ser seu. Não deixe seus números escaparem.</h2>
+          <p className={loginStyles.showcaseSubtitle}>
+            Quem entra primeiro escolhe melhor. Seu acesso libera checkout rápido e confirmação automática no PIX.
+          </p>
 
-        <div className={styles.links}>
-          <Link className={styles.buttonSecondary} href="/cadastro">
-            Criar conta
-          </Link>
-          <Link className={styles.buttonSecondary} href="/recuperar-senha">
-            Recuperar senha
-          </Link>
-          <Link className={styles.buttonSecondary} href="/r/luxo-premiado">
-            Voltar para a rifa
-          </Link>
-        </div>
+          <div className={loginStyles.metricGrid}>
+            <article className={loginStyles.metricCard}>
+              <p className={loginStyles.metricLabel}>Vendidos</p>
+              <p className={loginStyles.metricValue}>{soldPercent.toFixed(1)}%</p>
+            </article>
+            <article className={loginStyles.metricCard}>
+              <p className={loginStyles.metricLabel}>Disponíveis</p>
+              <p className={loginStyles.metricValue}>{raffle.stats.availableNumbers.toLocaleString("pt-BR")}</p>
+            </article>
+            <article className={loginStyles.metricCard}>
+              <p className={loginStyles.metricLabel}>Top Ranking</p>
+              <p className={loginStyles.metricValue}>
+                {topBuyer ? `${topBuyer.participant} · ${topBuyer.totalNumbers}` : "Atualizando..."}
+              </p>
+            </article>
+          </div>
+
+          <div className={loginStyles.progressWrap} aria-label="Progresso de números vendidos">
+            <div className={loginStyles.progressTrack}>
+              <span className={loginStyles.progressFill} style={{ width: `${soldPercent}%` }} />
+            </div>
+            <p className={loginStyles.progressText}>
+              {soldPercent.toFixed(1)}% já vendidos. Ainda dá tempo de entrar no Top 10 hoje.
+            </p>
+          </div>
+        </aside>
+
+        <section className={loginStyles.loginCard}>
+          <p className={loginStyles.vipTag}>Acesso exclusivo</p>
+          <h1 className={loginStyles.title}>Você está a um passo de garantir seus números!</h1>
+          <p className={loginStyles.subtitle}>
+            Seus números só ficam garantidos após o login. Faça agora e finalize em menos de 1 minuto.
+          </p>
+
+          <AuthMessage error={friendlyError} success={params.success} />
+
+          <ul className={loginStyles.benefitList}>
+            <li>Garantir seus números antes que acabem</li>
+            <li>Acompanhar sua posição no ranking</li>
+            <li>Receber confirmação automática no PIX</li>
+            <li>Participar oficialmente do sorteio</li>
+          </ul>
+
+          <div className={loginStyles.bonusBox}>
+            <p className={loginStyles.bonusTitle}>Bônus de boas-vindas</p>
+            <p className={loginStyles.bonusText}>Entre agora e desbloqueie compra rápida com priorização no checkout.</p>
+          </div>
+
+          <form action={signInAction} className={authStyles.form}>
+            <input className={authStyles.input} name="email" placeholder="Seu e-mail" required type="email" />
+            <input className={authStyles.input} name="password" placeholder="Sua senha" required type="password" />
+            <button className={`${authStyles.button} ${loginStyles.mainButton}`} type="submit">
+              ENTRAR E GARANTIR MEUS NÚMEROS
+            </button>
+          </form>
+
+          <div className={loginStyles.socialGrid}>
+            <form action={signInWithGoogleAction}>
+              <button className={loginStyles.socialButton} type="submit">
+                Continuar com Google
+              </button>
+            </form>
+            <a className={loginStyles.socialButton} href={whatsAppLoginUrl} rel="noreferrer" target="_blank">
+              Continuar com WhatsApp
+            </a>
+          </div>
+
+          <p className={loginStyles.microtext}>Leva menos de 1 minuto. Simples e rápido.</p>
+
+          <div className={authStyles.links}>
+            <Link className={authStyles.buttonSecondary} href="/cadastro">
+              Criar conta
+            </Link>
+            <Link className={authStyles.buttonSecondary} href="/recuperar-senha">
+              Recuperar senha
+            </Link>
+            <Link className={authStyles.buttonSecondary} href="/r/luxo-premiado#inicio">
+              Voltar para a campanha
+            </Link>
+          </div>
+        </section>
       </section>
     </main>
   );

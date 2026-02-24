@@ -14,6 +14,7 @@ import { Transparency } from "@/components/raffle/Transparency";
 import { BuyerRanking } from "@/components/raffle/BuyerRanking";
 import { AffiliateTracker } from "@/components/raffle/AffiliateTracker";
 import { TopMenu } from "@/components/raffle/TopMenu";
+import { LiveActivityPopup } from "@/components/common/LiveActivityPopup";
 import { getRaffleLandingData } from "@/lib/raffles";
 
 interface RafflePageProps {
@@ -36,6 +37,7 @@ export default async function RafflePage({ params }: RafflePageProps) {
   return (
     <main>
       <AffiliateTracker />
+      <LiveActivityPopup scope="landing" />
       <TopMenu />
       <Hero data={raffle.hero} prizeTitle={raffle.prize.title} stats={raffle.stats} />
       <ProgressStats raffleSlug={raffle.slug} stats={raffle.stats} totalNumbers={raffle.totalNumbers} />
