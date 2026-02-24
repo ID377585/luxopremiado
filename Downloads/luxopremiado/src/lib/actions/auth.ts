@@ -49,12 +49,13 @@ export async function signInWithGoogleAction(formData: FormData) {
 
   const supabase = await createSupabaseServerClient();
   const nextPath = resolveNextPath(formData.get("next"));
-  const callbackUrl = `${getSiteUrl()}/auth/callback?next=${encodeURIComponent(nextPath)}`;
+  const callbackUrl = new URL("/auth/callback", getSiteUrl());
+  callbackUrl.searchParams.set("next", nextPath);
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: callbackUrl,
+      redirectTo: callbackUrl.toString(),
       queryParams: {
         prompt: "select_account",
       },

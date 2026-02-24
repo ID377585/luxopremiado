@@ -8,6 +8,22 @@ function requireEnv(name: string): string {
   return value;
 }
 
+function normalizeSiteUrl(rawValue: string | undefined): string {
+  const fallback = "http://localhost:3000";
+  const normalized = (rawValue ?? "").trim().replace(/\s+/g, "");
+
+  if (!normalized) {
+    return fallback;
+  }
+
+  try {
+    const url = new URL(normalized);
+    return url.toString().replace(/\/$/, "");
+  } catch {
+    return fallback;
+  }
+}
+
 export function hasSupabaseEnv(): boolean {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }
@@ -25,5 +41,5 @@ export function getSupabaseServiceRoleKey(): string {
 }
 
 export function getSiteUrl(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  return normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL);
 }
