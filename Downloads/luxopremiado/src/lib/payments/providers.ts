@@ -4,7 +4,7 @@ import Stripe from "stripe";
 
 import { getSiteUrl } from "@/lib/env";
 
-export type PaymentProviderName = "asaas" | "mercadopago" | "pagarme" | "stripe" | "manual";
+export type PaymentProviderName = "asaas" | "mercadopago" | "pagarme" | "stripe";
 
 export interface PaymentProviderInput {
   provider: PaymentProviderName;
@@ -393,7 +393,7 @@ export async function createPaymentProvider(input: PaymentProviderInput): Promis
     );
   }
 
-  throw new Error("Provider manual desabilitado em produção.");
+  throw new Error(`Provider de pagamento não suportado: ${input.provider}`);
 }
 
 function timingSafeEqualHex(a: string, b: string): boolean {

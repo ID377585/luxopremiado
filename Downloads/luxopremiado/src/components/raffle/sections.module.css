@@ -799,10 +799,16 @@
   background: rgba(2, 6, 23, 0.62);
   border: 1px solid rgba(148, 163, 184, 0.24);
   border-radius: 1rem;
+  align-items: start;
   display: grid;
   gap: 1rem;
   grid-template-columns: 1.1fr 0.9fr;
   padding: 1rem;
+}
+
+.numberPickerWrap > aside {
+  align-self: start;
+  height: fit-content;
 }
 
 .filterRow {
@@ -841,7 +847,7 @@
 .numbersGrid {
   display: grid;
   gap: 0.48rem;
-  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(136px, 1fr));
 }
 
 .actionRow {
@@ -953,16 +959,16 @@
   align-items: center;
   justify-content: center;
   font-family: "JetBrains Mono", "Fira Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.69rem;
+  font-size: clamp(0.71rem, 0.68rem + 0.12vw, 0.78rem);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
   line-height: 1;
-  min-height: 2.15rem;
+  min-height: 2.2rem;
   overflow: hidden;
-  padding: 0.45rem 0.35rem;
+  padding: 0.45rem 0.52rem;
   text-align: center;
-  text-overflow: clip;
+  text-overflow: ellipsis;
   white-space: nowrap;
   width: 100%;
 }
@@ -1522,7 +1528,7 @@
   }
 
   .numbersGrid {
-    grid-template-columns: repeat(auto-fill, minmax(102px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
   }
 }
 
@@ -1605,7 +1611,7 @@
   }
 
   .numbersGrid {
-    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
   }
 
   .packagesGrid,

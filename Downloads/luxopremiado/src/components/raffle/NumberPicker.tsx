@@ -30,6 +30,11 @@ interface NumberPickerProps {
   totalNumbers: number;
   raffleId: string | null;
   maxNumbersPerUser: number;
+  initialStats: {
+    availableNumbers: number;
+    reservedNumbers: number;
+    soldNumbers: number;
+  };
   recommendedPackQty?: number | null;
 }
 
@@ -60,6 +65,7 @@ export function NumberPicker({
   totalNumbers,
   raffleId,
   maxNumbersPerUser,
+  initialStats,
   recommendedPackQty = null,
 }: NumberPickerProps) {
   const [reservation, setReservation] = useState<ReservationState | null>(null);
@@ -236,6 +242,11 @@ export function NumberPicker({
           <div>
             <NumberGridLive
               initialNumbers={numbers}
+              initialGlobalStats={{
+                available: initialStats.availableNumbers,
+                reserved: initialStats.reservedNumbers,
+                sold: initialStats.soldNumbers,
+              }}
               isAuthenticated={isAuthenticated}
               maxNumbersPerUser={maxNumbersPerUser}
               onReservationCreated={handleReservationCreated}

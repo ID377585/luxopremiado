@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { hasSupabaseEnv } from "@/lib/env";
+import { getSiteUrl, hasSupabaseEnv } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const enrollSchema = z.object({
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    const site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+    const site = getSiteUrl();
     let raffleSlug = parsed.data.raffleSlug ?? null;
 
     if (!raffleSlug) {

@@ -8,6 +8,41 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { paymentSchema } from "@/lib/validators/payment";
 
+interface StoredPayment {
+  provider_reference: string | null;
+  status: string;
+  pix_qr_code: string | null;
+  pix_copy_paste: string | null;
+  raw: Record<string, unknown> | null;
+  created_at?: string;
+}
+
+function getMethodFromRaw(raw: Record<string, unknown> | null): "pix" | "card" | null {
+  const value = raw?.method;
+  if (value === "pix" || value === "card") {
+    return value;
+  }
+
+  return null;
+}
+
+function getStringFromRaw(raw: Record<string, unknown> | null, key: string): string | undefined {
+  const value = raw?.[key];
+  return typeof value === "string" && value.trim().length > 0 ? value : undefined;
+}
+
+function mapStoredPayment(payment: StoredPayment) {
+  return {
+    providerReference: payment.provider_reference ?? "",
+    status: payment.status === "initiated" ? "initiated" : "pending",
+    pixQrCode: payment.pix_qr_code ?? undefined,
+    pixCopyPaste: payment.pix_copy_paste ?? undefined,
+    checkoutUrl:
+      getStringFromRaw(payment.raw, "checkoutUrl") ?? getStringFromRaw(payment.raw, "checkout_url") ?? undefined,
+    expiresAt: getStringFromRaw(payment.raw, "expiresAt") ?? undefined,
+  } as const;
+}
+
 export async function POST(request: NextRequest) {
   const requestId = getRequestId(request);
 
@@ -87,6 +122,41 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Status inválido para pagamento" }, { status: 400 });
     }
 
+    const serviceClient = createSupabaseServiceClient();
+    const { data: openPayments, error: openPaymentError } = await serviceClient
+      .from("payments")
+      .select("provider_reference, status, pix_qr_code, pix_copy_paste, raw, created_at")
+      .eq("order_id", order.id)
+      .eq("provider", parsed.data.provider)
+      .in("status", ["initiated", "pending"])
+      .order("created_at", { ascending: false })
+      .limit(5);
+
+    if (openPaymentError) {
+      return NextResponse.json({ error: openPaymentError.message }, { status: 400 });
+    }
+
+    const matchingOpenPayment = openPayments?.find((payment) => getMethodFromRaw(payment.raw as Record<string, unknown> | null) === parsed.data.method)
+      ?? openPayments?.[0];
+
+    if (matchingOpenPayment?.provider_reference) {
+      logStructured("info", "payment.create.reused_open_payment", {
+        requestId,
+        userId: user.id,
+        orderId: order.id,
+        provider: parsed.data.provider,
+        method: parsed.data.method,
+        providerReference: matchingOpenPayment.provider_reference,
+      });
+
+      return NextResponse.json({
+        success: true,
+        reused: true,
+        requestId,
+        payment: mapStoredPayment(matchingOpenPayment as StoredPayment),
+      });
+    }
+
     const [profileResult, authResult] = await Promise.all([
       supabase.from("profiles").select("name, phone").eq("id", user.id).maybeSingle(),
       supabase.auth.getUser(),
@@ -103,7 +173,12 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const serviceClient = createSupabaseServiceClient();
+    const paymentRaw = {
+      ...(paymentResponse.raw ?? {}),
+      method: parsed.data.method,
+      checkoutUrl: paymentResponse.checkoutUrl ?? null,
+      expiresAt: paymentResponse.expiresAt ?? null,
+    };
 
     const { error: paymentError } = await serviceClient.from("payments").insert({
       order_id: order.id,
@@ -112,10 +187,40 @@ export async function POST(request: NextRequest) {
       status: paymentResponse.status,
       pix_qr_code: paymentResponse.pixQrCode ?? null,
       pix_copy_paste: paymentResponse.pixCopyPaste ?? null,
-      raw: paymentResponse.raw,
+      raw: paymentRaw,
     });
 
     if (paymentError) {
+      if (paymentError.code === "23505") {
+        const { data: duplicatedOpen } = await serviceClient
+          .from("payments")
+          .select("provider_reference, status, pix_qr_code, pix_copy_paste, raw, created_at")
+          .eq("order_id", order.id)
+          .eq("provider", parsed.data.provider)
+          .in("status", ["initiated", "pending"])
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (duplicatedOpen?.provider_reference) {
+          logStructured("info", "payment.create.reused_after_unique_conflict", {
+            requestId,
+            userId: user.id,
+            orderId: order.id,
+            provider: parsed.data.provider,
+            method: parsed.data.method,
+            providerReference: duplicatedOpen.provider_reference,
+          });
+
+          return NextResponse.json({
+            success: true,
+            reused: true,
+            requestId,
+            payment: mapStoredPayment(duplicatedOpen as StoredPayment),
+          });
+        }
+      }
+
       logStructured("warn", "payment.create.insert_failed", {
         requestId,
         userId: user.id,

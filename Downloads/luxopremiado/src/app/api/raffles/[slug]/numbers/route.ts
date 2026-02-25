@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { hasSupabaseEnv } from "@/lib/env";
-import { buildFallbackNumberTiles, FALLBACK_TOTAL_NUMBERS } from "@/lib/landing-data";
+import { buildFallbackNumberTiles, fallbackRaffleData, FALLBACK_TOTAL_NUMBERS } from "@/lib/landing-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 interface RaffleNumbersRouteContext {
@@ -26,6 +26,11 @@ export async function GET(request: NextRequest, context: RaffleNumbersRouteConte
       page,
       pageSize,
       total: FALLBACK_TOTAL_NUMBERS,
+      stats: {
+        available: fallbackRaffleData.stats.availableNumbers,
+        reserved: fallbackRaffleData.stats.reservedNumbers,
+        sold: fallbackRaffleData.stats.soldNumbers,
+      },
       numbers: buildFallbackNumberTiles({
         page,
         pageSize,
@@ -47,24 +52,50 @@ export async function GET(request: NextRequest, context: RaffleNumbersRouteConte
       return NextResponse.json({ error: "Rifa não encontrada." }, { status: 404 });
     }
 
-    const { data: rows, error } = await supabase
-      .from("v_raffle_numbers_public")
-      .select("number, status")
-      .eq("raffle_id", raffle.id)
-      .order("number", { ascending: true })
-      .range(offset, offset + pageSize - 1);
+    const [rowsResult, soldCountResult, reservedCountResult] = await Promise.all([
+      supabase
+        .from("v_raffle_numbers_public")
+        .select("number, status")
+        .eq("raffle_id", raffle.id)
+        .order("number", { ascending: true })
+        .range(offset, offset + pageSize - 1),
+      supabase.from("raffle_numbers").select("id", { count: "exact", head: true }).eq("raffle_id", raffle.id).eq("status", "sold"),
+      supabase
+        .from("raffle_numbers")
+        .select("id", { count: "exact", head: true })
+        .eq("raffle_id", raffle.id)
+        .eq("status", "reserved"),
+    ]);
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+    if (rowsResult.error) {
+      return NextResponse.json({ error: rowsResult.error.message }, { status: 400 });
     }
+
+    if (soldCountResult.error) {
+      return NextResponse.json({ error: soldCountResult.error.message }, { status: 400 });
+    }
+
+    if (reservedCountResult.error) {
+      return NextResponse.json({ error: reservedCountResult.error.message }, { status: 400 });
+    }
+
+    const soldCount = Number(soldCountResult.count ?? 0);
+    const reservedCount = Number(reservedCountResult.count ?? 0);
+    const totalCount = Number(raffle.total_numbers ?? 0);
+    const availableCount = Math.max(0, totalCount - soldCount - reservedCount);
 
     return NextResponse.json({
       success: true,
       page,
       pageSize,
-      total: Number(raffle.total_numbers ?? 0),
+      total: totalCount,
+      stats: {
+        available: availableCount,
+        reserved: reservedCount,
+        sold: soldCount,
+      },
       numbers:
-        rows?.map((item) => ({
+        rowsResult.data?.map((item) => ({
           number: Number(item.number),
           status: normalizeStatus(typeof item.status === "string" ? item.status : null),
         })) ?? [],

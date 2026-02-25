@@ -9,18 +9,7 @@ interface WebhookRouteContext {
 }
 
 function isKnownProvider(value: string): value is PaymentProviderName {
-  return ["asaas", "mercadopago", "pagarme", "stripe", "manual"].includes(value);
-}
-
-function validateWebhookSignature(request: NextRequest): boolean {
-  const expectedSecret = process.env.WEBHOOK_SECRET;
-
-  if (!expectedSecret) {
-    return true;
-  }
-
-  const providedSecret = request.headers.get("x-webhook-secret");
-  return providedSecret === expectedSecret;
+  return ["asaas", "mercadopago", "pagarme", "stripe"].includes(value);
 }
 
 export async function POST(request: NextRequest, context: WebhookRouteContext) {
@@ -34,11 +23,6 @@ export async function POST(request: NextRequest, context: WebhookRouteContext) {
     }
 
     const rawBody = await request.text();
-
-    if (!validateWebhookSignature(request) && provider === "manual") {
-      logStructured("warn", "webhook.manual_signature_invalid", { requestId, provider });
-      return NextResponse.json({ error: "Assinatura inválida" }, { status: 401 });
-    }
 
     const parsed = await verifyAndParseWebhook({
       provider,

@@ -8,10 +8,17 @@ import { TurnstileWidget } from "@/components/security/TurnstileWidget";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { NumberStatus, NumberTile } from "@/types/raffle";
 
+interface GlobalNumberStats {
+  available: number;
+  reserved: number;
+  sold: number;
+}
+
 interface NumberGridLiveProps {
   raffleId: string | null;
   raffleSlug: string;
   initialNumbers: NumberTile[];
+  initialGlobalStats?: GlobalNumberStats;
   totalNumbers: number;
   maxNumbersPerUser: number;
   recommendedPackQty?: number | null;
@@ -33,10 +40,83 @@ function normalizeStatus(status: unknown): NumberStatus {
   return "available";
 }
 
+function deriveGlobalStatsFromTiles(numbers: NumberTile[], totalNumbers: number): GlobalNumberStats {
+  const sold = numbers.filter((item) => item.status === "sold").length;
+  const reserved = numbers.filter((item) => item.status === "reserved").length;
+  const available = Math.max(0, totalNumbers - sold - reserved);
+
+  return { available, reserved, sold };
+}
+
+function normalizeGlobalStats(
+  stats: Partial<GlobalNumberStats> | undefined,
+  fallback: GlobalNumberStats,
+): GlobalNumberStats {
+  if (!stats) {
+    return fallback;
+  }
+
+  const sold = Number.isFinite(stats.sold) ? Number(stats.sold) : fallback.sold;
+  const reserved = Number.isFinite(stats.reserved) ? Number(stats.reserved) : fallback.reserved;
+  const available = Number.isFinite(stats.available) ? Number(stats.available) : fallback.available;
+
+  return {
+    sold: Math.max(0, sold),
+    reserved: Math.max(0, reserved),
+    available: Math.max(0, available),
+  };
+}
+
+function applyStatusDelta(
+  current: GlobalNumberStats,
+  previousStatus: NumberStatus,
+  nextStatus: NumberStatus,
+): GlobalNumberStats {
+  if (previousStatus === nextStatus) {
+    return current;
+  }
+
+  const updated: GlobalNumberStats = { ...current };
+
+  const decrement = (status: NumberStatus) => {
+    if (status === "sold") {
+      updated.sold = Math.max(0, updated.sold - 1);
+      return;
+    }
+
+    if (status === "reserved") {
+      updated.reserved = Math.max(0, updated.reserved - 1);
+      return;
+    }
+
+    updated.available = Math.max(0, updated.available - 1);
+  };
+
+  const increment = (status: NumberStatus) => {
+    if (status === "sold") {
+      updated.sold += 1;
+      return;
+    }
+
+    if (status === "reserved") {
+      updated.reserved += 1;
+      return;
+    }
+
+    updated.available += 1;
+  };
+
+  decrement(previousStatus);
+  increment(nextStatus);
+
+  return updated;
+}
+
 export function NumberGridLive({
   raffleId,
   raffleSlug,
   initialNumbers,
+  initialGlobalStats,
   totalNumbers,
   maxNumbersPerUser,
   recommendedPackQty = null,
@@ -46,6 +126,9 @@ export function NumberGridLive({
   const pageSize = 200;
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const [numbers, setNumbers] = useState(initialNumbers);
+  const [globalStats, setGlobalStats] = useState<GlobalNumberStats>(() =>
+    normalizeGlobalStats(initialGlobalStats, deriveGlobalStatsFromTiles(initialNumbers, totalNumbers)),
+  );
   const [page, setPage] = useState(1);
   const [pageLoading, setPageLoading] = useState(false);
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
@@ -60,6 +143,10 @@ export function NumberGridLive({
     setNumbers(initialNumbers);
     setPage(1);
   }, [initialNumbers]);
+
+  useEffect(() => {
+    setGlobalStats(normalizeGlobalStats(initialGlobalStats, deriveGlobalStatsFromTiles(initialNumbers, totalNumbers)));
+  }, [initialGlobalStats, initialNumbers, totalNumbers]);
 
   useEffect(() => {
     if (page === 1) {
@@ -85,6 +172,7 @@ export function NumberGridLive({
         const data = (await response.json()) as {
           error?: string;
           numbers?: NumberTile[];
+          stats?: GlobalNumberStats;
         };
 
         if (!response.ok || !data.numbers) {
@@ -93,6 +181,9 @@ export function NumberGridLive({
         }
 
         setNumbers(data.numbers);
+        if (data.stats) {
+          setGlobalStats((current) => normalizeGlobalStats(data.stats, current));
+        }
       } catch {
         if (!controller.signal.aborted) {
           setMessage("Erro de conexão ao carregar página de números.");
@@ -136,11 +227,15 @@ export function NumberGridLive({
         (payload) => {
           const rawNumber = payload.new?.number;
           const rawStatus = payload.new?.status;
+          const previousRawStatus = payload.old?.status;
           const number = typeof rawNumber === "number" ? rawNumber : Number(rawNumber);
 
           if (!Number.isFinite(number)) {
             return;
           }
+
+          const previousStatus = normalizeStatus(previousRawStatus);
+          const nextStatus = normalizeStatus(rawStatus);
 
           setNumbers((current) =>
             current.map((item) =>
@@ -152,6 +247,7 @@ export function NumberGridLive({
                 : item,
             ),
           );
+          setGlobalStats((current) => applyStatusDelta(current, previousStatus, nextStatus));
 
           setLastUpdatedAt(new Date());
         },
@@ -165,9 +261,9 @@ export function NumberGridLive({
     };
   }, [supabase, raffleId]);
 
-  const available = numbers.filter((item) => item.status === "available").length;
-  const reserved = numbers.filter((item) => item.status === "reserved").length;
-  const sold = numbers.filter((item) => item.status === "sold").length;
+  const available = globalStats.available;
+  const reserved = globalStats.reserved;
+  const sold = globalStats.sold;
   const totalPages = Math.max(1, Math.ceil(totalNumbers / pageSize));
 
   function toggleNumberSelection(number: number, status: NumberStatus) {

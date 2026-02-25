@@ -19,6 +19,7 @@ export default async function BuyNumbersPage({ searchParams }: BuyNumbersPagePro
   return (
     <>
       <NumberPicker
+        initialStats={raffle.stats}
         isAuthenticated={Boolean(user)}
         maxNumbersPerUser={raffle.maxNumbersPerUser}
         numbers={raffle.numberTiles}
