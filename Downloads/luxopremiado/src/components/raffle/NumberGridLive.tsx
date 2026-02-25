@@ -23,6 +23,7 @@ interface NumberGridLiveProps {
   maxNumbersPerUser: number;
   recommendedPackQty?: number | null;
   isAuthenticated?: boolean;
+  onTurnstileTokenChange?: (token: string | null) => void;
   onReservationCreated?: (reservation: {
     orderId: string;
     raffleId: string;
@@ -121,6 +122,7 @@ export function NumberGridLive({
   maxNumbersPerUser,
   recommendedPackQty = null,
   isAuthenticated = false,
+  onTurnstileTokenChange,
   onReservationCreated,
 }: NumberGridLiveProps) {
   const pageSize = 200;
@@ -135,6 +137,7 @@ export function NumberGridLive({
   const [message, setMessage] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileRevision, setTurnstileRevision] = useState(0);
   const [isLive, setIsLive] = useState(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
@@ -147,6 +150,10 @@ export function NumberGridLive({
   useEffect(() => {
     setGlobalStats(normalizeGlobalStats(initialGlobalStats, deriveGlobalStatsFromTiles(initialNumbers, totalNumbers)));
   }, [initialGlobalStats, initialNumbers, totalNumbers]);
+
+  useEffect(() => {
+    onTurnstileTokenChange?.(turnstileToken);
+  }, [onTurnstileTokenChange, turnstileToken]);
 
   useEffect(() => {
     if (page === 1) {
@@ -335,6 +342,10 @@ export function NumberGridLive({
       if (data.reservation) {
         onReservationCreated?.(data.reservation);
       }
+      if (turnstileEnabled) {
+        setTurnstileToken(null);
+        setTurnstileRevision((current) => current + 1);
+      }
     } catch {
       setMessage("Erro de conexão ao tentar reservar os números.");
     } finally {
@@ -432,7 +443,7 @@ export function NumberGridLive({
 
       {turnstileEnabled ? (
         <div className={styles.turnstileWrap}>
-          <TurnstileWidget onTokenChange={setTurnstileToken} />
+          <TurnstileWidget key={turnstileRevision} onTokenChange={setTurnstileToken} />
         </div>
       ) : null}
 

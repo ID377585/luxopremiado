@@ -23,6 +23,13 @@ interface PaymentState {
   expiresAt?: string;
 }
 
+interface StoredCheckoutState {
+  reservation: ReservationState;
+  payment: PaymentState | null;
+  orderStatus: string;
+  savedAt: string;
+}
+
 interface NumberPickerProps {
   isAuthenticated?: boolean;
   raffleSlug: string;
@@ -58,6 +65,38 @@ function formatCountdown(targetIso: string | null): string {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
+function readStorage(key: string): StoredCheckoutState | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const raw = window.localStorage.getItem(key);
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<StoredCheckoutState>;
+    if (!parsed || typeof parsed !== "object" || !parsed.reservation?.orderId) {
+      return null;
+    }
+
+    return {
+      reservation: parsed.reservation,
+      payment: parsed.payment ?? null,
+      orderStatus: typeof parsed.orderStatus === "string" ? parsed.orderStatus : "pending",
+      savedAt: typeof parsed.savedAt === "string" ? parsed.savedAt : new Date().toISOString(),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function getRawString(raw: Record<string, unknown> | null | undefined, key: string): string | undefined {
+  const value = raw?.[key];
+  return typeof value === "string" && value.trim().length > 0 ? value : undefined;
+}
+
 export function NumberPicker({
   isAuthenticated = false,
   raffleSlug,
@@ -70,6 +109,7 @@ export function NumberPicker({
 }: NumberPickerProps) {
   const [reservation, setReservation] = useState<ReservationState | null>(null);
   const [payment, setPayment] = useState<PaymentState | null>(null);
+  const [checkoutTurnstileToken, setCheckoutTurnstileToken] = useState<string | null>(null);
   const [paymentProvider, setPaymentProvider] = useState<"stripe" | "mercadopago" | "asaas">("mercadopago");
   const [paymentMethod, setPaymentMethod] = useState<"pix" | "card">("pix");
   const [paymentLoading, setPaymentLoading] = useState(false);
@@ -77,6 +117,8 @@ export function NumberPicker({
   const [statusMessage, setStatusMessage] = useState("");
   const [orderStatus, setOrderStatus] = useState<string>("-");
   const [countdown, setCountdown] = useState("--:--");
+  const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
+  const checkoutStorageKey = useMemo(() => `lp_active_checkout:${raffleSlug}`, [raffleSlug]);
 
   useEffect(() => {
     if (!reservation?.expiresAt) {
@@ -103,6 +145,41 @@ export function NumberPicker({
   const isPaid = orderStatus === "paid";
   const isExpired = orderStatus === "expired" || (countdown === "00:00" && !isPaid);
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    const stored = readStorage(checkoutStorageKey);
+    if (!stored) {
+      return;
+    }
+
+    setReservation(stored.reservation);
+    setPayment(stored.payment);
+    setOrderStatus(stored.orderStatus);
+    setStatusMessage("Checkout restaurado. Continue o pagamento.");
+  }, [checkoutStorageKey, isAuthenticated]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !isAuthenticated) {
+      return;
+    }
+
+    if (!reservation?.orderId || isPaid || isExpired) {
+      window.localStorage.removeItem(checkoutStorageKey);
+      return;
+    }
+
+    const payload: StoredCheckoutState = {
+      reservation,
+      payment,
+      orderStatus,
+      savedAt: new Date().toISOString(),
+    };
+    window.localStorage.setItem(checkoutStorageKey, JSON.stringify(payload));
+  }, [checkoutStorageKey, isAuthenticated, isExpired, isPaid, orderStatus, payment, reservation]);
+
   function handleReservationCreated(next: ReservationState) {
     setReservation(next);
     setPayment(null);
@@ -120,6 +197,11 @@ export function NumberPicker({
     setStatusMessage("");
 
     try {
+      if (turnstileEnabled && !checkoutTurnstileToken) {
+        setStatusMessage("Complete a validação de segurança para iniciar o pagamento.");
+        return;
+      }
+
       const response = await fetch("/api/payments/create", {
         method: "POST",
         headers: {
@@ -130,6 +212,7 @@ export function NumberPicker({
           provider: paymentProvider,
           method: paymentMethod,
           botTrap: "",
+          turnstileToken: checkoutTurnstileToken ?? undefined,
         }),
       });
 
@@ -180,6 +263,13 @@ export function NumberPicker({
       const data = (await response.json()) as {
         error?: string;
         order?: { status: string; expires_at?: string | null };
+        latestPayment?: {
+          provider_reference?: string | null;
+          status?: string | null;
+          pix_qr_code?: string | null;
+          pix_copy_paste?: string | null;
+          raw?: Record<string, unknown> | null;
+        } | null;
       };
 
       if (!response.ok || !data.order) {
@@ -199,6 +289,19 @@ export function NumberPicker({
               }
             : current,
         );
+      }
+
+      if (data.latestPayment?.provider_reference) {
+        setPayment({
+          providerReference: data.latestPayment.provider_reference,
+          status: data.latestPayment.status === "initiated" ? "initiated" : "pending",
+          pixQrCode: data.latestPayment.pix_qr_code ?? undefined,
+          pixCopyPaste: data.latestPayment.pix_copy_paste ?? undefined,
+          checkoutUrl:
+            getRawString(data.latestPayment.raw, "checkoutUrl") ??
+            getRawString(data.latestPayment.raw, "checkout_url"),
+          expiresAt: getRawString(data.latestPayment.raw, "expiresAt"),
+        });
       }
 
       if (data.order.status === "paid") {
@@ -250,6 +353,7 @@ export function NumberPicker({
               isAuthenticated={isAuthenticated}
               maxNumbersPerUser={maxNumbersPerUser}
               onReservationCreated={handleReservationCreated}
+              onTurnstileTokenChange={setCheckoutTurnstileToken}
               raffleId={raffleId}
               raffleSlug={raffleSlug}
               recommendedPackQty={recommendedPackQty}

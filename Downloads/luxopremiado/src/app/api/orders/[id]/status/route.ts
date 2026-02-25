@@ -44,7 +44,7 @@ export async function GET(_: NextRequest, context: OrderStatusRouteContext) {
 
     const { data: payments } = await supabase
       .from("payments")
-      .select("id, provider, status, pix_qr_code, pix_copy_paste, provider_reference, created_at")
+      .select("id, provider, status, pix_qr_code, pix_copy_paste, provider_reference, raw, created_at")
       .eq("order_id", id)
       .order("created_at", { ascending: false })
       .limit(1);

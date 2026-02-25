@@ -959,16 +959,16 @@
   align-items: center;
   justify-content: center;
   font-family: "JetBrains Mono", "Fira Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: clamp(0.71rem, 0.68rem + 0.12vw, 0.78rem);
+  font-size: clamp(0.66rem, 0.64rem + 0.08vw, 0.76rem);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
-  letter-spacing: 0;
+  letter-spacing: -0.01em;
   line-height: 1;
   min-height: 2.2rem;
   overflow: hidden;
-  padding: 0.45rem 0.52rem;
+  padding: 0.4rem 0.42rem;
   text-align: center;
-  text-overflow: ellipsis;
+  text-overflow: clip;
   white-space: nowrap;
   width: 100%;
 }
@@ -1528,7 +1528,7 @@
   }
 
   .numbersGrid {
-    grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
   }
 }
 
@@ -1611,7 +1611,13 @@
   }
 
   .numbersGrid {
-    grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+
+  .numberTile {
+    font-size: 0.66rem;
+    min-height: 2.08rem;
+    padding: 0.36rem 0.34rem;
   }
 
   .packagesGrid,

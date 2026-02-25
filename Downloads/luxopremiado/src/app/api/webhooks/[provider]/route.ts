@@ -130,13 +130,38 @@ export async function POST(request: NextRequest, context: WebhookRouteContext) {
       return NextResponse.json({ success: true, paid: true, requestId });
     }
 
-    await serviceClient.from("payments").insert({
-      order_id: parsed.orderId,
-      provider,
-      provider_reference: parsed.providerReference,
-      status: "failed",
-      raw: parsed.raw,
-    });
+    const { error: failedPaymentError } = await serviceClient.from("payments").upsert(
+      {
+        order_id: parsed.orderId,
+        provider,
+        provider_reference: parsed.providerReference,
+        status: "failed",
+        raw: parsed.raw,
+      },
+      {
+        onConflict: "provider,provider_reference",
+      },
+    );
+
+    if (failedPaymentError) {
+      logStructured("warn", "webhook.failed_payment_upsert_error", {
+        requestId,
+        provider,
+        orderId: parsed.orderId,
+        reason: failedPaymentError.message,
+      });
+      await persistPlatformEvent({
+        event_type: "webhook_failed_payment_upsert_error",
+        level: "warn",
+        request_id: requestId,
+        order_id: parsed.orderId,
+        provider,
+        payload: {
+          reason: failedPaymentError.message,
+          providerReference: parsed.providerReference,
+        },
+      });
+    }
 
     logStructured("info", "webhook.payment_not_paid", {
       requestId,

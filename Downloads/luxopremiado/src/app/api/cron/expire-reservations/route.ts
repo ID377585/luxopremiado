@@ -9,7 +9,12 @@ export async function POST(request: NextRequest) {
 
   if (expectedSecret) {
     const providedSecret = request.headers.get("x-cron-secret");
-    if (providedSecret !== expectedSecret) {
+    const authorization = request.headers.get("authorization");
+    const bearerSecret = authorization?.toLowerCase().startsWith("bearer ")
+      ? authorization.slice(7).trim()
+      : null;
+
+    if (providedSecret !== expectedSecret && bearerSecret !== expectedSecret) {
       logStructured("warn", "cron.expire_reservations.unauthorized", { requestId });
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }

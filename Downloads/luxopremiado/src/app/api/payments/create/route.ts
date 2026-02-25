@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
 
     const { data: order, error: orderError } = await supabase
       .from("orders")
-      .select("id, user_id, amount_cents, status, raffle_id")
+      .select("id, user_id, amount_cents, status, raffle_id, expires_at")
       .eq("id", parsed.data.orderId)
       .eq("user_id", user.id)
       .maybeSingle();
@@ -120,6 +120,25 @@ export async function POST(request: NextRequest) {
 
     if (order.status !== "pending") {
       return NextResponse.json({ error: "Status inválido para pagamento" }, { status: 400 });
+    }
+
+    const now = Date.now();
+    const expiresAtMs = order.expires_at ? Date.parse(String(order.expires_at)) : NaN;
+    if (Number.isFinite(expiresAtMs) && expiresAtMs <= now) {
+      const serviceClient = createSupabaseServiceClient();
+      await serviceClient
+        .from("orders")
+        .update({ status: "expired" })
+        .eq("id", order.id)
+        .eq("status", "pending");
+
+      logStructured("warn", "payment.create.order_expired", {
+        requestId,
+        userId: user.id,
+        orderId: order.id,
+      });
+
+      return NextResponse.json({ error: "Pedido expirado. Faça uma nova reserva." }, { status: 400 });
     }
 
     const serviceClient = createSupabaseServiceClient();

@@ -174,7 +174,7 @@ export async function enforceAntiBot(options: AntiBotOptions): Promise<AntiBotRe
   }
 
   const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
-  if (turnstileSecret && options.action === "reserve") {
+  if (turnstileSecret && (options.action === "reserve" || options.action === "payment")) {
     const validToken = await verifyTurnstileToken(options.turnstileToken ?? "", ip);
 
     if (!validToken) {
