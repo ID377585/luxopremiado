@@ -8,9 +8,18 @@ import { getSessionUser } from "@/lib/session";
 
 export default async function UserAreaPage() {
   const user = await getSessionUser();
-  const raffle = await getRaffleLandingData("luxo-premiado");
-  const soldPercent = Math.min(100, Math.max(0, (raffle.stats.soldNumbers / Math.max(raffle.totalNumbers, 1)) * 100));
-  const topBuyer = raffle.buyerRanking[0];
+  let raffle: Awaited<ReturnType<typeof getRaffleLandingData>> | null = null;
+
+  try {
+    raffle = await getRaffleLandingData("luxo-premiado");
+  } catch {
+    raffle = null;
+  }
+
+  const soldPercent = raffle
+    ? Math.min(100, Math.max(0, (raffle.stats.soldNumbers / Math.max(raffle.totalNumbers, 1)) * 100))
+    : 0;
+  const topBuyer = raffle?.buyerRanking[0];
   const isLoggedIn = Boolean(user?.id);
   const nextPath = "/app/comprar";
   const whatsAppLoginUrl = `https://wa.me/?text=${encodeURIComponent(
@@ -36,11 +45,13 @@ export default async function UserAreaPage() {
           <div className={styles.statGrid}>
             <article className={styles.statCard}>
               <p className={styles.statLabel}>Vendidos</p>
-              <p className={styles.statValue}>{soldPercent.toFixed(1)}%</p>
+              <p className={styles.statValue}>{raffle ? `${soldPercent.toFixed(1)}%` : "Indisponível"}</p>
             </article>
             <article className={styles.statCard}>
               <p className={styles.statLabel}>Restantes</p>
-              <p className={styles.statValue}>{raffle.stats.availableNumbers.toLocaleString("pt-BR")}</p>
+              <p className={styles.statValue}>
+                {raffle ? raffle.stats.availableNumbers.toLocaleString("pt-BR") : "Indisponível"}
+              </p>
             </article>
             <article className={styles.statCard}>
               <p className={styles.statLabel}>Top Ranking</p>
@@ -54,7 +65,11 @@ export default async function UserAreaPage() {
             <div className={styles.progressTrack}>
               <span className={styles.progressFill} style={{ width: `${soldPercent}%` }} />
             </div>
-            <p className={styles.progressText}>{soldPercent.toFixed(1)}% vendidos. Você pode entrar no Top 10 ainda hoje.</p>
+            <p className={styles.progressText}>
+              {raffle
+                ? `${soldPercent.toFixed(1)}% vendidos. Você pode entrar no Top 10 ainda hoje.`
+                : "Dados da campanha indisponíveis no momento."}
+            </p>
           </div>
         </aside>
 

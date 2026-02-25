@@ -25,35 +25,81 @@ export function ResetPasswordForm() {
       }
 
       try {
-        const hash = typeof window !== "undefined" ? window.location.hash : "";
+        const currentUrl = typeof window !== "undefined" ? new URL(window.location.href) : null;
+        const hash = currentUrl?.hash ?? "";
         const hashParams = new URLSearchParams(hash.startsWith("#") ? hash.slice(1) : hash);
+        const searchParams = currentUrl?.searchParams ?? new URLSearchParams();
+
+        const code = searchParams.get("code");
+        const tokenHash = searchParams.get("token_hash");
+        const queryType = searchParams.get("type");
         const accessToken = hashParams.get("access_token");
         const refreshToken = hashParams.get("refresh_token");
-        const recoveryType = hashParams.get("type");
+        const recoveryType = queryType ?? hashParams.get("type");
+        let shouldCleanupHash = false;
+        let shouldCleanupQuery = false;
+        let bootstrapError: string | null = null;
 
-        if (accessToken && refreshToken) {
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+          if (error) {
+            bootstrapError = "Link de recuperação inválido ou expirado. Solicite um novo e-mail.";
+          } else {
+            shouldCleanupQuery = true;
+          }
+        } else if (tokenHash && recoveryType === "recovery") {
+          const { error } = await supabase.auth.verifyOtp({
+            type: "recovery",
+            token_hash: tokenHash,
+          });
+
+          if (error) {
+            bootstrapError = "Link de recuperação inválido ou expirado. Solicite um novo e-mail.";
+          } else {
+            shouldCleanupQuery = true;
+          }
+        } else if (accessToken && refreshToken) {
           const { error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
           });
 
           if (error) {
-            if (mounted) {
-              setStatus({
-                type: "error",
-                message: "Link de recuperação inválido ou expirado. Solicite um novo e-mail.",
-              });
-            }
-          } else if (mounted && hash) {
-            window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+            bootstrapError = "Link de recuperação inválido ou expirado. Solicite um novo e-mail.";
+          } else {
+            shouldCleanupHash = true;
           }
         } else if (recoveryType === "recovery") {
-          if (mounted) {
-            setStatus({
-              type: "error",
-              message: "Sessão de recuperação incompleta. Abra novamente o link mais recente do e-mail.",
-            });
+          bootstrapError = "Sessão de recuperação incompleta. Abra novamente o link mais recente do e-mail.";
+        }
+
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (!session && !bootstrapError) {
+          bootstrapError = "Sessão de recuperação ausente. Solicite um novo link de redefinição.";
+        }
+
+        if (mounted && bootstrapError) {
+          setStatus({
+            type: "error",
+            message: bootstrapError,
+          });
+        }
+
+        if (mounted && currentUrl && (shouldCleanupHash || shouldCleanupQuery)) {
+          const cleanUrl = new URL(currentUrl.toString());
+          if (shouldCleanupHash) {
+            cleanUrl.hash = "";
           }
+          if (shouldCleanupQuery) {
+            cleanUrl.searchParams.delete("code");
+            cleanUrl.searchParams.delete("token_hash");
+            cleanUrl.searchParams.delete("type");
+          }
+          window.history.replaceState({}, document.title, `${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`);
         }
       } finally {
         if (mounted) {

@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
 
 import { FAQ } from "@/components/raffle/FAQ";
 import { Footer } from "@/components/raffle/Footer";
@@ -15,7 +16,7 @@ import { BuyerRanking } from "@/components/raffle/BuyerRanking";
 import { AffiliateTracker } from "@/components/raffle/AffiliateTracker";
 import { TopMenu } from "@/components/raffle/TopMenu";
 import { LiveActivityPopup } from "@/components/common/LiveActivityPopup";
-import { getRaffleLandingData } from "@/lib/raffles";
+import { getRaffleLandingData, RaffleDataError } from "@/lib/raffles";
 
 interface RafflePageProps {
   params: Promise<{ slug: string }>;
@@ -32,7 +33,17 @@ export async function generateMetadata({ params }: RafflePageProps): Promise<Met
 
 export default async function RafflePage({ params }: RafflePageProps) {
   const { slug } = await params;
-  const raffle = await getRaffleLandingData(slug);
+  let raffle;
+
+  try {
+    raffle = await getRaffleLandingData(slug);
+  } catch (error) {
+    if (error instanceof RaffleDataError && error.code === "NOT_FOUND") {
+      notFound();
+    }
+
+    throw error;
+  }
 
   return (
     <main>

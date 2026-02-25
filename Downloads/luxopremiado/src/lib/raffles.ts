@@ -1,6 +1,6 @@
 import { buildPackageOffersForUnitPrice, fallbackRaffleData } from "@/lib/landing-data";
 import { formatBrlFromCents } from "@/lib/format";
-import { hasSupabaseEnv } from "@/lib/env";
+import { canUseDemoFallback, hasSupabaseEnv } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { FaqItem, NumberStatus, RaffleLandingData } from "@/types/raffle";
 
@@ -77,9 +77,25 @@ const fallbackWinnerMedia = [
   "/images/winners/winner-3.svg",
 ];
 
+export class RaffleDataError extends Error {
+  constructor(
+    public readonly code: "NOT_FOUND" | "UNAVAILABLE",
+    message: string,
+  ) {
+    super(message);
+    this.name = "RaffleDataError";
+  }
+}
+
 export async function getRaffleLandingData(slug: string): Promise<RaffleLandingData> {
+  const allowFallback = canUseDemoFallback();
+
   if (!hasSupabaseEnv()) {
-    return createFallback(slug);
+    if (allowFallback) {
+      return createFallback(slug);
+    }
+
+    throw new RaffleDataError("UNAVAILABLE", "Supabase não configurado para carregar a rifa.");
   }
 
   try {
@@ -92,7 +108,11 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
       .maybeSingle();
 
     if (!raffle) {
-      return createFallback(slug);
+      if (allowFallback) {
+        return createFallback(slug);
+      }
+
+      throw new RaffleDataError("NOT_FOUND", `Rifa "${slug}" não encontrada.`);
     }
 
     const [imagesResult, numbersResult, socialProofResult, faqResult, transparencyResult, rankingResult, soldCountResult, reservedCountResult] =
@@ -236,7 +256,16 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
         rulesSummary: transparencyResult.data?.rules ?? fallbackRaffleData.transparency.rulesSummary,
       },
     };
-  } catch {
-    return createFallback(slug);
+  } catch (error) {
+    if (allowFallback) {
+      return createFallback(slug);
+    }
+
+    if (error instanceof RaffleDataError) {
+      throw error;
+    }
+
+    const reason = error instanceof Error ? error.message : "erro inesperado";
+    throw new RaffleDataError("UNAVAILABLE", `Falha ao carregar rifa "${slug}": ${reason}`);
   }
 }

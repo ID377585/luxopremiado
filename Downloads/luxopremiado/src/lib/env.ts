@@ -60,3 +60,11 @@ export function getSupabaseServiceRoleKey(): string {
 export function getSiteUrl(): string {
   return normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL);
 }
+
+export function canUseDemoFallback(): boolean {
+  if (process.env.ALLOW_FAKE_FALLBACK === "true") {
+    return true;
+  }
+
+  return process.env.NODE_ENV !== "production";
+}

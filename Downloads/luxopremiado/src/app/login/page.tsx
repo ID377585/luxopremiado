@@ -38,9 +38,18 @@ function mapFriendlyError(error?: string): string | undefined {
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
-  const raffle = await getRaffleLandingData("luxo-premiado");
-  const soldPercent = Math.min(100, Math.max(0, (raffle.stats.soldNumbers / Math.max(raffle.totalNumbers, 1)) * 100));
-  const topBuyer = raffle.buyerRanking[0];
+  let raffle: Awaited<ReturnType<typeof getRaffleLandingData>> | null = null;
+
+  try {
+    raffle = await getRaffleLandingData("luxo-premiado");
+  } catch {
+    raffle = null;
+  }
+
+  const soldPercent = raffle
+    ? Math.min(100, Math.max(0, (raffle.stats.soldNumbers / Math.max(raffle.totalNumbers, 1)) * 100))
+    : 0;
+  const topBuyer = raffle?.buyerRanking[0];
   const friendlyError = mapFriendlyError(params.error);
   const nextPath = normalizeNextPath(params.next);
   const whatsAppLoginUrl = `https://wa.me/?text=${encodeURIComponent(
@@ -62,11 +71,13 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           <div className={loginStyles.metricGrid}>
             <article className={loginStyles.metricCard}>
               <p className={loginStyles.metricLabel}>Vendidos</p>
-              <p className={loginStyles.metricValue}>{soldPercent.toFixed(1)}%</p>
+              <p className={loginStyles.metricValue}>{raffle ? `${soldPercent.toFixed(1)}%` : "Indisponível"}</p>
             </article>
             <article className={loginStyles.metricCard}>
               <p className={loginStyles.metricLabel}>Disponíveis</p>
-              <p className={loginStyles.metricValue}>{raffle.stats.availableNumbers.toLocaleString("pt-BR")}</p>
+              <p className={loginStyles.metricValue}>
+                {raffle ? raffle.stats.availableNumbers.toLocaleString("pt-BR") : "Indisponível"}
+              </p>
             </article>
             <article className={loginStyles.metricCard}>
               <p className={loginStyles.metricLabel}>Top Ranking</p>
@@ -81,7 +92,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               <span className={loginStyles.progressFill} style={{ width: `${soldPercent}%` }} />
             </div>
             <p className={loginStyles.progressText}>
-              {soldPercent.toFixed(1)}% já vendidos. Ainda dá tempo de entrar no Top 10 hoje.
+              {raffle
+                ? `${soldPercent.toFixed(1)}% já vendidos. Ainda dá tempo de entrar no Top 10 hoje.`
+                : "Dados da campanha indisponíveis no momento."}
             </p>
           </div>
         </aside>

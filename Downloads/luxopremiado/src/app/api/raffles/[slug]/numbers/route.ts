@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { hasSupabaseEnv } from "@/lib/env";
+import { canUseDemoFallback, hasSupabaseEnv } from "@/lib/env";
 import { buildFallbackNumberTiles, fallbackRaffleData, FALLBACK_TOTAL_NUMBERS } from "@/lib/landing-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -21,6 +21,15 @@ export async function GET(request: NextRequest, context: RaffleNumbersRouteConte
   const pageSize = Math.min(500, Math.max(20, Number(request.nextUrl.searchParams.get("pageSize") ?? 200)));
 
   if (!hasSupabaseEnv()) {
+    if (!canUseDemoFallback()) {
+      return NextResponse.json(
+        {
+          error: "Supabase não configurado para carregar os números desta rifa.",
+        },
+        { status: 503 },
+      );
+    }
+
     return NextResponse.json({
       success: true,
       page,

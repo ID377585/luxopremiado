@@ -84,11 +84,6 @@ cp .env.example .env.local
 - `ASAAS_API_URL` (default: `https://api.asaas.com`)
 - `ASAAS_WEBHOOK_TOKEN`
 
-#### Pagar.me
-
-- `PAGARME_SECRET_KEY`
-- `PAGARME_WEBHOOK_SECRET`
-
 4. Rodar projeto:
 
 ```bash
@@ -103,6 +98,8 @@ Aplicar migrations nesta ordem:
 - `supabase/migrations/20260223201500_growth_features_realtime_antibot_affiliates.sql`
 - `supabase/migrations/20260223214000_observability_platform_events.sql`
 - `supabase/migrations/20260224011000_raffle_numbers_bigint_12_digits.sql`
+- `supabase/migrations/20260225104500_purchase_flow_hardening.sql`
+- `supabase/migrations/20260225123000_provider_contract_strict.sql`
 
 Observação:
 - Após a migration de 12 dígitos, o domínio de numeração passa a ser `000000000000` até `999999999999` (armazenado como `bigint`).
@@ -160,7 +157,6 @@ npm run test:coverage
 - `https://SEU_DOMINIO/api/webhooks/stripe`
 - `https://SEU_DOMINIO/api/webhooks/mercadopago`
 - `https://SEU_DOMINIO/api/webhooks/asaas`
-- `https://SEU_DOMINIO/api/webhooks/pagarme`
 
 5. Configurar job para expirar reservas:
 

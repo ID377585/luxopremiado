@@ -4,7 +4,7 @@ import Stripe from "stripe";
 
 import { getSiteUrl } from "@/lib/env";
 
-export type PaymentProviderName = "asaas" | "mercadopago" | "pagarme" | "stripe";
+export type PaymentProviderName = "asaas" | "mercadopago" | "stripe";
 
 export interface PaymentProviderInput {
   provider: PaymentProviderName;
@@ -387,12 +387,6 @@ export async function createPaymentProvider(input: PaymentProviderInput): Promis
     return createAsaasPayment(input);
   }
 
-  if (input.provider === "pagarme") {
-    throw new Error(
-      "Provider pagarme exige checkout dedicado/tokens de cartão. Configure implementação específica antes de ativar em produção.",
-    );
-  }
-
   throw new Error(`Provider de pagamento não suportado: ${input.provider}`);
 }
 
@@ -596,43 +590,6 @@ export async function verifyAndParseWebhook(input: {
     return {
       providerReference:
         getStringFromStringOrNumber(payment?.id) ??
-        getStringFromStringOrNumber(payload.id) ??
-        randomUUID(),
-      orderId,
-      paid,
-      raw: payload,
-    };
-  }
-
-  if (input.provider === "pagarme") {
-    const secret = requireEnv("PAGARME_WEBHOOK_SECRET");
-    const signature = input.headers.get("x-hub-signature-256") ?? input.headers.get("x-hub-signature");
-
-    if (!signature) {
-      throw new Error("Assinatura Pagar.me ausente.");
-    }
-
-    const received = signature.replace(/^sha256=/i, "");
-    const expected = createHmac("sha256", secret).update(input.rawBody).digest("hex");
-
-    if (!timingSafeEqualHex(expected, received)) {
-      throw new Error("Assinatura Pagar.me inválida.");
-    }
-
-    const payloadData = asObject(payload.data);
-    const metadata = asObject(payloadData?.metadata);
-    const orderId = getString(metadata?.orderId) ?? getString(metadata?.order_id);
-
-    if (!orderId) {
-      throw new Error("Pagar.me webhook sem metadata.orderId.");
-    }
-
-    const status = String(payloadData?.status ?? payload.status ?? "").toLowerCase();
-    const paid = ["paid", "captured", "succeeded", "closed"].includes(status);
-
-    return {
-      providerReference:
-        getStringFromStringOrNumber(payloadData?.id) ??
         getStringFromStringOrNumber(payload.id) ??
         randomUUID(),
       orderId,

@@ -9,7 +9,7 @@ interface WebhookRouteContext {
 }
 
 function isKnownProvider(value: string): value is PaymentProviderName {
-  return ["asaas", "mercadopago", "pagarme", "stripe"].includes(value);
+  return ["asaas", "mercadopago", "stripe"].includes(value);
 }
 
 export async function POST(request: NextRequest, context: WebhookRouteContext) {
