@@ -1,8 +1,11 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import { buildPackageOffersForUnitPrice, fallbackRaffleData } from "@/lib/landing-data";
 import { formatBrlFromCents } from "@/lib/format";
 import { isDefaultRaffleSlug, normalizeRaffleSlug } from "@/lib/raffle-slug";
 import { canUseDemoFallback, hasSupabaseEnv } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { FaqItem, NumberStatus, RaffleLandingData } from "@/types/raffle";
 
 function createFallback(slug: string): RaffleLandingData {
@@ -94,6 +97,12 @@ interface GetRaffleLandingDataOptions {
   resolveToAvailableSlug?: boolean;
 }
 
+interface RaffleLookupRow {
+  id: string;
+  slug: string | null;
+  status: string | null;
+}
+
 function withTimeout<T>(promise: PromiseLike<T>, ms: number, operation: string): Promise<T> {
   let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
   const sourcePromise = Promise.resolve(promise);
@@ -135,23 +144,25 @@ export async function getRaffleLandingData(
 
   try {
     const supabase = await createSupabaseServerClient();
+    let dataClient = supabase as unknown as SupabaseClient;
 
     const raffleSelect =
       "id, slug, status, title, description, cover_image_url, price_cents, draw_date, max_numbers_per_user, total_numbers";
 
-    let { data: raffle } = await withTimeout(
-      supabase
-        .from("raffles")
-        .select(raffleSelect)
-        .eq("slug", slug)
-        .maybeSingle(),
-      timeoutMs,
-      "raffles.lookup",
-    );
+    const fetchRaffle = async (client: SupabaseClient, targetSlug: string) =>
+      withTimeout(
+        client
+          .from("raffles")
+          .select(raffleSelect)
+          .eq("slug", targetSlug)
+          .maybeSingle(),
+        timeoutMs,
+        "raffles.lookup",
+      );
 
-    if (!raffle && shouldResolveToAvailableSlug) {
-      const { data: candidates } = await withTimeout(
-        supabase
+    const fetchFallbackCandidates = async (client: SupabaseClient) =>
+      withTimeout(
+        client
           .from("raffles")
           .select(raffleSelect)
           .in("status", ["active", "draft", "closed", "drawn"])
@@ -161,9 +172,37 @@ export async function getRaffleLandingData(
         "raffles.fallback_lookup",
       );
 
-      const activeMatch = candidates?.find((item) => item.status === "active" && normalizeRaffleSlug(item.slug));
-      const anyMatch = candidates?.find((item) => normalizeRaffleSlug(item.slug));
+    let { data: raffle } = await fetchRaffle(dataClient, slug);
+
+    if (!raffle && shouldResolveToAvailableSlug) {
+      const { data: candidates } = await fetchFallbackCandidates(dataClient);
+
+      const activeMatch = candidates?.find(
+        (item: RaffleLookupRow) => item.status === "active" && normalizeRaffleSlug(item.slug),
+      );
+      const anyMatch = candidates?.find((item: RaffleLookupRow) => normalizeRaffleSlug(item.slug));
       raffle = activeMatch ?? anyMatch ?? null;
+    }
+
+    if (!raffle) {
+      try {
+        const serviceClient = createSupabaseServiceClient();
+        dataClient = serviceClient;
+
+        const serviceLookup = await fetchRaffle(dataClient, slug);
+        raffle = serviceLookup.data ?? null;
+
+        if (!raffle && shouldResolveToAvailableSlug) {
+          const { data: serviceCandidates } = await fetchFallbackCandidates(dataClient);
+          const serviceActive = serviceCandidates?.find(
+            (item: RaffleLookupRow) => item.status === "active" && normalizeRaffleSlug(item.slug),
+          );
+          const serviceAny = serviceCandidates?.find((item: RaffleLookupRow) => normalizeRaffleSlug(item.slug));
+          raffle = serviceActive ?? serviceAny ?? null;
+        }
+      } catch {
+        // noop: fallback behavior stays the same.
+      }
     }
 
     if (!raffle) {
@@ -179,35 +218,35 @@ export async function getRaffleLandingData(
     const [imagesResult, numbersResult, socialProofResult, faqResult, transparencyResult, rankingResult, soldCountResult, reservedCountResult] =
       await withTimeout(
         Promise.all([
-          supabase
+          dataClient
             .from("raffle_images")
             .select("url")
             .eq("raffle_id", raffle.id)
             .order("sort_order", { ascending: true }),
-          supabase
+          dataClient
             .from("v_raffle_numbers_public")
             .select("number, status")
             .eq("raffle_id", raffle.id)
             .order("number", { ascending: true })
             .limit(200),
-          supabase.from("social_proof").select("type, title, content, media_url").eq("raffle_id", raffle.id).limit(20),
-          supabase
+          dataClient.from("social_proof").select("type, title, content, media_url").eq("raffle_id", raffle.id).limit(20),
+          dataClient
             .from("faq")
             .select("question, answer")
             .or(`raffle_id.eq.${raffle.id},raffle_id.is.null`)
             .order("sort_order", { ascending: true })
             .limit(8),
-          supabase
+          dataClient
             .from("transparency")
             .select("draw_method, organizer_name, organizer_doc, contact, rules")
             .eq("raffle_id", raffle.id)
             .maybeSingle(),
-          supabase.rpc("get_raffle_buyer_ranking", {
+          dataClient.rpc("get_raffle_buyer_ranking", {
             p_raffle_id: raffle.id,
             p_limit: 10,
           }),
-          supabase.from("raffle_numbers").select("id", { count: "exact", head: true }).eq("raffle_id", raffle.id).eq("status", "sold"),
-          supabase
+          dataClient.from("raffle_numbers").select("id", { count: "exact", head: true }).eq("raffle_id", raffle.id).eq("status", "sold"),
+          dataClient
             .from("raffle_numbers")
             .select("id", { count: "exact", head: true })
             .eq("raffle_id", raffle.id)

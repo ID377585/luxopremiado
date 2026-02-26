@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { canUseDemoFallback, hasSupabaseEnv } from "@/lib/env";
 import { buildFallbackNumberTiles, fallbackRaffleData, FALLBACK_TOTAL_NUMBERS } from "@/lib/landing-data";
 import { isDefaultRaffleSlug } from "@/lib/raffle-slug";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceClient } from "@/lib/supabase/service";
 
 interface RaffleNumbersRouteContext {
   params: Promise<{ slug: string }>;
+}
+
+interface RaffleLookupRow {
+  id: string;
+  slug: string | null;
+  status: string | null;
+  total_numbers: number | null;
 }
 
 function normalizeStatus(status: string | null): "available" | "reserved" | "sold" {
@@ -57,28 +66,54 @@ export async function GET(request: NextRequest, context: RaffleNumbersRouteConte
     const offset = (page - 1) * pageSize;
 
     const supabase = await createSupabaseServerClient();
+    let dataClient = supabase as unknown as SupabaseClient;
 
     const raffleSelect = "id, slug, status, total_numbers";
-    let { data: raffle } = await supabase.from("raffles").select(raffleSelect).eq("slug", slug).maybeSingle();
+    let { data: raffle } = await dataClient.from("raffles").select(raffleSelect).eq("slug", slug).maybeSingle();
 
     if (!raffle && isDefaultRaffleSlug(slug)) {
-      const { data: candidates } = await supabase
+      const { data: candidates } = await dataClient
         .from("raffles")
         .select(raffleSelect)
         .in("status", ["active", "draft", "closed", "drawn"])
         .order("created_at", { ascending: false })
         .limit(24);
 
-      const activeMatch = candidates?.find((item) => item.status === "active" && item.slug);
-      const anyMatch = candidates?.find((item) => item.slug);
+      const activeMatch = candidates?.find((item: RaffleLookupRow) => item.status === "active" && item.slug);
+      const anyMatch = candidates?.find((item: RaffleLookupRow) => item.slug);
       raffle = activeMatch ?? anyMatch ?? null;
+    }
+
+    if (!raffle) {
+      try {
+        dataClient = createSupabaseServiceClient();
+        const serviceLookup = await dataClient.from("raffles").select(raffleSelect).eq("slug", slug).maybeSingle();
+        raffle = serviceLookup.data ?? null;
+
+        if (!raffle && isDefaultRaffleSlug(slug)) {
+          const { data: serviceCandidates } = await dataClient
+            .from("raffles")
+            .select(raffleSelect)
+            .in("status", ["active", "draft", "closed", "drawn"])
+            .order("created_at", { ascending: false })
+            .limit(24);
+
+          const serviceActive = serviceCandidates?.find(
+            (item: RaffleLookupRow) => item.status === "active" && item.slug,
+          );
+          const serviceAny = serviceCandidates?.find((item: RaffleLookupRow) => item.slug);
+          raffle = serviceActive ?? serviceAny ?? null;
+        }
+      } catch {
+        // noop
+      }
     }
 
     if (!raffle) {
       return NextResponse.json({ error: "Rifa não encontrada." }, { status: 404 });
     }
 
-    const rowsPromise = supabase
+    const rowsPromise = dataClient
       .from("v_raffle_numbers_public")
       .select("number, status")
       .eq("raffle_id", raffle.id)
@@ -86,11 +121,15 @@ export async function GET(request: NextRequest, context: RaffleNumbersRouteConte
       .range(offset, offset + pageSize - 1);
 
     const soldCountPromise = includeStats
-      ? supabase.from("raffle_numbers").select("id", { count: "exact", head: true }).eq("raffle_id", raffle.id).eq("status", "sold")
+      ? dataClient
+          .from("raffle_numbers")
+          .select("id", { count: "exact", head: true })
+          .eq("raffle_id", raffle.id)
+          .eq("status", "sold")
       : Promise.resolve({ count: null, error: null });
 
     const reservedCountPromise = includeStats
-      ? supabase
+      ? dataClient
           .from("raffle_numbers")
           .select("id", { count: "exact", head: true })
           .eq("raffle_id", raffle.id)

@@ -9,7 +9,12 @@ vi.mock("@/lib/supabase/server", () => ({
   createSupabaseServerClient: vi.fn(),
 }));
 
+vi.mock("@/lib/supabase/service", () => ({
+  createSupabaseServiceClient: vi.fn(),
+}));
+
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceClient } from "@/lib/supabase/service";
 
 import { GET } from "@/app/api/orders/[id]/status/route";
 
@@ -31,6 +36,9 @@ describe("GET /api/orders/[id]/status", () => {
       auth: {
         getUser: mockGetUser,
       },
+    } as never);
+
+    vi.mocked(createSupabaseServiceClient).mockReturnValue({
       from: vi.fn((table: string) => {
         if (table === "orders") {
           return {

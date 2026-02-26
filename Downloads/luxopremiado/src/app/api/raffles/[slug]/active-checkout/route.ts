@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { hasSupabaseEnv } from "@/lib/env";
 import { isDefaultRaffleSlug } from "@/lib/raffle-slug";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceClient } from "@/lib/supabase/service";
 
 interface ActiveCheckoutRouteContext {
   params: Promise<{ slug: string }>;
@@ -37,6 +38,7 @@ export async function GET(_: NextRequest, context: ActiveCheckoutRouteContext) {
   try {
     const { slug } = await context.params;
     const supabase = await createSupabaseServerClient();
+    const serviceClient = createSupabaseServiceClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -46,10 +48,10 @@ export async function GET(_: NextRequest, context: ActiveCheckoutRouteContext) {
     }
 
     const raffleSelect = "id, slug, status";
-    let { data: raffle } = await supabase.from("raffles").select(raffleSelect).eq("slug", slug).maybeSingle();
+    let { data: raffle } = await serviceClient.from("raffles").select(raffleSelect).eq("slug", slug).maybeSingle();
 
     if (!raffle && isDefaultRaffleSlug(slug)) {
-      const { data: candidates } = await supabase
+      const { data: candidates } = await serviceClient
         .from("raffles")
         .select(raffleSelect)
         .in("status", ["active", "draft", "closed", "drawn"])
@@ -65,7 +67,7 @@ export async function GET(_: NextRequest, context: ActiveCheckoutRouteContext) {
       return NextResponse.json({ success: true, checkout: null });
     }
 
-    const { data: order, error: orderError } = await supabase
+    const { data: order, error: orderError } = await serviceClient
       .from("orders")
       .select("id, raffle_id, status, amount_cents, expires_at, created_at")
       .eq("user_id", user.id)
@@ -83,7 +85,7 @@ export async function GET(_: NextRequest, context: ActiveCheckoutRouteContext) {
       return NextResponse.json({ success: true, checkout: null });
     }
 
-    const { data: linkedNumbers } = await supabase
+    const { data: linkedNumbers } = await serviceClient
       .from("raffle_numbers")
       .select("number")
       .eq("order_id", order.id)
@@ -91,7 +93,7 @@ export async function GET(_: NextRequest, context: ActiveCheckoutRouteContext) {
       .order("number", { ascending: true })
       .limit(500);
 
-    const { data: latestPayment } = await supabase
+    const { data: latestPayment } = await serviceClient
       .from("payments")
       .select("provider_reference, status, pix_qr_code, pix_copy_paste, raw")
       .eq("order_id", order.id)
