@@ -1,8 +1,13 @@
 import Link from "next/link";
 
 import styles from "@/components/raffle/sections.module.css";
+import { buildLandingPathForSlug } from "@/lib/raffle-slug";
 
-export function Footer() {
+interface FooterProps {
+  raffleSlug: string;
+}
+
+export function Footer({ raffleSlug }: FooterProps) {
   return (
     <footer className={styles.footer} id="rodape">
       <div className={`${styles.container} ${styles.footerGrid}`}>
@@ -14,7 +19,7 @@ export function Footer() {
           <Link className={styles.footerLink} href="/privacidade">
             Privacidade
           </Link>
-          <Link className={styles.footerLink} href="/r/luxo-premiado#transparencia">
+          <Link className={styles.footerLink} href={buildLandingPathForSlug(raffleSlug, "transparencia")}>
             Transparência
           </Link>
           <Link className={styles.footerLink} href="mailto:suporte@luxopremiado.com.br">

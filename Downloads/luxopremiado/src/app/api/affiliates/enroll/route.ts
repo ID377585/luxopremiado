@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getSiteUrl, hasSupabaseEnv } from "@/lib/env";
+import { resolveAvailableRaffleSlug } from "@/lib/raffle-slug.server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const enrollSchema = z.object({
@@ -51,19 +52,7 @@ export async function POST(request: NextRequest) {
     }
 
     const site = getSiteUrl();
-    let raffleSlug = parsed.data.raffleSlug ?? null;
-
-    if (!raffleSlug) {
-      const { data: raffle } = await supabase
-        .from("raffles")
-        .select("slug")
-        .in("status", ["active", "draft"])
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      raffleSlug = (raffle?.slug as string | undefined) ?? "luxo-premiado";
-    }
+    const raffleSlug = await resolveAvailableRaffleSlug(parsed.data.raffleSlug);
 
     return NextResponse.json({
       success: true,

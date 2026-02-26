@@ -2,16 +2,20 @@ import Link from "next/link";
 
 import { LiveActivityPopup } from "@/components/common/LiveActivityPopup";
 import styles from "@/app/area-do-usuario/user-area.module.css";
-import { signInWithGoogleAction } from "@/lib/actions/auth";
+import { buildLandingPathForSlug } from "@/lib/raffle-slug";
+import { resolveAvailableRaffleSlug } from "@/lib/raffle-slug.server";
 import { getRaffleLandingData } from "@/lib/raffles";
 import { getSessionUser } from "@/lib/session";
 
 export default async function UserAreaPage() {
   const user = await getSessionUser();
+  const preferredSlug = await resolveAvailableRaffleSlug();
   let raffle: Awaited<ReturnType<typeof getRaffleLandingData>> | null = null;
 
   try {
-    raffle = await getRaffleLandingData("luxo-premiado");
+    raffle = await getRaffleLandingData(preferredSlug, {
+      resolveToAvailableSlug: true,
+    });
   } catch {
     raffle = null;
   }
@@ -19,12 +23,10 @@ export default async function UserAreaPage() {
   const soldPercent = raffle
     ? Math.min(100, Math.max(0, (raffle.stats.soldNumbers / Math.max(raffle.totalNumbers, 1)) * 100))
     : 0;
+  const landingHref = buildLandingPathForSlug(raffle?.slug ?? preferredSlug, "inicio");
   const topBuyer = raffle?.buyerRanking[0];
   const isLoggedIn = Boolean(user?.id);
   const nextPath = "/app/comprar";
-  const whatsAppLoginUrl = `https://wa.me/?text=${encodeURIComponent(
-    "Quero acesso rapido para escolher meus números na área VIP da Luxo Premiado.",
-  )}`;
 
   return (
     <main className={styles.page}>
@@ -103,7 +105,7 @@ export default async function UserAreaPage() {
                 <Link className={styles.secondaryAction} href="/app/pagamentos">
                   VER PAGAMENTOS
                 </Link>
-                <Link className={styles.secondaryAction} href="/r/luxo-premiado#inicio">
+                <Link className={styles.secondaryAction} href={landingHref}>
                   VOLTAR PARA CAMPANHA
                 </Link>
               </>
@@ -118,15 +120,6 @@ export default async function UserAreaPage() {
                 <Link className={styles.secondaryAction} href="/cadastro">
                   CRIAR CONTA AGORA
                 </Link>
-                <form action={signInWithGoogleAction} className={styles.inlineForm}>
-                  <input name="next" type="hidden" value={nextPath} />
-                  <button className={styles.secondaryAction} type="submit">
-                    CONTINUAR COM GOOGLE
-                  </button>
-                </form>
-                <a className={styles.secondaryAction} href={whatsAppLoginUrl} rel="noreferrer" target="_blank">
-                  CONTINUAR COM WHATSAPP
-                </a>
               </>
             )}
           </div>

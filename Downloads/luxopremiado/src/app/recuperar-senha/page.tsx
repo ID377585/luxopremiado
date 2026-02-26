@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AuthMessage } from "@/components/auth/AuthMessage";
 import authStyles from "@/components/auth/auth.module.css";
 import { forgotPasswordAction } from "@/lib/actions/auth";
+import { getDynamicLandingPath } from "@/lib/raffle-slug.server";
 
 interface ForgotPasswordPageProps {
   searchParams: Promise<{ error?: string; success?: string }>;
@@ -33,6 +34,7 @@ export default async function ForgotPasswordPage({ searchParams }: ForgotPasswor
   const params = await searchParams;
   const friendlyError = mapFriendlyError(params.error);
   const friendlySuccess = mapFriendlySuccess(params.success);
+  const landingHref = await getDynamicLandingPath("inicio");
 
   return (
     <main className={authStyles.page}>
@@ -53,7 +55,7 @@ export default async function ForgotPasswordPage({ searchParams }: ForgotPasswor
           <Link className={authStyles.buttonSecondary} href="/login">
             Voltar ao login
           </Link>
-          <Link className={authStyles.buttonSecondary} href="/r/luxo-premiado#inicio">
+          <Link className={authStyles.buttonSecondary} href={landingHref}>
             Voltar para a rifa
           </Link>
         </div>

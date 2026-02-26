@@ -1,5 +1,6 @@
 import styles from "@/components/auth/auth.module.css";
 import { ensureAffiliateCodeAction } from "@/lib/actions/affiliate";
+import { getSiteUrl } from "@/lib/env";
 import { formatBrlFromCents } from "@/lib/format";
 import { getDefaultAffiliateRaffleSlug, getMyAffiliate, getMyProfile } from "@/lib/dashboard";
 import { getSessionUser } from "@/lib/session";
@@ -11,6 +12,7 @@ interface ProfilePageProps {
 export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const params = await searchParams;
   const user = await getSessionUser();
+  const siteUrl = getSiteUrl();
   const [profile, affiliate, defaultRaffleSlug] = await Promise.all([
     getMyProfile(user?.id ?? ""),
     getMyAffiliate(user?.id ?? ""),
@@ -87,7 +89,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         <strong>Link de indicação</strong>
         <p>
           {affiliate
-            ? `https://luxopremiado.com.br/r/${defaultRaffleSlug}?ref=${affiliate.code}`
+            ? `${siteUrl}/r/${defaultRaffleSlug}?ref=${affiliate.code}`
             : "Ative seu código para liberar o link de indicação."}
         </p>
       </article>

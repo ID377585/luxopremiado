@@ -1,4 +1,5 @@
 import { hasSupabaseEnv } from "@/lib/env";
+import { resolveAvailableRaffleSlug } from "@/lib/raffle-slug.server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export interface DashboardSummary {
@@ -235,14 +236,5 @@ export async function getDefaultAffiliateRaffleSlug(): Promise<string> {
     return "luxo-premiado";
   }
 
-  const supabase = await createSupabaseServerClient();
-  const { data } = await supabase
-    .from("raffles")
-    .select("slug")
-    .in("status", ["active", "draft"])
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  return (data?.slug as string | undefined) ?? "luxo-premiado";
+  return resolveAvailableRaffleSlug();
 }

@@ -150,16 +150,61 @@ export function NumberPicker({
       return;
     }
 
+    let isMounted = true;
     const stored = readStorage(checkoutStorageKey);
-    if (!stored) {
-      return;
+
+    if (stored) {
+      setReservation(stored.reservation);
+      setPayment(stored.payment);
+      setOrderStatus(stored.orderStatus);
+      setStatusMessage("Checkout restaurado. Continue o pagamento.");
     }
 
-    setReservation(stored.reservation);
-    setPayment(stored.payment);
-    setOrderStatus(stored.orderStatus);
-    setStatusMessage("Checkout restaurado. Continue o pagamento.");
-  }, [checkoutStorageKey, isAuthenticated]);
+    const hydrateFromServer = async () => {
+      try {
+        const response = await fetch(`/api/raffles/${encodeURIComponent(raffleSlug)}/active-checkout`, {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        const data = (await response.json()) as {
+          error?: string;
+          checkout?: {
+            reservation: ReservationState;
+            orderStatus: string;
+            latestPayment?: {
+              providerReference: string;
+              status: "pending" | "initiated";
+              pixQrCode?: string;
+              pixCopyPaste?: string;
+              checkoutUrl?: string;
+              expiresAt?: string;
+            } | null;
+          } | null;
+        };
+
+        if (!isMounted || !response.ok || !data.checkout?.reservation?.orderId) {
+          return;
+        }
+
+        setReservation(data.checkout.reservation);
+        setOrderStatus(data.checkout.orderStatus);
+        setPayment(data.checkout.latestPayment ?? null);
+
+        if (!stored || stored.reservation.orderId !== data.checkout.reservation.orderId) {
+          setStatusMessage("Checkout ativo encontrado no servidor. Continue o pagamento.");
+        }
+      } catch {
+        // silencioso para não poluir a experiência se o endpoint não responder.
+      }
+    };
+
+    void hydrateFromServer();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [checkoutStorageKey, isAuthenticated, raffleSlug]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !isAuthenticated) {

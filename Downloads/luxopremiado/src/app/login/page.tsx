@@ -4,7 +4,9 @@ import { LiveActivityPopup } from "@/components/common/LiveActivityPopup";
 import { AuthMessage } from "@/components/auth/AuthMessage";
 import authStyles from "@/components/auth/auth.module.css";
 import loginStyles from "@/app/login/login.module.css";
-import { signInAction, signInWithGoogleAction } from "@/lib/actions/auth";
+import { signInAction } from "@/lib/actions/auth";
+import { buildLandingPathForSlug } from "@/lib/raffle-slug";
+import { resolveAvailableRaffleSlug } from "@/lib/raffle-slug.server";
 import { getRaffleLandingData } from "@/lib/raffles";
 
 interface LoginPageProps {
@@ -38,10 +40,13 @@ function mapFriendlyError(error?: string): string | undefined {
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
+  const preferredSlug = await resolveAvailableRaffleSlug();
   let raffle: Awaited<ReturnType<typeof getRaffleLandingData>> | null = null;
 
   try {
-    raffle = await getRaffleLandingData("luxo-premiado");
+    raffle = await getRaffleLandingData(preferredSlug, {
+      resolveToAvailableSlug: true,
+    });
   } catch {
     raffle = null;
   }
@@ -52,9 +57,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const topBuyer = raffle?.buyerRanking[0];
   const friendlyError = mapFriendlyError(params.error);
   const nextPath = normalizeNextPath(params.next);
-  const whatsAppLoginUrl = `https://wa.me/?text=${encodeURIComponent(
-    "Quero acesso rapido para finalizar minha compra na Luxo Premiado.",
-  )}`;
+  const landingHref = buildLandingPathForSlug(raffle?.slug ?? preferredSlug, "inicio");
 
   return (
     <main className={loginStyles.page}>
@@ -132,18 +135,6 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             </button>
           </form>
 
-          <div className={loginStyles.socialGrid}>
-            <form action={signInWithGoogleAction}>
-              <input name="next" type="hidden" value={nextPath} />
-              <button className={loginStyles.socialButton} type="submit">
-                Continuar com Google
-              </button>
-            </form>
-            <a className={loginStyles.socialButton} href={whatsAppLoginUrl} rel="noreferrer" target="_blank">
-              Continuar com WhatsApp
-            </a>
-          </div>
-
           <p className={loginStyles.microtext}>Leva menos de 1 minuto. Simples e rápido.</p>
 
           <div className={authStyles.links}>
@@ -153,7 +144,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <Link className={authStyles.buttonSecondary} href="/recuperar-senha">
               Recuperar senha
             </Link>
-            <Link className={authStyles.buttonSecondary} href="/r/luxo-premiado#inicio">
+            <Link className={authStyles.buttonSecondary} href={landingHref}>
               Voltar para a campanha
             </Link>
           </div>

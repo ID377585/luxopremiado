@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { attachAffiliateToOrder, getAffiliateCodeFromRequest } from "@/lib/affiliates";
 import { hasSupabaseEnv } from "@/lib/env";
 import { getRequestId, logStructured, persistPlatformEvent } from "@/lib/observability";
+import { resolveAvailableRaffleSlug } from "@/lib/raffle-slug.server";
 import { enforceAntiBot } from "@/lib/security/anti-bot";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { reserveSchema } from "@/lib/validators/reserve";
@@ -23,6 +24,7 @@ export async function POST(request: NextRequest, context: ReserveRouteContext) {
 
   try {
     const { slug } = await context.params;
+    const effectiveSlug = await resolveAvailableRaffleSlug(slug);
     const payload = await request.json();
     const parsed = reserveSchema.safeParse(payload);
 
@@ -73,7 +75,7 @@ export async function POST(request: NextRequest, context: ReserveRouteContext) {
     }
 
     const { data, error } = await supabase.rpc("reserve_raffle_numbers", {
-      p_raffle_slug: slug,
+      p_raffle_slug: effectiveSlug,
       p_numbers: parsed.data.numbers ?? null,
       p_qty: parsed.data.qty ?? null,
       p_reserve_minutes: 15,
@@ -83,7 +85,7 @@ export async function POST(request: NextRequest, context: ReserveRouteContext) {
       logStructured("warn", "reserve.rpc_error", {
         requestId,
         userId: user.id,
-        slug,
+        slug: effectiveSlug,
         reason: error.message,
       });
       await persistPlatformEvent({
@@ -93,6 +95,7 @@ export async function POST(request: NextRequest, context: ReserveRouteContext) {
         user_id: user.id,
         payload: {
           slug,
+          effectiveSlug,
           reason: error.message,
         },
       });
@@ -111,6 +114,7 @@ export async function POST(request: NextRequest, context: ReserveRouteContext) {
       requestId,
       userId: user.id,
       slug,
+      effectiveSlug,
       orderId: orderId ?? null,
       numbersCount: Array.isArray(reserveRow?.reserved_numbers) ? reserveRow.reserved_numbers.length : 0,
     });
@@ -123,6 +127,7 @@ export async function POST(request: NextRequest, context: ReserveRouteContext) {
       raffle_id: (reserveRow?.raffle_id as string | null) ?? null,
       payload: {
         slug,
+        effectiveSlug,
         numbersCount: Array.isArray(reserveRow?.reserved_numbers) ? reserveRow.reserved_numbers.length : 0,
       },
     });

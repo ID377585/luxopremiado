@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { AuthMessage } from "@/components/auth/AuthMessage";
 import styles from "@/components/auth/auth.module.css";
+import { getDynamicLandingPath } from "@/lib/raffle-slug.server";
 import { signUpAction } from "@/lib/actions/auth";
 
 interface SignupPageProps {
@@ -10,6 +11,7 @@ interface SignupPageProps {
 
 export default async function SignupPage({ searchParams }: SignupPageProps) {
   const params = await searchParams;
+  const landingHref = await getDynamicLandingPath();
 
   return (
     <main className={styles.page}>
@@ -38,7 +40,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
           <Link className={styles.buttonSecondary} href="/login">
             Já tenho conta
           </Link>
-          <Link className={styles.buttonSecondary} href="/r/luxo-premiado">
+          <Link className={styles.buttonSecondary} href={landingHref}>
             Voltar para a rifa
           </Link>
         </div>

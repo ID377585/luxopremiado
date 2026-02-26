@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import styles from "@/components/auth/auth.module.css";
 import { signOutAction } from "@/lib/actions/auth";
 import { hasSupabaseEnv } from "@/lib/env";
+import { getDynamicLandingPath } from "@/lib/raffle-slug.server";
 import { getSessionUser } from "@/lib/session";
 
 export default async function UserAppLayout({
@@ -12,6 +13,7 @@ export default async function UserAppLayout({
   children: React.ReactNode;
 }>) {
   const user = await getSessionUser();
+  const landingHref = await getDynamicLandingPath();
 
   if (hasSupabaseEnv() && !user) {
     redirect(`/login?error=${encodeURIComponent("Faça login para continuar")}&next=${encodeURIComponent("/app/comprar")}`);
@@ -43,7 +45,7 @@ export default async function UserAppLayout({
           <Link className={styles.dashboardLink} href="/app/perfil">
             Perfil
           </Link>
-          <Link className={styles.dashboardLink} href="/r/luxo-premiado">
+          <Link className={styles.dashboardLink} href={landingHref}>
             Ver landing
           </Link>
           <form action={signOutAction}>

@@ -8,6 +8,7 @@ Plataforma de sorteio/rifas com foco em produção, usando Next.js + TypeScript 
   Hero -> Prêmio -> Como Funciona -> Área do usuário -> Escolher Números -> Pagamento -> Transparência -> Prova Social -> FAQ -> Rodapé.
 - Autenticação com Supabase Auth:
   `/login`, `/cadastro`, `/recuperar-senha`, `/reset-senha`.
+  Acesso somente por e-mail e senha da própria plataforma (sem login social).
 - Área do usuário:
   `/app`, `/app/minhas-rifas`, `/app/perfil`, `/app/pagamentos`.
 - Admin com Server Actions:
@@ -98,8 +99,12 @@ Aplicar migrations nesta ordem:
 - `supabase/migrations/20260223201500_growth_features_realtime_antibot_affiliates.sql`
 - `supabase/migrations/20260223214000_observability_platform_events.sql`
 - `supabase/migrations/20260224011000_raffle_numbers_bigint_12_digits.sql`
+- `supabase/migrations/20260225083000_p0_schema_alignment_and_payment_idempotency.sql`
+- `supabase/migrations/20260225092000_reserve_rpc_bigint_only.sql`
 - `supabase/migrations/20260225104500_purchase_flow_hardening.sql`
 - `supabase/migrations/20260225123000_provider_contract_strict.sql`
+- `supabase/migrations/20260226113000_provider_contract_validate.sql`
+- `supabase/migrations/20260226120000_seed_default_active_raffle.sql`
 
 Observação:
 - Após a migration de 12 dígitos, o domínio de numeração passa a ser `000000000000` até `999999999999` (armazenado como `bigint`).
@@ -133,6 +138,7 @@ select public.generate_raffle_numbers('<RAFFLE_ID>');
 
 - `POST /api/raffles/[slug]/reserve`
 - `GET /api/raffles/[slug]/numbers`
+- `GET /api/raffles/[slug]/active-checkout`
 - `POST /api/payments/create`
 - `GET /api/orders/[id]/status`
 - `POST /api/webhooks/[provider]`
@@ -152,13 +158,14 @@ npm run test:coverage
 1. Conectar o repositório na Vercel.
 2. Definir todas as variáveis de ambiente (Production/Preview/Development).
 3. Garantir URL pública correta em `NEXT_PUBLIC_SITE_URL`.
-4. Configurar webhooks dos gateways para:
+4. Em Supabase Auth, manter login social desativado (Google/OAuth não é usado no app).
+5. Configurar webhooks dos gateways para:
 
 - `https://SEU_DOMINIO/api/webhooks/stripe`
 - `https://SEU_DOMINIO/api/webhooks/mercadopago`
 - `https://SEU_DOMINIO/api/webhooks/asaas`
 
-5. Configurar job para expirar reservas:
+6. Configurar job para expirar reservas:
 
 - chamar `POST /api/cron/expire-reservations` com header `x-cron-secret`.
 

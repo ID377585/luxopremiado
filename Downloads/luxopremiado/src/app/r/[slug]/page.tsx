@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { FAQ } from "@/components/raffle/FAQ";
 import { Footer } from "@/components/raffle/Footer";
@@ -36,13 +36,21 @@ export default async function RafflePage({ params }: RafflePageProps) {
   let raffle;
 
   try {
-    raffle = await getRaffleLandingData(slug);
+    raffle = await getRaffleLandingData(slug, {
+      timeoutMs: 8_000,
+      allowUnavailableFallback: true,
+      resolveToAvailableSlug: true,
+    });
   } catch (error) {
     if (error instanceof RaffleDataError && error.code === "NOT_FOUND") {
       notFound();
     }
 
     throw error;
+  }
+
+  if (raffle.slug !== slug) {
+    redirect(`/r/${encodeURIComponent(raffle.slug)}#inicio`);
   }
 
   return (
@@ -60,7 +68,7 @@ export default async function RafflePage({ params }: RafflePageProps) {
       <Transparency data={raffle.transparency} />
       <FAQ items={raffle.faq} />
       <RetentionLoop data={raffle.retention} />
-      <Footer />
+      <Footer raffleSlug={raffle.slug} />
       <StickyMobileCTA raffleSlug={raffle.slug} />
     </main>
   );

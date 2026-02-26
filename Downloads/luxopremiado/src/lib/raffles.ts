@@ -1,5 +1,6 @@
 import { buildPackageOffersForUnitPrice, fallbackRaffleData } from "@/lib/landing-data";
 import { formatBrlFromCents } from "@/lib/format";
+import { isDefaultRaffleSlug, normalizeRaffleSlug } from "@/lib/raffle-slug";
 import { canUseDemoFallback, hasSupabaseEnv } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { FaqItem, NumberStatus, RaffleLandingData } from "@/types/raffle";
@@ -87,8 +88,42 @@ export class RaffleDataError extends Error {
   }
 }
 
-export async function getRaffleLandingData(slug: string): Promise<RaffleLandingData> {
+interface GetRaffleLandingDataOptions {
+  timeoutMs?: number;
+  allowUnavailableFallback?: boolean;
+  resolveToAvailableSlug?: boolean;
+}
+
+function withTimeout<T>(promise: PromiseLike<T>, ms: number, operation: string): Promise<T> {
+  let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+  const sourcePromise = Promise.resolve(promise);
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutHandle = setTimeout(() => {
+      reject(new Error(`${operation} timeout after ${ms}ms`));
+    }, ms);
+  });
+
+  return Promise.race([sourcePromise, timeoutPromise]).finally(() => {
+    if (timeoutHandle) {
+      clearTimeout(timeoutHandle);
+    }
+  }) as Promise<T>;
+}
+
+export async function getRaffleLandingData(
+  slug: string,
+  options?: GetRaffleLandingDataOptions,
+): Promise<RaffleLandingData> {
   const allowFallback = canUseDemoFallback();
+  const allowUnavailableFallback = Boolean(options?.allowUnavailableFallback);
+  const shouldResolveToAvailableSlug =
+    typeof options?.resolveToAvailableSlug === "boolean"
+      ? options.resolveToAvailableSlug
+      : isDefaultRaffleSlug(slug);
+  const timeoutMs = Number.isFinite(options?.timeoutMs) && Number(options?.timeoutMs) > 0
+    ? Number(options?.timeoutMs)
+    : 8_000;
 
   if (!hasSupabaseEnv()) {
     if (allowFallback) {
@@ -101,11 +136,35 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
   try {
     const supabase = await createSupabaseServerClient();
 
-    const { data: raffle } = await supabase
-      .from("raffles")
-      .select("id, title, description, cover_image_url, price_cents, draw_date, max_numbers_per_user, total_numbers")
-      .eq("slug", slug)
-      .maybeSingle();
+    const raffleSelect =
+      "id, slug, status, title, description, cover_image_url, price_cents, draw_date, max_numbers_per_user, total_numbers";
+
+    let { data: raffle } = await withTimeout(
+      supabase
+        .from("raffles")
+        .select(raffleSelect)
+        .eq("slug", slug)
+        .maybeSingle(),
+      timeoutMs,
+      "raffles.lookup",
+    );
+
+    if (!raffle && shouldResolveToAvailableSlug) {
+      const { data: candidates } = await withTimeout(
+        supabase
+          .from("raffles")
+          .select(raffleSelect)
+          .in("status", ["active", "draft", "closed", "drawn"])
+          .order("created_at", { ascending: false })
+          .limit(24),
+        timeoutMs,
+        "raffles.fallback_lookup",
+      );
+
+      const activeMatch = candidates?.find((item) => item.status === "active" && normalizeRaffleSlug(item.slug));
+      const anyMatch = candidates?.find((item) => normalizeRaffleSlug(item.slug));
+      raffle = activeMatch ?? anyMatch ?? null;
+    }
 
     if (!raffle) {
       if (allowFallback) {
@@ -115,42 +174,48 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
       throw new RaffleDataError("NOT_FOUND", `Rifa "${slug}" não encontrada.`);
     }
 
+    const resolvedSlug = normalizeRaffleSlug(raffle.slug) ?? slug;
+
     const [imagesResult, numbersResult, socialProofResult, faqResult, transparencyResult, rankingResult, soldCountResult, reservedCountResult] =
-      await Promise.all([
-      supabase
-        .from("raffle_images")
-        .select("url")
-        .eq("raffle_id", raffle.id)
-        .order("sort_order", { ascending: true }),
-      supabase
-        .from("v_raffle_numbers_public")
-        .select("number, status")
-        .eq("raffle_id", raffle.id)
-        .order("number", { ascending: true })
-        .limit(200),
-      supabase.from("social_proof").select("type, title, content, media_url").eq("raffle_id", raffle.id).limit(20),
-      supabase
-        .from("faq")
-        .select("question, answer")
-        .or(`raffle_id.eq.${raffle.id},raffle_id.is.null`)
-        .order("sort_order", { ascending: true })
-        .limit(8),
-      supabase
-        .from("transparency")
-        .select("draw_method, organizer_name, organizer_doc, contact, rules")
-        .eq("raffle_id", raffle.id)
-        .maybeSingle(),
-      supabase.rpc("get_raffle_buyer_ranking", {
-        p_raffle_id: raffle.id,
-        p_limit: 10,
-      }),
-      supabase.from("raffle_numbers").select("id", { count: "exact", head: true }).eq("raffle_id", raffle.id).eq("status", "sold"),
-      supabase
-        .from("raffle_numbers")
-        .select("id", { count: "exact", head: true })
-        .eq("raffle_id", raffle.id)
-        .eq("status", "reserved"),
-    ]);
+      await withTimeout(
+        Promise.all([
+          supabase
+            .from("raffle_images")
+            .select("url")
+            .eq("raffle_id", raffle.id)
+            .order("sort_order", { ascending: true }),
+          supabase
+            .from("v_raffle_numbers_public")
+            .select("number, status")
+            .eq("raffle_id", raffle.id)
+            .order("number", { ascending: true })
+            .limit(200),
+          supabase.from("social_proof").select("type, title, content, media_url").eq("raffle_id", raffle.id).limit(20),
+          supabase
+            .from("faq")
+            .select("question, answer")
+            .or(`raffle_id.eq.${raffle.id},raffle_id.is.null`)
+            .order("sort_order", { ascending: true })
+            .limit(8),
+          supabase
+            .from("transparency")
+            .select("draw_method, organizer_name, organizer_doc, contact, rules")
+            .eq("raffle_id", raffle.id)
+            .maybeSingle(),
+          supabase.rpc("get_raffle_buyer_ranking", {
+            p_raffle_id: raffle.id,
+            p_limit: 10,
+          }),
+          supabase.from("raffle_numbers").select("id", { count: "exact", head: true }).eq("raffle_id", raffle.id).eq("status", "sold"),
+          supabase
+            .from("raffle_numbers")
+            .select("id", { count: "exact", head: true })
+            .eq("raffle_id", raffle.id)
+            .eq("status", "reserved"),
+        ]),
+        timeoutMs,
+        "raffles.aggregate_queries",
+      );
 
     const drawDateText = raffle.draw_date
       ? new Date(raffle.draw_date).toLocaleString("pt-BR", {
@@ -170,7 +235,7 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
     return {
       ...fallbackRaffleData,
       raffleId: String(raffle.id),
-      slug,
+      slug: resolvedSlug,
       totalNumbers,
       maxNumbersPerUser: Number(raffle.max_numbers_per_user ?? fallbackRaffleData.maxNumbersPerUser),
       hero: {
@@ -257,12 +322,16 @@ export async function getRaffleLandingData(slug: string): Promise<RaffleLandingD
       },
     };
   } catch (error) {
-    if (allowFallback) {
+    if (error instanceof RaffleDataError && error.code === "NOT_FOUND") {
+      throw error;
+    }
+
+    if (allowUnavailableFallback) {
       return createFallback(slug);
     }
 
-    if (error instanceof RaffleDataError) {
-      throw error;
+    if (allowFallback) {
+      return createFallback(slug);
     }
 
     const reason = error instanceof Error ? error.message : "erro inesperado";

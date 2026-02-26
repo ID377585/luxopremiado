@@ -9,6 +9,7 @@ import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { paymentSchema } from "@/lib/validators/payment";
 
 interface StoredPayment {
+  id: string;
   provider_reference: string | null;
   status: string;
   pix_qr_code: string | null;
@@ -144,7 +145,7 @@ export async function POST(request: NextRequest) {
     const serviceClient = createSupabaseServiceClient();
     const { data: openPayments, error: openPaymentError } = await serviceClient
       .from("payments")
-      .select("provider_reference, status, pix_qr_code, pix_copy_paste, raw, created_at")
+      .select("id, provider_reference, status, pix_qr_code, pix_copy_paste, raw, created_at")
       .eq("order_id", order.id)
       .eq("provider", parsed.data.provider)
       .in("status", ["initiated", "pending"])
@@ -155,8 +156,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: openPaymentError.message }, { status: 400 });
     }
 
-    const matchingOpenPayment = openPayments?.find((payment) => getMethodFromRaw(payment.raw as Record<string, unknown> | null) === parsed.data.method)
-      ?? openPayments?.[0];
+    const matchingOpenPayment = openPayments?.find(
+      (storedPayment) => getMethodFromRaw(storedPayment.raw as Record<string, unknown> | null) === parsed.data.method,
+    );
 
     if (matchingOpenPayment?.provider_reference) {
       logStructured("info", "payment.create.reused_open_payment", {
@@ -174,6 +176,27 @@ export async function POST(request: NextRequest) {
         requestId,
         payment: mapStoredPayment(matchingOpenPayment as StoredPayment),
       });
+    }
+
+    if (openPayments?.length) {
+      const openIds = openPayments
+        .map((item) => (typeof item.id === "string" ? item.id : null))
+        .filter((value): value is string => Boolean(value));
+
+      if (openIds.length) {
+        await serviceClient
+          .from("payments")
+          .update({
+            status: "failed",
+            raw: {
+              reason: "replaced_by_new_method",
+              replacedAt: new Date().toISOString(),
+              replacedWithMethod: parsed.data.method,
+            },
+          })
+          .in("id", openIds)
+          .in("status", ["initiated", "pending"]);
+      }
     }
 
     const [profileResult, authResult] = await Promise.all([
@@ -213,29 +236,32 @@ export async function POST(request: NextRequest) {
       if (paymentError.code === "23505") {
         const { data: duplicatedOpen } = await serviceClient
           .from("payments")
-          .select("provider_reference, status, pix_qr_code, pix_copy_paste, raw, created_at")
+          .select("id, provider_reference, status, pix_qr_code, pix_copy_paste, raw, created_at")
           .eq("order_id", order.id)
           .eq("provider", parsed.data.provider)
           .in("status", ["initiated", "pending"])
           .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
+          .limit(5);
 
-        if (duplicatedOpen?.provider_reference) {
+        const matchingDuplicated = duplicatedOpen?.find(
+          (storedPayment) => getMethodFromRaw(storedPayment.raw as Record<string, unknown> | null) === parsed.data.method,
+        );
+
+        if (matchingDuplicated?.provider_reference) {
           logStructured("info", "payment.create.reused_after_unique_conflict", {
             requestId,
             userId: user.id,
             orderId: order.id,
             provider: parsed.data.provider,
             method: parsed.data.method,
-            providerReference: duplicatedOpen.provider_reference,
+            providerReference: matchingDuplicated.provider_reference,
           });
 
           return NextResponse.json({
             success: true,
             reused: true,
             requestId,
-            payment: mapStoredPayment(duplicatedOpen as StoredPayment),
+            payment: mapStoredPayment(matchingDuplicated as StoredPayment),
           });
         }
       }

@@ -42,33 +42,6 @@ export async function signInAction(formData: FormData) {
   redirect(nextPath);
 }
 
-export async function signInWithGoogleAction(formData: FormData) {
-  if (!hasSupabaseEnv()) {
-    redirectWithMessage("/login", "error", "Configure as variáveis do Supabase para autenticação.");
-  }
-
-  const supabase = await createSupabaseServerClient();
-  const nextPath = resolveNextPath(formData.get("next"));
-  const callbackUrl = new URL("/auth/callback", getSiteUrl());
-  callbackUrl.searchParams.set("next", nextPath);
-
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: callbackUrl.toString(),
-      queryParams: {
-        prompt: "select_account",
-      },
-    },
-  });
-
-  if (error || !data.url) {
-    redirectWithMessage("/login", "error", "Não foi possível iniciar o login com Google agora.");
-  }
-
-  redirect(data.url);
-}
-
 export async function signUpAction(formData: FormData) {
   if (!hasSupabaseEnv()) {
     redirectWithMessage("/cadastro", "error", "Configure as variáveis do Supabase para autenticação.");
