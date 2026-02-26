@@ -147,7 +147,7 @@ export async function getRaffleLandingData(
     let dataClient = supabase as unknown as SupabaseClient;
 
     const raffleSelect =
-      "id, slug, status, title, description, cover_image_url, price_cents, draw_date, max_numbers_per_user, total_numbers";
+      "id, slug, status, title, description, cover_image_url, price_cents, draw_date, total_numbers";
 
     const fetchRaffle = async (client: SupabaseClient, targetSlug: string) =>
       withTimeout(
@@ -214,6 +214,7 @@ export async function getRaffleLandingData(
     }
 
     const resolvedSlug = normalizeRaffleSlug(raffle.slug) ?? slug;
+    const raffleWithOptionalLimit = raffle as typeof raffle & { max_numbers_per_user?: number | null };
 
     const [imagesResult, numbersResult, socialProofResult, faqResult, transparencyResult, rankingResult, soldCountResult, reservedCountResult] =
       await withTimeout(
@@ -276,7 +277,9 @@ export async function getRaffleLandingData(
       raffleId: String(raffle.id),
       slug: resolvedSlug,
       totalNumbers,
-      maxNumbersPerUser: Number(raffle.max_numbers_per_user ?? fallbackRaffleData.maxNumbersPerUser),
+      maxNumbersPerUser: Number(
+        raffleWithOptionalLimit.max_numbers_per_user ?? fallbackRaffleData.maxNumbersPerUser,
+      ),
       hero: {
         ...fallbackRaffleData.hero,
         subtitle: fallbackRaffleData.hero.subtitle,

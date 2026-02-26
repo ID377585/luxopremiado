@@ -136,11 +136,21 @@ export async function GET(request: NextRequest, context: RaffleNumbersRouteConte
           .eq("status", "reserved")
       : Promise.resolve({ count: null, error: null });
 
-    const [rowsResult, soldCountResult, reservedCountResult] = await Promise.all([
+    const [initialRowsResult, soldCountResult, reservedCountResult] = await Promise.all([
       rowsPromise,
       soldCountPromise,
       reservedCountPromise,
     ]);
+    let rowsResult = initialRowsResult;
+
+    if (rowsResult.error && rowsResult.error.message.includes("v_raffle_numbers_public")) {
+      rowsResult = await dataClient
+        .from("raffle_numbers")
+        .select("number, status")
+        .eq("raffle_id", raffle.id)
+        .order("number", { ascending: true })
+        .range(offset, offset + pageSize - 1);
+    }
 
     if (rowsResult.error) {
       return NextResponse.json({ error: rowsResult.error.message }, { status: 400 });
