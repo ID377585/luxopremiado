@@ -359,10 +359,12 @@ export async function getRaffleLandingData(
         features: mergedFeatures,
       },
       numberTiles:
-        numbersResult.data?.map((item) => ({
-          number: Number(item.number),
-          status: normalizeNumberStatus(typeof item.status === "string" ? item.status : null),
-        })) ??
+        (Array.isArray((numbersResult as any)?.data)
+          ? ((numbersResult as any).data as Array<Record<string, unknown>>).map((item) => ({
+              number: Number(item.number),
+              status: normalizeNumberStatus(typeof item.status === "string" ? item.status : null),
+            }))
+          : null) ??
         fallbackRaffleData.numberTiles,
       buyerRanking:
         rankingResult.data?.length
