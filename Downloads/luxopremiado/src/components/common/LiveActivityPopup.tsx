@@ -104,7 +104,7 @@ function buildActivity(scope: Scope): ActivityItem {
 }
 
 function buildInitialFeed(scope: Scope): ActivityItem[] {
-  return Array.from({ length: 4 }, () => buildActivity(scope));
+  return [buildActivity(scope)];
 }
 
 export function LiveActivityPopup({ scope = "landing" }: LiveActivityPopupProps) {
@@ -119,13 +119,13 @@ export function LiveActivityPopup({ scope = "landing" }: LiveActivityPopupProps)
 
   // Progressive reveal & steady rotation
   useEffect(() => {
-    const showDelay = window.setTimeout(() => setIsVisible(true), 220);
+    const showDelay = window.setTimeout(() => setIsVisible(true), 320);
     const interval = window.setInterval(() => {
       setItems((previous) => {
         const next = [buildActivity(scope), ...previous];
-        return next.slice(0, 5);
+        return next.slice(0, 2);
       });
-    }, 5_200);
+    }, 120_000); // a cada 2 minutos
 
     return () => {
       window.clearTimeout(showDelay);
