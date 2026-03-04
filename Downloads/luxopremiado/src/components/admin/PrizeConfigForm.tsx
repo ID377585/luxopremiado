@@ -41,13 +41,30 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
         if (json.prizes?.length) {
           setPrizes(
             PRIZES.map((base) => {
-              const match = json.prizes.find((p) => p.prize_order === base.prizeOrder);
+              const match = json.prizes.find((p) => (p as Record<string, unknown>).prize_order === base.prizeOrder) as
+                | Record<string, unknown>
+                | undefined;
+
+              const prizeLabel =
+                typeof match?.prize_label === "string" && match.prize_label.trim().length > 0
+                  ? (match.prize_label as string)
+                  : base.prizeLabel;
+
+              const totalNumbers =
+                typeof match?.total_numbers === "number" && match.total_numbers > 0 ? (match.total_numbers as number) : 100;
+
+              const drawDateRaw = typeof match?.draw_date === "string" ? (match.draw_date as string) : null;
+              const drawDate = drawDateRaw ? drawDateRaw.slice(0, 16) : new Date().toISOString().slice(0, 16);
+
+              const luckyNumber =
+                typeof match?.lucky_number === "number" && match.lucky_number > 0 ? (match.lucky_number as number) : 1;
+
               return {
                 prizeOrder: base.prizeOrder,
-                prizeLabel: match?.prize_label ?? base.prizeLabel,
-                totalNumbers: match?.total_numbers ?? 100,
-                drawDate: match?.draw_date?.slice(0, 16) ?? new Date().toISOString().slice(0, 16),
-                luckyNumber: match?.lucky_number ?? 1,
+                prizeLabel,
+                totalNumbers,
+                drawDate,
+                luckyNumber,
               };
             }),
           );
