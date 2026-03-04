@@ -36,6 +36,8 @@ export async function GET(request: Request) {
 interface PrizePayload {
   prizeOrder: number;
   prizeLabel: string;
+  prizeValueCents: number;
+  imageUrl?: string;
   totalNumbers: number;
   drawDate: string;
   luckyNumber: number;
@@ -59,6 +61,8 @@ export async function POST(request: Request) {
     raffle_slug: raffleSlug,
     prize_order: p.prizeOrder,
     prize_label: p.prizeLabel.trim(),
+    prize_value_cents: Math.max(0, Math.round(p.prizeValueCents)),
+    image_url: p.imageUrl?.trim() || null,
     total_numbers: p.totalNumbers,
     draw_date: p.drawDate,
     lucky_number: p.luckyNumber,

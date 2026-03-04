@@ -1,6 +1,9 @@
 "use client";
+"use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
+import { getSupabaseClient } from "@/lib/supabase/browser-client";
 
 const PRIZES = [
   { prizeOrder: 1, prizeLabel: "1º Prêmio Principal" },
@@ -11,6 +14,8 @@ const PRIZES = [
 interface PrizeConfig {
   prizeOrder: number;
   prizeLabel: string;
+  prizeValueCents: number;
+  imageUrl: string;
   totalNumbers: number;
   drawDate: string;
   luckyNumber: number;
@@ -27,6 +32,8 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
       totalNumbers: 100,
       drawDate: new Date().toISOString().slice(0, 16),
       luckyNumber: 1,
+      prizeValueCents: 0,
+      imageUrl: "",
     })),
   );
   const [status, setStatus] = useState<string | null>(null);
@@ -59,9 +66,19 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
               const luckyNumber =
                 typeof match?.lucky_number === "number" && match.lucky_number > 0 ? (match.lucky_number as number) : 1;
 
+              const prizeValueCents =
+                typeof match?.prize_value_cents === "number" && match.prize_value_cents >= 0
+                  ? (match.prize_value_cents as number)
+                  : 0;
+
+              const imageUrl =
+                typeof match?.image_url === "string" && match.image_url.trim().length > 0 ? (match.image_url as string) : "";
+
               return {
                 prizeOrder: base.prizeOrder,
                 prizeLabel,
+                prizeValueCents,
+                imageUrl,
                 totalNumbers,
                 drawDate,
                 luckyNumber,
@@ -82,6 +99,9 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
       const current = { ...next[index] };
       if (field === "totalNumbers" || field === "luckyNumber" || field === "prizeOrder") {
         current[field] = Number(value) as PrizeConfig[typeof field];
+      } else if (field === "prizeValueCents") {
+        const cents = Number(value.replace(/\D/g, "")) || 0;
+        current.prizeValueCents = cents;
       } else {
         current[field] = value as PrizeConfig[typeof field];
       }
@@ -100,6 +120,8 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
       prizes: prizes.map((p) => ({
         prizeOrder: p.prizeOrder,
         prizeLabel: p.prizeLabel,
+        prizeValueCents: p.prizeValueCents,
+        imageUrl: p.imageUrl,
         totalNumbers: p.totalNumbers,
         drawDate: p.drawDate,
         luckyNumber: p.luckyNumber,
@@ -152,6 +174,18 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
               />
             </label>
             <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
+              Valor (R$)
+              <input
+                inputMode="numeric"
+                value={(prize.prizeValueCents / 100).toFixed(2)}
+                onChange={(e) => {
+                  const cents = Math.round(Number(e.target.value.replace(/[^0-9,\\.]/g, "").replace(",", ".")) * 100) || 0;
+                  handleChange(index, "prizeValueCents", String(cents));
+                }}
+                style={{ padding: ".55rem .7rem", borderRadius: "10px", border: "1px solid #334155", background: "#0f172a", color: "#f8fafc" }}
+              />
+            </label>
+            <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
               Total de números
               <input
                 type="number"
@@ -179,6 +213,54 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
                 onChange={(e) => handleChange(index, "luckyNumber", e.target.value)}
                 style={{ padding: ".55rem .7rem", borderRadius: "10px", border: "1px solid #334155", background: "#0f172a", color: "#f8fafc" }}
               />
+            </label>
+            <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
+              Imagem do prêmio (URL ou upload)
+              <div style={{ display: "flex", gap: ".5rem", alignItems: "center" }}>
+                <input
+                  type="text"
+                  placeholder="https://..."
+                  value={prize.imageUrl}
+                  onChange={(e) => handleChange(index, "imageUrl", e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: ".55rem .7rem",
+                    borderRadius: "10px",
+                    border: "1px solid #334155",
+                    background: "#0f172a",
+                    color: "#f8fafc",
+                  }}
+                />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const supabase = getSupabaseClient();
+                    const filePath = `prizes/${prize.prizeOrder}-${Date.now()}-${file.name}`;
+                    const upload = await supabase.storage.from("prize-images").upload(filePath, file, { upsert: true });
+                    if (upload.error) {
+                      setStatus("Erro ao enviar imagem: " + upload.error.message);
+                      return;
+                    }
+                    const { data: urlData } = supabase.storage.from("prize-images").getPublicUrl(filePath);
+                    handleChange(index, "imageUrl", urlData.publicUrl);
+                  }}
+                  style={{ color: "#e2e8f0" }}
+                />
+              </div>
+              {prize.imageUrl && (
+                <div style={{ position: "relative", marginTop: ".4rem", height: 120, maxWidth: 200 }}>
+                  <Image
+                    alt="Preview do prêmio"
+                    src={prize.imageUrl}
+                    fill
+                    sizes="200px"
+                    style={{ objectFit: "cover", borderRadius: "10px", border: "1px solid #334155" }}
+                  />
+                </div>
+              )}
             </label>
           </div>
         </div>
