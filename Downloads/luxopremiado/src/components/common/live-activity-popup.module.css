@@ -28,22 +28,26 @@
   grid-template-columns: auto 1fr;
   gap: 0.85rem;
   align-items: center;
-  background: #fff;
-  border: 1px solid #eef2ff;
-  border-radius: 14px;
-  padding: 0.85rem 1rem;
-  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.12);
+  background: #fdfdfd;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 0.95rem 1.08rem;
+  box-shadow:
+    0 10px 30px rgba(67, 56, 202, 0.12),
+    0 4px 14px rgba(15, 23, 42, 0.08);
   pointer-events: none;
 }
 
 .icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
   display: grid;
   place-items: center;
-  font-size: 22px;
+  font-size: 24px;
   color: #fff;
+  border: 2px solid #ffffff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
 }
 
 .meta {
@@ -60,7 +64,7 @@
   gap: 0.35rem;
   font-weight: 700;
   color: #0f172a;
-  font-size: 0.95rem;
+  font-size: 1rem;
   line-height: 1.4;
 }
 
@@ -73,55 +77,55 @@
 }
 
 .time {
-  color: #64748b;
+  color: #5b6475;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
 .subtitle {
-  color: #475569;
-  font-size: 0.9rem;
+  color: #4b5563;
+  font-size: 0.95rem;
   line-height: 1.4;
 }
 
 .blue {
-  box-shadow: 0 14px 36px rgba(62, 122, 255, 0.18);
+  box-shadow: 0 12px 34px rgba(109, 70, 255, 0.18);
 }
 
 .blue .icon {
-  background: linear-gradient(135deg, #4f8bff, #3673ff);
+  background: linear-gradient(135deg, #6d4dff, #9f7aea);
 }
 
 .pink {
-  box-shadow: 0 14px 36px rgba(255, 99, 146, 0.16);
+  box-shadow: 0 12px 34px rgba(244, 114, 182, 0.18);
 }
 
 .pink .icon {
-  background: linear-gradient(135deg, #ff5e9c, #ff3e7f);
+  background: linear-gradient(135deg, #f472b6, #ec4899);
 }
 
 .yellow {
-  box-shadow: 0 14px 32px rgba(244, 181, 38, 0.22);
+  box-shadow: 0 12px 32px rgba(245, 166, 35, 0.18);
 }
 
 .yellow .icon {
-  background: linear-gradient(135deg, #ffc149, #f6a800);
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
 }
 
 .green {
-  box-shadow: 0 14px 34px rgba(26, 188, 156, 0.18);
+  box-shadow: 0 12px 34px rgba(34, 197, 94, 0.16);
 }
 
 .green .icon {
-  background: linear-gradient(135deg, #1abc9c, #16a086);
+  background: linear-gradient(135deg, #22c55e, #16a34a);
 }
 
 .purple {
-  box-shadow: 0 14px 36px rgba(135, 110, 255, 0.18);
+  box-shadow: 0 12px 34px rgba(128, 90, 213, 0.2);
 }
 
 .purple .icon {
-  background: linear-gradient(135deg, #a18bff, #7c6bff);
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
 }
 
 .login {
