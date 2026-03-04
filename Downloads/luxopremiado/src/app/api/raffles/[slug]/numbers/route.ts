@@ -3,7 +3,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { canUseDemoFallback, hasSupabaseEnv } from "@/lib/env";
 import { buildFallbackNumberTiles, fallbackRaffleData, FALLBACK_TOTAL_NUMBERS } from "@/lib/landing-data";
+import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { isDefaultRaffleSlug } from "@/lib/raffle-slug";
+import { getCachedRaffleStats, setCachedRaffleStats } from "@/lib/raffle-stats-cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 
@@ -75,7 +77,7 @@ export async function GET(request: NextRequest, context: RaffleNumbersRouteConte
       const { data: candidates } = await dataClient
         .from("raffles")
         .select(raffleSelect)
-        .in("status", ["active", "draft", "closed", "drawn"])
+        .in("status", ["active", "closed", "drawn"])
         .order("created_at", { ascending: false })
         .limit(24);
 
@@ -94,7 +96,7 @@ export async function GET(request: NextRequest, context: RaffleNumbersRouteConte
           const { data: serviceCandidates } = await dataClient
             .from("raffles")
             .select(raffleSelect)
-            .in("status", ["active", "draft", "closed", "drawn"])
+            .in("status", ["active", "closed", "drawn"])
             .order("created_at", { ascending: false })
             .limit(24);
 
@@ -120,28 +122,7 @@ export async function GET(request: NextRequest, context: RaffleNumbersRouteConte
       .order("number", { ascending: true })
       .range(offset, offset + pageSize - 1);
 
-    const soldCountPromise = includeStats
-      ? dataClient
-          .from("raffle_numbers")
-          .select("id", { count: "exact", head: true })
-          .eq("raffle_id", raffle.id)
-          .eq("status", "sold")
-      : Promise.resolve({ count: null, error: null });
-
-    const reservedCountPromise = includeStats
-      ? dataClient
-          .from("raffle_numbers")
-          .select("id", { count: "exact", head: true })
-          .eq("raffle_id", raffle.id)
-          .eq("status", "reserved")
-      : Promise.resolve({ count: null, error: null });
-
-    const [initialRowsResult, soldCountResult, reservedCountResult] = await Promise.all([
-      rowsPromise,
-      soldCountPromise,
-      reservedCountPromise,
-    ]);
-    let rowsResult = initialRowsResult;
+    let rowsResult = await rowsPromise;
 
     if (rowsResult.error && rowsResult.error.message.includes("v_raffle_numbers_public")) {
       rowsResult = await dataClient
@@ -156,18 +137,64 @@ export async function GET(request: NextRequest, context: RaffleNumbersRouteConte
       return NextResponse.json({ error: rowsResult.error.message }, { status: 400 });
     }
 
-    if (includeStats && soldCountResult.error) {
-      return NextResponse.json({ error: soldCountResult.error.message }, { status: 400 });
-    }
-
-    if (includeStats && reservedCountResult.error) {
-      return NextResponse.json({ error: reservedCountResult.error.message }, { status: 400 });
-    }
-
-    const soldCount = Number(soldCountResult.count ?? 0);
-    const reservedCount = Number(reservedCountResult.count ?? 0);
     const totalCount = Number(raffle.total_numbers ?? 0);
+    const cachedStats = includeStats ? getCachedRaffleStats(String(raffle.id)) : null;
+    let soldCount = cachedStats?.sold ?? 0;
+    let reservedCount = cachedStats?.reserved ?? 0;
+
+    if (includeStats && !cachedStats) {
+      const [soldCountResult, reservedCountResult] = await Promise.all([
+        dataClient
+          .from("raffle_numbers")
+          .select("id", { count: "exact", head: true })
+          .eq("raffle_id", raffle.id)
+          .eq("status", "sold"),
+        dataClient
+          .from("raffle_numbers")
+          .select("id", { count: "exact", head: true })
+          .eq("raffle_id", raffle.id)
+          .eq("status", "reserved"),
+      ]);
+
+      if (soldCountResult.error) {
+        return NextResponse.json({ error: soldCountResult.error.message }, { status: 400 });
+      }
+
+      if (reservedCountResult.error) {
+        return NextResponse.json({ error: reservedCountResult.error.message }, { status: 400 });
+      }
+
+      soldCount = Number(soldCountResult.count ?? 0);
+      reservedCount = Number(reservedCountResult.count ?? 0);
+      setCachedRaffleStats({
+        raffleId: String(raffle.id),
+        total: totalCount,
+        sold: soldCount,
+        reserved: reservedCount,
+      });
+    }
+
     const availableCount = Math.max(0, totalCount - soldCount - reservedCount);
+    let luckyNumber: number | null = null;
+
+    if (soldCount >= totalCount && totalCount > 0) {
+      try {
+        const serviceClient = createSupabaseServiceClient();
+        const { data: prizeConfig } = await serviceClient
+          .from("prize_configurations")
+          .select("lucky_number")
+          .eq("raffle_slug", raffle.slug ?? slug)
+          .order("prize_order", { ascending: true })
+          .limit(1)
+          .maybeSingle();
+
+        if (typeof prizeConfig?.lucky_number === "number") {
+          luckyNumber = prizeConfig.lucky_number;
+        }
+      } catch {
+        // ignore: optional
+      }
+    }
 
     return NextResponse.json({
       success: true,
@@ -180,6 +207,7 @@ export async function GET(request: NextRequest, context: RaffleNumbersRouteConte
             available: availableCount,
             reserved: reservedCount,
             sold: soldCount,
+            luckyNumber: luckyNumber ?? undefined,
           }
         : undefined,
       numbers:
