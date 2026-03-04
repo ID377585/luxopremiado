@@ -304,7 +304,7 @@ export async function getRaffleLandingData(
         reserved: reservedNumbers,
       });
     }
-    const socialRows = socialProofResult.data ?? [];
+    const socialRows = (socialProofResult.data ?? []) as Array<Record<string, unknown>>;
     const testimonialRows = socialRows.filter((item) => item.type !== "winner");
     const winnerRows = socialRows.filter((item) => item.type === "winner");
 
