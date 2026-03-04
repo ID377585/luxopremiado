@@ -157,8 +157,13 @@ function isVideoMedia(entry: WinnerWallEntry): boolean {
 
 export function SocialProof({ entries, winnerWall }: SocialProofProps) {
   const testimonials = buildTestimonials(entries);
-  const trackItems = [...testimonials, ...testimonials];
   const winnerEntries = buildWinnerWall(winnerWall);
+  const midpoint = Math.ceil(testimonials.length / 2);
+  const topRow = testimonials.slice(0, midpoint);
+  const bottomRow = testimonials.slice(midpoint);
+  const safeBottomRow = bottomRow.length > 0 ? bottomRow : topRow;
+  const topLoop = [...topRow, ...topRow];
+  const bottomLoop = [...safeBottomRow, ...safeBottomRow];
 
   return (
     <section className={styles.section} id="prova-social">
@@ -171,35 +176,69 @@ export function SocialProof({ entries, winnerWall }: SocialProofProps) {
         </header>
 
         <div className={styles.proofCarousel} role="region" aria-label="Carrossel de depoimentos de participantes">
-          <ul className={styles.proofTrack}>
-            {trackItems.map((entry, index) => (
-              <li className={styles.proofSlide} key={`${entry.author}-${entry.title}-${index}`}>
-                <article className={styles.proofItem}>
-                  <div className={styles.proofHeaderRow}>
-                    <span aria-hidden className={styles.proofAvatar}>
-                      {entry.avatarUrl ? (
-                        <Image
-                          alt=""
-                          className={styles.proofAvatarImage}
-                          height={48}
-                          loading="lazy"
-                          src={entry.avatarUrl}
-                          width={48}
-                        />
-                      ) : (
-                        getAvatarInitials(entry.author)
-                      )}
-                    </span>
-                    <strong className={styles.proofTitle}>{entry.title}</strong>
-                  </div>
-                  <p className={styles.proofText}>
-                    {entry.content.trim().replace(/[.!?]\s*$/, "")}.{" "}
-                    <span className={styles.proofAuthor}>{entry.author.trim()}</span>
-                  </p>
-                </article>
-              </li>
-            ))}
-          </ul>
+          <div className={styles.proofMarqueeRow}>
+            <ul className={`${styles.proofTrack} ${styles.proofTrackReverse}`}>
+              {topLoop.map((entry, index) => (
+                <li className={styles.proofSlide} key={`${entry.author}-${entry.title}-top-${index}`}>
+                  <article className={styles.proofItem}>
+                    <div className={styles.proofHeaderRow}>
+                      <span aria-hidden className={styles.proofAvatar}>
+                        {entry.avatarUrl ? (
+                          <Image
+                            alt=""
+                            className={styles.proofAvatarImage}
+                            height={48}
+                            loading="lazy"
+                            src={entry.avatarUrl}
+                            width={48}
+                          />
+                        ) : (
+                          getAvatarInitials(entry.author)
+                        )}
+                      </span>
+                      <strong className={styles.proofTitle}>{entry.title}</strong>
+                    </div>
+                    <p className={styles.proofText}>
+                      {entry.content.trim().replace(/[.!?]\s*$/, "")}.{" "}
+                      <span className={styles.proofAuthor}>{entry.author.trim()}</span>
+                    </p>
+                  </article>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className={styles.proofMarqueeRow}>
+            <ul className={styles.proofTrack}>
+              {bottomLoop.map((entry, index) => (
+                <li className={styles.proofSlide} key={`${entry.author}-${entry.title}-bottom-${index}`}>
+                  <article className={styles.proofItem}>
+                    <div className={styles.proofHeaderRow}>
+                      <span aria-hidden className={styles.proofAvatar}>
+                        {entry.avatarUrl ? (
+                          <Image
+                            alt=""
+                            className={styles.proofAvatarImage}
+                            height={48}
+                            loading="lazy"
+                            src={entry.avatarUrl}
+                            width={48}
+                          />
+                        ) : (
+                          getAvatarInitials(entry.author)
+                        )}
+                      </span>
+                      <strong className={styles.proofTitle}>{entry.title}</strong>
+                    </div>
+                    <p className={styles.proofText}>
+                      {entry.content.trim().replace(/[.!?]\s*$/, "")}.{" "}
+                      <span className={styles.proofAuthor}>{entry.author.trim()}</span>
+                    </p>
+                  </article>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
         <div className={styles.winnerWall}>
