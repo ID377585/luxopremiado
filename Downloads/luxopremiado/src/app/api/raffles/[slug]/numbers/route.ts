@@ -3,7 +3,6 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { canUseDemoFallback, hasSupabaseEnv } from "@/lib/env";
 import { buildFallbackNumberTiles, fallbackRaffleData, FALLBACK_TOTAL_NUMBERS } from "@/lib/landing-data";
-import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { isDefaultRaffleSlug } from "@/lib/raffle-slug";
 import { getCachedRaffleStats, setCachedRaffleStats } from "@/lib/raffle-stats-cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
