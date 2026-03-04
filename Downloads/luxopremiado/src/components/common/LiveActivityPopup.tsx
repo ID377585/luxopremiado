@@ -109,9 +109,10 @@ function buildInitialFeed(scope: Scope): ActivityItem[] {
 
 export function LiveActivityPopup({ scope = "landing" }: LiveActivityPopupProps) {
   const [isVisible, setIsVisible] = useState(false);
-  const [items, setItems] = useState<ActivityItem[]>(() => buildInitialFeed(scope));
+  // Start empty to avoid SSR/client mismatch; hydrate content after mount.
+  const [items, setItems] = useState<ActivityItem[]>([]);
 
-  // Regenerate when scope changes (login vs landing wording)
+  // First paint after mount, and whenever scope changes
   useEffect(() => {
     setItems(buildInitialFeed(scope));
   }, [scope]);
