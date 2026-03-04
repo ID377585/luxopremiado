@@ -401,8 +401,9 @@ export function SocialProof({ entries, winnerWall }: SocialProofProps) {
   const winnerEntries = buildWinnerWall(winnerWall);
   const topRow = testimonials.slice(0, 20);
   const bottomRow = testimonials.slice(20, 40);
-  const safeBottomRow = bottomRow.length > 0 ? bottomRow : topRow;
-  const topLoop = [...topRow, ...topRow];
+  const safeTopRow = topRow.length > 0 ? topRow : testimonials;
+  const safeBottomRow = bottomRow.length > 0 ? bottomRow : safeTopRow;
+  const topLoop = [...safeTopRow, ...safeTopRow];
   const bottomLoop = [...safeBottomRow, ...safeBottomRow];
 
   return (

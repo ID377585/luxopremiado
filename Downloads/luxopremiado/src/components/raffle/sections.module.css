@@ -1048,7 +1048,7 @@
 }
 
 .proofTrack {
-  animation: proofMarquee 48s linear infinite;
+  animation: proofMarquee 96s linear infinite;
   display: flex;
   gap: 0.8rem;
   list-style: none;
@@ -1056,7 +1056,7 @@
 }
 
 .proofTrackReverse {
-  animation: proofMarqueeReverse 48s linear infinite;
+  animation: proofMarqueeReverse 96s linear infinite;
 }
 
 .proofSlide {
