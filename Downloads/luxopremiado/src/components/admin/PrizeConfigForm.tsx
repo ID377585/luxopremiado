@@ -41,7 +41,7 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
         if (json.prizes?.length) {
           setPrizes(
             PRIZES.map((base) => {
-              const match = json.prizes.find((p) => (p as Record<string, unknown>).prize_order === base.prizeOrder) as
+              const match = (json.prizes ?? []).find((p) => (p as Record<string, unknown>).prize_order === base.prizeOrder) as
                 | Record<string, unknown>
                 | undefined;
 
