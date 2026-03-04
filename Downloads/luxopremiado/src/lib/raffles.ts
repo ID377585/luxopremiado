@@ -401,13 +401,22 @@ export async function getRaffleLandingData(
       winnerWall:
         winnerRows.length
           ? winnerRows.slice(0, 6).map((item, index) => {
-              const mediaUrl = item.media_url ?? fallbackWinnerMedia[index % fallbackWinnerMedia.length];
-              const lowerMedia = String(mediaUrl).toLowerCase();
+              const mediaUrl =
+                typeof item.media_url === "string" && item.media_url.trim().length > 0
+                  ? item.media_url
+                  : fallbackWinnerMedia[index % fallbackWinnerMedia.length];
+              const lowerMedia = String(mediaUrl ?? "").toLowerCase();
               const mediaType = lowerMedia.endsWith(".mp4") || lowerMedia.includes("video") ? "video" : "image";
 
               return {
-                name: item.title?.trim() || `Ganhador ${index + 1}`,
-                prize: item.content?.trim() || "Prêmio entregue na campanha",
+                name:
+                  typeof item.title === "string" && item.title.trim().length > 0
+                    ? item.title.trim()
+                    : `Ganhador ${index + 1}`,
+                prize:
+                  typeof item.content === "string" && item.content.trim().length > 0
+                    ? item.content.trim()
+                    : "Prêmio entregue na campanha",
                 city: "Brasil",
                 mediaUrl,
                 mediaType: mediaType as "image" | "video",
