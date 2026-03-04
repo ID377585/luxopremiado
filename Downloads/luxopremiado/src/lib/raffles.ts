@@ -308,7 +308,7 @@ export async function getRaffleLandingData(
     const testimonialRows = socialRows.filter((item) => item.type !== "winner");
     const winnerRows = socialRows.filter((item) => item.type === "winner");
 
-    const prizeConfigs = prizeConfigResult.data ?? [];
+    const prizeConfigs = Array.isArray((prizeConfigResult as any)?.data) ? (prizeConfigResult as any).data : [];
     const configImages = prizeConfigs
       .map((c) => (typeof c.image_url === "string" && c.image_url.trim().length > 0 ? c.image_url.trim() : null))
       .filter((url): url is string => Boolean(url));
