@@ -14,11 +14,19 @@ export interface PrizeFeature {
   value: string;
 }
 
+export interface PrizeConfigEntry {
+  prizeOrder: number;
+  prizeLabel: string;
+  prizeValueCents: number;
+  imageUrl?: string | null;
+}
+
 export interface PrizeData {
   title: string;
   description: string;
   images: string[];
   features: PrizeFeature[];
+  configs?: PrizeConfigEntry[];
 }
 
 export interface HowItWorksStep {

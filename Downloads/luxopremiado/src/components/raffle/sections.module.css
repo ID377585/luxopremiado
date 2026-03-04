@@ -658,6 +658,62 @@
   grid-template-columns: 1.1fr 0.9fr;
 }
 
+.prizeGridMulti {
+  display: grid;
+  gap: 1.2rem;
+  grid-template-columns: 0.9fr 1.1fr;
+  align-items: start;
+}
+
+.prizeCards {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.prizeCard {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 1rem;
+  color: #e2e8f0;
+  cursor: pointer;
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.75rem;
+  text-align: left;
+  transition: border-color 0.2s ease, transform 0.15s ease;
+}
+
+.prizeCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(251, 146, 60, 0.6);
+}
+
+.prizeCardActive {
+  border-color: rgba(251, 146, 60, 0.85);
+  box-shadow: 0 12px 28px rgba(251, 146, 60, 0.15);
+}
+
+.prizeCardThumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 0.85rem;
+  overflow: hidden;
+  background: radial-gradient(circle at 20% 20%, rgba(251, 146, 60, 0.16), rgba(59, 130, 246, 0.12));
+}
+
+.prizeCardMeta p {
+  margin: 0;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.prizeCardMeta span {
+  color: #cbd5e1;
+  font-size: 0.86rem;
+}
+
 .prizeGallery {
   display: grid;
   gap: 0.9rem;
@@ -681,6 +737,23 @@
   border: 1px solid rgba(148, 163, 184, 0.25);
   border-radius: 1rem;
   padding: 1.2rem;
+}
+
+.prizeDetailHeader {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: 160px 1fr;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+.prizeDetailImage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 1rem;
+  overflow: hidden;
+  background: radial-gradient(circle at 20% 20%, rgba(251, 146, 60, 0.16), rgba(59, 130, 246, 0.12));
 }
 
 .cardTitle {

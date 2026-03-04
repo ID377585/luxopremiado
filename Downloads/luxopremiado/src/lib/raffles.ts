@@ -358,6 +358,21 @@ export async function getRaffleLandingData(
         title: raffle.title,
         description: raffle.description ?? fallbackRaffleData.prize.description,
         images,
+        configs:
+          prizeConfigs.length > 0
+            ? prizeConfigs
+                .filter((c: Record<string, unknown>) => typeof c.prize_order === "number")
+                .map((c: Record<string, unknown>) => ({
+                  prizeOrder: Number(c.prize_order ?? 0),
+                  prizeLabel:
+                    typeof c.prize_label === "string" && c.prize_label.trim().length > 0
+                      ? (c.prize_label as string)
+                      : `Prêmio ${c.prize_order}`,
+                  prizeValueCents: typeof c.prize_value_cents === "number" ? Number(c.prize_value_cents) : 0,
+                  imageUrl:
+                    typeof c.image_url === "string" && c.image_url.trim().length > 0 ? (c.image_url as string) : undefined,
+                }))
+            : undefined,
         features: mergedFeatures,
       },
       numberTiles:
