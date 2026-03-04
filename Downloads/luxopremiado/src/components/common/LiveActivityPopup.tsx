@@ -133,6 +133,20 @@ export function LiveActivityPopup({ scope = "landing" }: LiveActivityPopupProps)
     };
   }, [scope]);
 
+  // Auto-hide each batch after ~2s
+  useEffect(() => {
+    if (items.length === 0) {
+      setIsVisible(false);
+      return;
+    }
+    setIsVisible(true);
+    const timeout = window.setTimeout(() => {
+      setIsVisible(false);
+      setItems([]);
+    }, 2_200);
+    return () => window.clearTimeout(timeout);
+  }, [items]);
+
   return (
     <aside
       aria-live="polite"

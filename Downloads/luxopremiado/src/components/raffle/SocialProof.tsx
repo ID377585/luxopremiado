@@ -56,6 +56,247 @@ const fallbackTestimonials: SocialProofEntry[] = [
     author: "Rafael, Goiânia/GO",
     avatarUrl: "/images/social/rafael.svg",
   },
+  // novos depoimentos (>=40)
+  {
+    title: "Compra em menos de 1 minuto",
+    content: "Escolhi os números e paguei rapidinho no app, sem travar.",
+    author: "Marina, São Paulo/SP",
+    avatarUrl: "/images/social/marina.svg",
+  },
+  {
+    title: "Suporte educado",
+    content: "Tive dúvida no checkout e responderam na hora pelo chat.",
+    author: "Felipe, Belo Horizonte/MG",
+    avatarUrl: "/images/social/felipe.svg",
+  },
+  {
+    title: "Confiança na transparência",
+    content: "Gostei de ver as etapas do sorteio descritas com clareza.",
+    author: "Patrícia, Brasília/DF",
+    avatarUrl: "/images/social/patricia.svg",
+  },
+  {
+    title: "Ranking motiva",
+    content: "Fiquei em top 5 e recebi os alerts automáticos, bem legal.",
+    author: "Bruno, Salvador/BA",
+    avatarUrl: "/images/social/bruno.svg",
+  },
+  {
+    title: "Site leve no 4G",
+    content: "Usei no celular com 4G fraco e não travou nenhuma vez.",
+    author: "Letícia, Curitiba/PR",
+    avatarUrl: "/images/social/leticia.svg",
+  },
+  {
+    title: "Pagamento aprovado na hora",
+    content: "PIX reconhecido em segundos, vi os números como confirmados.",
+    author: "Diego, Manaus/AM",
+    avatarUrl: "/images/social/diego.svg",
+  },
+  {
+    title: "Interface clara",
+    content: "As informações do prêmio e regras são bem objetivas.",
+    author: "Renata, Fortaleza/CE",
+    avatarUrl: "/images/social/renata.svg",
+  },
+  {
+    title: "Entrega filmada",
+    content: "Assistir ao vídeo do ganhador me passou segurança.",
+    author: "André, Recife/PE",
+    avatarUrl: "/images/social/andre.svg",
+  },
+  {
+    title: "Confirmação por e-mail",
+    content: "Recebi todos os comprovantes por e-mail rapidinho.",
+    author: "Camila, Santos/SP",
+    avatarUrl: "/images/social/camila.svg",
+  },
+  {
+    title: "Notificações úteis",
+    content: "Avisa quando a reserva está acabando, muito prático.",
+    author: "Thiago, Porto Alegre/RS",
+    avatarUrl: "/images/social/thiago.svg",
+  },
+  {
+    title: "Checkout seguro",
+    content: "Gostei do anti-bot e verificação, passou confiança.",
+    author: "Sara, Florianópolis/SC",
+    avatarUrl: "/images/social/sara.svg",
+  },
+  {
+    title: "Visual bonito",
+    content: "Layout moderno, deu vontade de continuar navegando.",
+    author: "Lucas, Vitória/ES",
+    avatarUrl: "/images/social/lucas.svg",
+  },
+  {
+    title: "Suporte pelo Whats",
+    content: "Responderam no WhatsApp em poucos minutos, ótima experiência.",
+    author: "Priscila, Goiânia/GO",
+    avatarUrl: "/images/social/priscila.svg",
+  },
+  {
+    title: "Pagamento flexível",
+    content: "PIX e cartão disponíveis, escolhi o que foi melhor pra mim.",
+    author: "Márcio, São Luís/MA",
+    avatarUrl: "/images/social/marcio.svg",
+  },
+  {
+    title: "Transparência no status",
+    content: "Cada etapa do pedido fica visível, sem mistério.",
+    author: "Helena, João Pessoa/PB",
+    avatarUrl: "/images/social/helena.svg",
+  },
+  {
+    title: "Confirmei no app",
+    content: "Já vi os números confirmados dentro do app em segundos.",
+    author: "Otávio, Belém/PA",
+    avatarUrl: "/images/social/otavio.svg",
+  },
+  {
+    title: "Segurança nas reservas",
+    content: "Reserva expira certinho, evita gente segurando número à toa.",
+    author: "Isabela, Campinas/SP",
+    avatarUrl: "/images/social/isabela.svg",
+  },
+  {
+    title: "Recebi recibo detalhado",
+    content: "O e-mail de confirmação veio com tudo descrito, gostei.",
+    author: "Caio, Niterói/RJ",
+    avatarUrl: "/images/social/caio.svg",
+  },
+  {
+    title: "Interface responsiva",
+    content: "No tablet ficou perfeito, sem quebra de layout.",
+    author: "Bianca, Ribeirão Preto/SP",
+    avatarUrl: "/images/social/bianca.svg",
+  },
+  {
+    title: "Boa usabilidade",
+    content: "Processo passo a passo bem claro, não tem pegadinha.",
+    author: "Guilherme, Campo Grande/MS",
+    avatarUrl: "/images/social/guilherme.svg",
+  },
+  {
+    title: "Comunicação simples",
+    content: "Textos diretos e informativos, sem jargão.",
+    author: "Daniela, Salvador/BA",
+    avatarUrl: "/images/social/daniela.svg",
+  },
+  {
+    title: "Entrega confirmada",
+    content: "Ver ganhador com nota e foto me deixou tranquila.",
+    author: "Rita, Belo Horizonte/MG",
+    avatarUrl: "/images/social/rita.svg",
+  },
+  {
+    title: "Alertas úteis",
+    content: "Recebi aviso quando quase esgotou, comprei a tempo.",
+    author: "Henrique, Curitiba/PR",
+    avatarUrl: "/images/social/henrique.svg",
+  },
+  {
+    title: "Confiança no selo",
+    content: "O selo de transparência me convenceu a participar.",
+    author: "Silvia, Brasília/DF",
+    avatarUrl: "/images/social/silvia.svg",
+  },
+  {
+    title: "Processo intuitivo",
+    content: "Até minha mãe conseguiu comprar sem ajuda.",
+    author: "Fabio, São Paulo/SP",
+    avatarUrl: "/images/social/fabio.svg",
+  },
+  {
+    title: "Boas ofertas de combos",
+    content: "Os pacotes de números valem a pena, preço justo.",
+    author: "Nathalia, Recife/PE",
+    avatarUrl: "/images/social/nathalia.svg",
+  },
+  {
+    title: "Suporte paciente",
+    content: "Expliquei tudo pelo chat, foram pacientes e rápidos.",
+    author: "Rodrigo, Manaus/AM",
+    avatarUrl: "/images/social/rodrigo2.svg",
+  },
+  {
+    title: "Confirmação no painel",
+    content: "Gosto de ver o status 'confirmado' sem precisar perguntar.",
+    author: "Vera, Porto Alegre/RS",
+    avatarUrl: "/images/social/vera.svg",
+  },
+  {
+    title: "Rapidez no cashback",
+    content: "Estorno foi rápido quando precisei cancelar.",
+    author: "Edu, Florianópolis/SC",
+    avatarUrl: "/images/social/edu.svg",
+  },
+  {
+    title: "Ranking divertido",
+    content: "Fiquei acompanhando o ranking, deu emoção extra.",
+    author: "Milena, Santos/SP",
+    avatarUrl: "/images/social/milena.svg",
+  },
+  {
+    title: "Segurança de dados",
+    content: "Sentir que meus dados estavam seguros fez diferença.",
+    author: "Paulo, Fortaleza/CE",
+    avatarUrl: "/images/social/paulo.svg",
+  },
+  {
+    title: "UX simples",
+    content: "Tudo bem direto: escolher, pagar e acompanhar.",
+    author: "Lia, Goiânia/GO",
+    avatarUrl: "/images/social/lia.svg",
+  },
+  {
+    title: "Comunicação clara",
+    content: "E-mails são objetivos e com links úteis.",
+    author: "Marcelo, Maceió/AL",
+    avatarUrl: "/images/social/marcelo.svg",
+  },
+  {
+    title: "Pós-venda presente",
+    content: "Depois da compra, continuaram informando, gostei.",
+    author: "Carla, Vitória/ES",
+    avatarUrl: "/images/social/carla.svg",
+  },
+  {
+    title: "Confirmação em segundos",
+    content: "PIX reconhecido quase instantâneo, muito bom.",
+    author: "Sérgio, João Pessoa/PB",
+    avatarUrl: "/images/social/sergio.svg",
+  },
+  {
+    title: "Design confiável",
+    content: "Visual profissional passa credibilidade.",
+    author: "Vivian, São Luís/MA",
+    avatarUrl: "/images/social/vivian.svg",
+  },
+  {
+    title: "Pagamento sem fricção",
+    content: "Checkout enxuto, sem etapas desnecessárias.",
+    author: "Caue, Belém/PA",
+    avatarUrl: "/images/social/caue.svg",
+  },
+  {
+    title: "Experiência fluida",
+    content: "Navegação suave, não senti travadas.",
+    author: "Joice, Londrina/PR",
+    avatarUrl: "/images/social/joice.svg",
+  },
+  {
+    title: "Clareza nas regras",
+    content: "Regulamento bem explicado, sem letra miúda.",
+    author: "Brenda, Natal/RN",
+    avatarUrl: "/images/social/brenda.svg",
+  },
+  {
+    title: "Atendimento humano",
+    content: "Nada de bot enrolando, falaram comigo mesmo.",
+    author: "Ícaro, Teresina/PI",
+    avatarUrl: "/images/social/icaro.svg",
+  },
 ];
 
 const fallbackWinnerWall: WinnerWallEntry[] = [
@@ -101,7 +342,7 @@ function buildTestimonials(entries: SocialProofEntry[]): SocialProofEntry[] {
     keys.add(key);
     uniqueEntries.push(entry);
 
-    if (uniqueEntries.length >= 8) {
+    if (uniqueEntries.length >= 40) {
       break;
     }
   }
@@ -158,9 +399,8 @@ function isVideoMedia(entry: WinnerWallEntry): boolean {
 export function SocialProof({ entries, winnerWall }: SocialProofProps) {
   const testimonials = buildTestimonials(entries);
   const winnerEntries = buildWinnerWall(winnerWall);
-  const midpoint = Math.ceil(testimonials.length / 2);
-  const topRow = testimonials.slice(0, midpoint);
-  const bottomRow = testimonials.slice(midpoint);
+  const topRow = testimonials.slice(0, 20);
+  const bottomRow = testimonials.slice(20, 40);
   const safeBottomRow = bottomRow.length > 0 ? bottomRow : topRow;
   const topLoop = [...topRow, ...topRow];
   const bottomLoop = [...safeBottomRow, ...safeBottomRow];
