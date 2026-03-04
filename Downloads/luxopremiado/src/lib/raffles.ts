@@ -325,9 +325,9 @@ export async function getRaffleLandingData(
     const valueFeatures =
       prizeConfigs.length > 0
         ? prizeConfigs
-            .filter((c) => typeof c.prize_value_cents === "number" && c.prize_value_cents >= 0)
-            .map((c) => ({
-              label: c.prize_label ?? `Prêmio ${c.prize_order}`,
+            .filter((c: Record<string, unknown>) => typeof c.prize_value_cents === "number" && c.prize_value_cents >= 0)
+            .map((c: Record<string, unknown>) => ({
+              label: (c.prize_label as string) ?? `Prêmio ${c.prize_order}`,
               value: formatBrlFromCents(Number(c.prize_value_cents)),
             }))
         : [];
