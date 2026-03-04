@@ -426,8 +426,13 @@ export async function getRaffleLandingData(
           : fallbackRaffleData.winnerWall,
       retention: fallbackRaffleData.retention,
       faq:
-        faqResult.data?.length
-          ? mergeFaqItems(faqResult.data.map((item) => ({ question: item.question, answer: item.answer }))).slice(0, 8)
+        Array.isArray((faqResult as any)?.data)
+          ? mergeFaqItems(
+              ((faqResult as any).data as Array<Record<string, unknown>>).map((item) => ({
+                question: typeof item.question === "string" ? item.question : "",
+                answer: typeof item.answer === "string" ? item.answer : "",
+              })),
+            ).slice(0, 8)
           : fallbackRaffleData.faq,
       transparency: {
         drawMethod: transparencyResult.data?.draw_method ?? fallbackRaffleData.transparency.drawMethod,
