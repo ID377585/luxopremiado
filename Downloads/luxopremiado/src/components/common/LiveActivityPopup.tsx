@@ -1,61 +1,134 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import styles from "@/components/common/live-activity-popup.module.css";
 
+type Scope = "login" | "landing";
+
 interface LiveActivityPopupProps {
-  scope?: "login" | "landing";
+  scope?: Scope;
 }
 
-interface ActivityState {
-  watchers: number;
+type AccentTone = "blue" | "pink" | "yellow" | "green" | "purple";
+
+interface ActivityItem {
+  id: string;
+  title: string;
+  subtitle: string;
   minutesAgo: number;
+  tone: AccentTone;
+  icon: string;
 }
+
+const templatePool: Record<Scope, Array<Omit<ActivityItem, "id" | "minutesAgo">>> = {
+  landing: [
+    {
+      title: "Números sendo escolhidos",
+      subtitle: "Pessoas avaliando a campanha agora",
+      tone: "blue",
+      icon: "🎟️",
+    },
+    {
+      title: "Pagamento recebido",
+      subtitle: "Checkout confirmado no PIX",
+      tone: "green",
+      icon: "💸",
+    },
+    {
+      title: "Usuário se cadastrou",
+      subtitle: "Conta criada para garantir números",
+      tone: "yellow",
+      icon: "👤",
+    },
+    {
+      title: "Nova mensagem",
+      subtitle: "Suporte respondeu pelo chat",
+      tone: "pink",
+      icon: "💬",
+    },
+    {
+      title: "Nova reserva",
+      subtitle: "Números adicionados ao carrinho",
+      tone: "purple",
+      icon: "✅",
+    },
+  ],
+  login: [
+    {
+      title: "Login concluído",
+      subtitle: "Acesso liberado para comprar",
+      tone: "blue",
+      icon: "🔐",
+    },
+    {
+      title: "Pagamento recebido",
+      subtitle: "Compra finalizada no PIX",
+      tone: "green",
+      icon: "💸",
+    },
+    {
+      title: "Conta criada",
+      subtitle: "Novo participante confirmado",
+      tone: "yellow",
+      icon: "👤",
+    },
+    {
+      title: "Números escolhidos",
+      subtitle: "Checkout rápido liberado",
+      tone: "purple",
+      icon: "🎯",
+    },
+    {
+      title: "Suporte ativo",
+      subtitle: "Equipe online para ajudar",
+      tone: "pink",
+      icon: "💬",
+    },
+  ],
+};
 
 function randomBetween(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function buildActivity(scope: "login" | "landing"): ActivityState {
-  if (scope === "login") {
-    return {
-      watchers: randomBetween(3, 9),
-      minutesAgo: randomBetween(1, 3),
-    };
-  }
+function buildActivity(scope: Scope): ActivityItem {
+  const templateOptions = templatePool[scope];
+  const template = templateOptions[randomBetween(0, templateOptions.length - 1)];
 
   return {
-    watchers: randomBetween(6, 18),
-    minutesAgo: randomBetween(1, 4),
+    ...template,
+    minutesAgo: randomBetween(1, 18),
+    id: `${template.title}-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
   };
+}
+
+function buildInitialFeed(scope: Scope): ActivityItem[] {
+  return Array.from({ length: 4 }, () => buildActivity(scope));
 }
 
 export function LiveActivityPopup({ scope = "landing" }: LiveActivityPopupProps) {
   const [isVisible, setIsVisible] = useState(false);
-  const [activity, setActivity] = useState<ActivityState>(() => buildActivity(scope));
+  const [items, setItems] = useState<ActivityItem[]>(() => buildInitialFeed(scope));
 
-  const label = useMemo(() => {
-    if (scope === "login") {
-      return `${activity.watchers} pessoas estão escolhendo números agora`;
-    }
-
-    return `${activity.watchers} pessoas estão olhando esta campanha agora`;
-  }, [activity, scope]);
-
+  // Regenerate when scope changes (login vs landing wording)
   useEffect(() => {
-    const showDelay = window.setTimeout(() => {
-      setActivity(buildActivity(scope));
-      setIsVisible(true);
-    }, 360);
+    setItems(buildInitialFeed(scope));
+  }, [scope]);
 
-    const hideDelay = window.setTimeout(() => {
-      setIsVisible(false);
-    }, 2_360);
+  // Progressive reveal & steady rotation
+  useEffect(() => {
+    const showDelay = window.setTimeout(() => setIsVisible(true), 220);
+    const interval = window.setInterval(() => {
+      setItems((previous) => {
+        const next = [buildActivity(scope), ...previous];
+        return next.slice(0, 5);
+      });
+    }, 5_200);
 
     return () => {
       window.clearTimeout(showDelay);
-      window.clearTimeout(hideDelay);
+      window.clearInterval(interval);
     };
   }, [scope]);
 
@@ -65,8 +138,23 @@ export function LiveActivityPopup({ scope = "landing" }: LiveActivityPopupProps)
       className={`${styles.popup} ${isVisible ? styles.visible : ""} ${scope === "login" ? styles.login : styles.landing}`}
       role="status"
     >
-      <p className={styles.title}>{label}</p>
-      <p className={styles.subtitle}>Atividade atualizada há {activity.minutesAgo} min</p>
+      <div className={styles.stack}>
+        {items.map((item) => (
+          <article key={item.id} className={`${styles.card} ${styles[item.tone]}`}>
+            <span aria-hidden className={styles.icon}>
+              {item.icon}
+            </span>
+            <div className={styles.meta}>
+              <p className={styles.titleLine}>
+                <span className={styles.title}>{item.title}</span>
+                <span className={styles.dot}>•</span>
+                <span className={styles.time}>{item.minutesAgo} minutos atrás</span>
+              </p>
+              <p className={styles.subtitle}>{item.subtitle}</p>
+            </div>
+          </article>
+        ))}
+      </div>
     </aside>
   );
 }
