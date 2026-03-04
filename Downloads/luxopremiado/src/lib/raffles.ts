@@ -4,6 +4,7 @@ import { buildPackageOffersForUnitPrice, fallbackRaffleData } from "@/lib/landin
 import { formatBrlFromCents } from "@/lib/format";
 import { isDefaultRaffleSlug, normalizeRaffleSlug } from "@/lib/raffle-slug";
 import { canUseDemoFallback, hasSupabaseEnv } from "@/lib/env";
+import { getCachedRaffleStats, setCachedRaffleStats } from "@/lib/raffle-stats-cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { FaqItem, NumberStatus, RaffleLandingData } from "@/types/raffle";
@@ -165,7 +166,7 @@ export async function getRaffleLandingData(
         client
           .from("raffles")
           .select(raffleSelect)
-          .in("status", ["active", "draft", "closed", "drawn"])
+          .in("status", ["active", "closed", "drawn"])
           .order("created_at", { ascending: false })
           .limit(24),
         timeoutMs,
@@ -216,7 +217,19 @@ export async function getRaffleLandingData(
     const resolvedSlug = normalizeRaffleSlug(raffle.slug) ?? slug;
     const raffleWithOptionalLimit = raffle as typeof raffle & { max_numbers_per_user?: number | null };
 
-    const [imagesResult, numbersResult, socialProofResult, faqResult, transparencyResult, rankingResult, soldCountResult, reservedCountResult] =
+    const cachedStats = getCachedRaffleStats(String(raffle.id));
+
+    const [
+      imagesResult,
+      numbersResult,
+      socialProofResult,
+      faqResult,
+      transparencyResult,
+      rankingResult,
+      soldCountResult,
+      reservedCountResult,
+      prizeConfigResult,
+    ] =
       await withTimeout(
         Promise.all([
           dataClient
@@ -224,6 +237,12 @@ export async function getRaffleLandingData(
             .select("url")
             .eq("raffle_id", raffle.id)
             .order("sort_order", { ascending: true }),
+          dataClient
+            .from("prize_configurations")
+            .select("prize_order, prize_label, prize_value_cents, image_url")
+            .eq("raffle_slug", resolvedSlug)
+            .order("prize_order", { ascending: true })
+            .limit(3),
           dataClient
             .from("v_raffle_numbers_public")
             .select("number, status")
@@ -246,12 +265,20 @@ export async function getRaffleLandingData(
             p_raffle_id: raffle.id,
             p_limit: 10,
           }),
-          dataClient.from("raffle_numbers").select("id", { count: "exact", head: true }).eq("raffle_id", raffle.id).eq("status", "sold"),
-          dataClient
-            .from("raffle_numbers")
-            .select("id", { count: "exact", head: true })
-            .eq("raffle_id", raffle.id)
-            .eq("status", "reserved"),
+          cachedStats
+            ? Promise.resolve({ count: cachedStats.sold, error: null })
+            : dataClient
+                .from("raffle_numbers")
+                .select("id", { count: "exact", head: true })
+                .eq("raffle_id", raffle.id)
+                .eq("status", "sold"),
+          cachedStats
+            ? Promise.resolve({ count: cachedStats.reserved, error: null })
+            : dataClient
+                .from("raffle_numbers")
+                .select("id", { count: "exact", head: true })
+                .eq("raffle_id", raffle.id)
+                .eq("status", "reserved"),
         ]),
         timeoutMs,
         "raffles.aggregate_queries",
@@ -268,9 +295,45 @@ export async function getRaffleLandingData(
     const totalNumbers = Number(raffle.total_numbers ?? fallbackRaffleData.totalNumbers);
     const unitPriceCents = Number(raffle.price_cents ?? 1990);
     const availableNumbers = Math.max(0, totalNumbers - soldNumbers - reservedNumbers);
+
+    if (!cachedStats) {
+      setCachedRaffleStats({
+        raffleId: String(raffle.id),
+        total: totalNumbers,
+        sold: soldNumbers,
+        reserved: reservedNumbers,
+      });
+    }
     const socialRows = socialProofResult.data ?? [];
     const testimonialRows = socialRows.filter((item) => item.type !== "winner");
     const winnerRows = socialRows.filter((item) => item.type === "winner");
+
+    const prizeConfigs = prizeConfigResult.data ?? [];
+    const configImages = prizeConfigs
+      .map((c) => (typeof c.image_url === "string" && c.image_url.trim().length > 0 ? c.image_url.trim() : null))
+      .filter((url): url is string => Boolean(url));
+
+    const images =
+      configImages.length > 0
+        ? configImages
+        : imagesResult.data?.length && imagesResult.data.every((item) => Boolean(item.url))
+          ? (imagesResult.data.map((item) => item.url) as string[])
+          : fallbackRaffleData.prize.images;
+
+    const valueFeatures =
+      prizeConfigs.length > 0
+        ? prizeConfigs
+            .filter((c) => typeof c.prize_value_cents === "number" && c.prize_value_cents >= 0)
+            .map((c) => ({
+              label: c.prize_label ?? `Prêmio ${c.prize_order}`,
+              value: formatBrlFromCents(Number(c.prize_value_cents)),
+            }))
+        : [];
+
+    const mergedFeatures =
+      valueFeatures.length > 0
+        ? [...valueFeatures, ...fallbackRaffleData.prize.features].slice(0, 6)
+        : fallbackRaffleData.prize.features;
 
     return {
       ...fallbackRaffleData,
@@ -290,10 +353,8 @@ export async function getRaffleLandingData(
         ...fallbackRaffleData.prize,
         title: raffle.title,
         description: raffle.description ?? fallbackRaffleData.prize.description,
-        images:
-          imagesResult.data?.length && imagesResult.data.every((item) => Boolean(item.url))
-            ? (imagesResult.data.map((item) => item.url) as string[])
-            : fallbackRaffleData.prize.images,
+        images,
+        features: mergedFeatures,
       },
       numberTiles:
         numbersResult.data?.map((item) => ({
