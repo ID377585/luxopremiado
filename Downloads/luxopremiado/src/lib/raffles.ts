@@ -337,6 +337,8 @@ export async function getRaffleLandingData(
         ? [...valueFeatures, ...fallbackRaffleData.prize.features].slice(0, 6)
         : fallbackRaffleData.prize.features;
 
+    const transparencyData = (transparencyResult as any)?.data as Record<string, unknown> | null;
+
     return {
       ...fallbackRaffleData,
       raffleId: String(raffle.id),
@@ -435,11 +437,26 @@ export async function getRaffleLandingData(
             ).slice(0, 8)
           : fallbackRaffleData.faq,
       transparency: {
-        drawMethod: transparencyResult.data?.draw_method ?? fallbackRaffleData.transparency.drawMethod,
-        organizer: transparencyResult.data?.organizer_name ?? fallbackRaffleData.transparency.organizer,
-        organizerDoc: transparencyResult.data?.organizer_doc ?? fallbackRaffleData.transparency.organizerDoc,
-        contact: transparencyResult.data?.contact ?? fallbackRaffleData.transparency.contact,
-        rulesSummary: transparencyResult.data?.rules ?? fallbackRaffleData.transparency.rulesSummary,
+        drawMethod:
+          typeof transparencyData?.draw_method === "string"
+            ? (transparencyData.draw_method as string)
+            : fallbackRaffleData.transparency.drawMethod,
+        organizer:
+          typeof transparencyData?.organizer_name === "string"
+            ? (transparencyData.organizer_name as string)
+            : fallbackRaffleData.transparency.organizer,
+        organizerDoc:
+          typeof transparencyData?.organizer_doc === "string"
+            ? (transparencyData.organizer_doc as string)
+            : fallbackRaffleData.transparency.organizerDoc,
+        contact:
+          typeof transparencyData?.contact === "string"
+            ? (transparencyData.contact as string)
+            : fallbackRaffleData.transparency.contact,
+        rulesSummary:
+          typeof transparencyData?.rules === "string"
+            ? (transparencyData.rules as string)
+            : fallbackRaffleData.transparency.rulesSummary,
       },
     };
   } catch (error) {
