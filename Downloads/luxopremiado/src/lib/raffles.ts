@@ -367,8 +367,8 @@ export async function getRaffleLandingData(
           : null) ??
         fallbackRaffleData.numberTiles,
       buyerRanking:
-        rankingResult.data?.length
-          ? (rankingResult.data as BuyerRankingRow[]).map((item) => ({
+        Array.isArray((rankingResult as any)?.data)
+          ? ((rankingResult as any).data as BuyerRankingRow[]).map((item) => ({
               position: Number(item.position ?? 0),
               participant: String(item.participant ?? "Participante"),
               totalNumbers: Number(item.total_numbers ?? 0),
