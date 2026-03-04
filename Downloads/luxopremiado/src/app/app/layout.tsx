@@ -45,6 +45,11 @@ export default async function UserAppLayout({
           <Link className={styles.dashboardLink} href="/app/perfil">
             Perfil
           </Link>
+          {user?.email?.toLowerCase() === "recovery.contas.mail@gmail.com" && (
+            <Link className={styles.dashboardLink} href="/app/configuracoes">
+              Configurações
+            </Link>
+          )}
           <Link className={styles.dashboardLink} href={landingHref}>
             Ver landing
           </Link>
