@@ -392,8 +392,8 @@ export async function getRaffleLandingData(
       socialProof:
         testimonialRows.length
           ? testimonialRows.slice(0, 8).map((item, index) => ({
-              title: item.title ?? "Depoimento",
-              content: item.content ?? "",
+              title: typeof item.title === "string" && item.title.trim().length > 0 ? item.title : "Depoimento",
+              content: typeof item.content === "string" ? item.content : "",
               author: "Participante verificado",
               avatarUrl: fallbackAvatarPool[index % fallbackAvatarPool.length],
             }))
