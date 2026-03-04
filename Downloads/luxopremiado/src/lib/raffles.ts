@@ -313,7 +313,7 @@ export async function getRaffleLandingData(
       .map((c: Record<string, unknown>) =>
         typeof c.image_url === "string" && c.image_url.trim().length > 0 ? c.image_url.trim() : null,
       )
-      .filter((url): url is string => typeof url === "string" && Boolean(url));
+      .filter((url: string | null): url is string => typeof url === "string" && Boolean(url));
 
     const images =
       configImages.length > 0
