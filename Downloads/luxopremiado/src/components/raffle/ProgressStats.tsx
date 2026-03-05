@@ -14,9 +14,9 @@ interface ProgressStatsProps {
 }
 
 interface LiveUrgencyPulse {
-  recentSold: number;
-  minutesAgo: number;
-  viewersNow: number;
+  recentSold: number | null;
+  minutesAgo: number | null;
+  viewersNow: number | null;
 }
 
 interface LivePrizeStat {
@@ -41,51 +41,10 @@ function clampNumber(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-function buildInitialPulse(stats: CampaignStats, totalNumbers: number): LiveUrgencyPulse {
-  const safeTotal = Math.max(totalNumbers, 1);
-  const recentSold = clampNumber(Math.round((stats.soldNumbers / safeTotal) * 140), 12, 120);
-  const viewersNow = clampNumber(Math.round(stats.reservedNumbers * 0.38), 17, 420);
-
-  return {
-    recentSold,
-    minutesAgo: 2,
-    viewersNow,
-  };
-}
-
-function buildNextPulse(
-  previous: LiveUrgencyPulse,
-  stats: CampaignStats,
-  totalNumbers: number,
-): LiveUrgencyPulse {
-  const safeTotal = Math.max(totalNumbers, 1);
-  const variationSeed = Date.now() % 7;
-  const soldBase = clampNumber(Math.round((stats.soldNumbers / safeTotal) * 150), 10, 140);
-  const viewersBase = clampNumber(Math.round(stats.reservedNumbers * 0.4), 15, 480);
-  const soldVariation = variationSeed - 3;
-  const viewersVariation = (variationSeed % 5) - 2;
-
-  return {
-    recentSold: clampNumber(soldBase + soldVariation, 8, 160),
-    minutesAgo: previous.minutesAgo >= 4 ? 1 : previous.minutesAgo + 1,
-    viewersNow: clampNumber(viewersBase + viewersVariation * 3, 12, 520),
-  };
-}
-
 export function ProgressStats({ stats, totalNumbers, raffleSlug, prizeConfigs }: ProgressStatsProps) {
-  const [pulse, setPulse] = useState<LiveUrgencyPulse>(() => buildInitialPulse(stats, totalNumbers));
+  const [pulse, setPulse] = useState<LiveUrgencyPulse>({ recentSold: null, minutesAgo: null, viewersNow: null });
   const [livePrizes, setLivePrizes] = useState<LivePrizeStat[] | null>(null);
   const [liveTotals, setLiveTotals] = useState<LiveStatsPayload["totals"] | null>(null);
-
-  useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      setPulse((current) => buildNextPulse(current, stats, totalNumbers));
-    }, 25_000);
-
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, [stats, totalNumbers]);
 
   const rows = useMemo(() => {
     const entries =
@@ -167,6 +126,37 @@ export function ProgressStats({ stats, totalNumbers, raffleSlug, prizeConfigs }:
     };
   }, [raffleSlug]);
 
+  // Fetch recent sale to show pulse only when existir venda
+  useEffect(() => {
+    let active = true;
+    const fetchRecent = async () => {
+      try {
+        const res = await fetch(`/api/raffles/${encodeURIComponent(raffleSlug)}/recent-activity?limit=1`, { cache: "no-store" });
+        if (!res.ok) return;
+        const json = (await res.json()) as { activities?: Array<{ quantity: number; updatedAt: string }> };
+        const sale = json.activities?.[0];
+        if (!active || !sale) {
+          setPulse({ recentSold: null, minutesAgo: null, viewersNow: null });
+          return;
+        }
+        const minutesAgo = Math.max(0, Math.round((Date.now() - Date.parse(sale.updatedAt)) / 60000));
+        setPulse({
+          recentSold: sale.quantity,
+          minutesAgo,
+          viewersNow: null,
+        });
+      } catch {
+        // ignore
+      }
+    };
+    fetchRecent();
+    const interval = window.setInterval(fetchRecent, 20_000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, [raffleSlug]);
+
   return (
     <section className={styles.section} id="escassez">
       <div className={styles.container}>
@@ -178,15 +168,23 @@ export function ProgressStats({ stats, totalNumbers, raffleSlug, prizeConfigs }:
             </p>
           </header>
 
-          <div className={styles.liveUrgencyPanel} aria-live="polite">
-            <p className={styles.liveUrgencyHeadline}>
-              Últimos <strong>{pulse.recentSold}</strong> números vendidos há <strong>{pulse.minutesAgo}</strong> min
-            </p>
-            <p className={styles.liveUrgencySubline}>
-              <strong>{pulse.viewersNow}</strong> pessoas estão olhando agora. Faltam{" "}
-              <strong>{remainingNumbers.toLocaleString("pt-BR")}</strong> números para encerrar.
-            </p>
-          </div>
+          {pulse.recentSold !== null && pulse.minutesAgo !== null ? (
+            <div className={styles.liveUrgencyPanel} aria-live="polite">
+              <p className={styles.liveUrgencyHeadline}>
+                Últimos <strong>{pulse.recentSold}</strong> números vendidos há <strong>{pulse.minutesAgo}</strong> min
+              </p>
+              <p className={styles.liveUrgencySubline}>
+                Faltam <strong>{remainingNumbers.toLocaleString("pt-BR")}</strong> números para encerrar.
+              </p>
+            </div>
+          ) : (
+            <div className={styles.liveUrgencyPanel} aria-live="polite">
+              <p className={styles.liveUrgencyHeadline}>Ainda não há vendas confirmadas. Seja o primeiro a garantir números!</p>
+              <p className={styles.liveUrgencySubline}>
+                Faltam <strong>{remainingNumbers.toLocaleString("pt-BR")}</strong> números para encerrar.
+              </p>
+            </div>
+          )}
 
           <div className={styles.progressLines}>
             {rows.map((row) => (

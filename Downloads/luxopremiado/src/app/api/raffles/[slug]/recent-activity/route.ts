@@ -14,13 +14,16 @@ export async function GET(request: NextRequest, context: { params: Promise<{ slu
       return NextResponse.json({ error: "Rifa não encontrada" }, { status: 404 });
     }
 
-    const { data: orders } = await supabase
-      .from("orders")
-      .select("id, user_id, amount_cents, updated_at")
-      .eq("raffle_id", raffle.id)
-      .eq("status", "paid")
-      .order("updated_at", { ascending: false })
-      .limit(8);
+  const searchParams = new URL(request.url).searchParams;
+  const limit = Math.min(20, Math.max(1, Number(searchParams.get("limit") ?? 8)));
+
+  const { data: orders } = await supabase
+    .from("orders")
+    .select("id, user_id, amount_cents, updated_at")
+    .eq("raffle_id", raffle.id)
+    .eq("status", "paid")
+    .order("updated_at", { ascending: false })
+    .limit(limit);
 
     if (!orders?.length) {
       return NextResponse.json({ activities: [] });
