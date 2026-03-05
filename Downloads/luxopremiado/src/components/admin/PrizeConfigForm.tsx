@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { getSupabaseClient } from "@/lib/supabase/browser-client";
 
 const PRIZES = [
   { prizeOrder: 1, prizeLabel: "1º Prêmio Principal" },
@@ -252,15 +251,33 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (!file) return;
-                      const supabase = getSupabaseClient();
-                      const filePath = `prizes/${prize.prizeOrder}-${Date.now()}-${file.name}`.replace(/\\s+/g, "-");
-                      const upload = await supabase.storage.from("prize-images").upload(filePath, file, { upsert: true });
-                      if (upload.error) {
-                        setStatus("Erro ao enviar imagem: " + upload.error.message);
-                        return;
+                      try {
+                        const metaRes = await fetch("/api/admin/prize-upload", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ fileName: file.name, prizeOrder: prize.prizeOrder }),
+                        });
+                        if (!metaRes.ok) {
+                          const metaJson = await metaRes.json().catch(() => ({}));
+                          throw new Error(metaJson.error ?? "Erro ao preparar upload");
+                        }
+                        const metaJson = (await metaRes.json()) as { signedUrl: string; publicUrl: string };
+
+                        const uploadRes = await fetch(metaJson.signedUrl, {
+                          method: "PUT",
+                          headers: { "Content-Type": file.type || "application/octet-stream" },
+                          body: file,
+                        });
+                        if (!uploadRes.ok) {
+                          throw new Error("Falha ao enviar o arquivo (RLS ou Content-Type)");
+                        }
+
+                        handleChange(index, "imageUrl", metaJson.publicUrl);
+                        setStatus(null);
+                      } catch (err) {
+                        const message = err instanceof Error ? err.message : String(err);
+                        setStatus(`Erro ao enviar imagem: ${message}`);
                       }
-                      const { data: urlData } = supabase.storage.from("prize-images").getPublicUrl(filePath);
-                      handleChange(index, "imageUrl", urlData.publicUrl);
                     }}
                     style={{ display: "none" }}
                   />
