@@ -174,20 +174,91 @@ export async function getMyProfile(userId: string): Promise<DashboardProfile> {
   };
 }
 
-export async function getMySoldNumbers(userId: string): Promise<number[]> {
+export async function getMySoldNumbers(
+  userId: string,
+  raffleSlug?: string | null,
+): Promise<Array<{ number: number; prizeOrder: number | null; prizeLabel: string }>> {
   if (!hasSupabaseEnv()) {
-    return [10, 25, 30, 74, 108];
+    return [
+      { number: 10, prizeOrder: 1, prizeLabel: "1º Prêmio" },
+      { number: 25, prizeOrder: 1, prizeLabel: "1º Prêmio" },
+      { number: 30, prizeOrder: 2, prizeLabel: "2º Prêmio" },
+    ];
   }
 
   const supabase = await createSupabaseServerClient();
+  const effectiveSlug = raffleSlug ?? (await resolveAvailableRaffleSlug(null));
+
+  const { data: raffleRow } = await supabase
+    .from("raffles")
+    .select("id")
+    .eq("slug", effectiveSlug)
+    .maybeSingle();
+
+  const raffleId = raffleRow?.id as string | undefined;
+
+  const { data: prizeConfigs } = await supabase
+    .from("prize_configurations")
+    .select("prize_order, prize_label, total_numbers")
+    .eq("raffle_slug", effectiveSlug)
+    .order("prize_order", { ascending: true });
+
+  const ranges = (() => {
+    if (!prizeConfigs?.length) return [];
+    const totalPool = prizeConfigs.reduce(
+      (sum, p) => (typeof p.total_numbers === "number" ? sum + Number(p.total_numbers) : sum),
+      0,
+    );
+    let cursor = 1;
+    return prizeConfigs.map((p, index) => {
+      const size =
+        typeof p.total_numbers === "number" && p.total_numbers > 0
+          ? Number(p.total_numbers)
+          : Math.max(Math.floor(totalPool / prizeConfigs.length), 1);
+      const start = cursor;
+      const end = cursor + size - 1;
+      cursor = end + 1;
+      return { order: Number(p.prize_order ?? 0), label: p.prize_label as string, start, end };
+    });
+  })();
+
   const { data } = await supabase
     .from("raffle_numbers")
-    .select("number")
+    .select("number, prize_order, raffle_id")
     .eq("sold_to", userId)
+    .eq("status", "sold")
     .order("number", { ascending: true })
-    .limit(100);
+    .limit(500);
 
-  return data?.map((item) => Number(item.number ?? 0)) ?? [];
+  const filteredData = raffleId ? (data ?? []).filter((row) => row.raffle_id === raffleId) : data ?? [];
+
+  const results: Array<{ number: number; prizeOrder: number | null; prizeLabel: string }> = [];
+
+  for (const item of filteredData) {
+    const num = Number(item.number ?? 0);
+    const prizeOrderRaw = typeof item.prize_order === "number" ? Number(item.prize_order) : null;
+    let prizeOrder = prizeOrderRaw;
+    let prizeLabel = "Prêmio";
+
+    if (!prizeOrder && ranges.length) {
+      const range = ranges.find((r) => num >= r.start && num <= r.end);
+      if (range) {
+        prizeOrder = range.order;
+        prizeLabel = range.label ?? `Prêmio ${range.order}`;
+      }
+    } else if (prizeOrder) {
+      const match = prizeConfigs?.find((p) => p.prize_order === prizeOrder);
+      prizeLabel = (match?.prize_label as string) ?? `Prêmio ${prizeOrder}`;
+    }
+
+    results.push({
+      number: num,
+      prizeOrder,
+      prizeLabel,
+    });
+  }
+
+  return results;
 }
 
 export async function getMyAffiliate(userId: string): Promise<DashboardAffiliate | null> {
