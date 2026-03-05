@@ -19,6 +19,24 @@ interface LiveUrgencyPulse {
   viewersNow: number;
 }
 
+interface LivePrizeStat {
+  prizeOrder: number;
+  total: number;
+  sold: number;
+  reserved: number;
+  available: number;
+}
+
+interface LiveStatsPayload {
+  totals: {
+    sold: number;
+    reserved: number;
+    available: number;
+    totalNumbers: number;
+  };
+  prizes: LivePrizeStat[];
+}
+
 function clampNumber(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
@@ -56,6 +74,8 @@ function buildNextPulse(
 
 export function ProgressStats({ stats, totalNumbers, raffleSlug, prizeConfigs }: ProgressStatsProps) {
   const [pulse, setPulse] = useState<LiveUrgencyPulse>(() => buildInitialPulse(stats, totalNumbers));
+  const [livePrizes, setLivePrizes] = useState<LivePrizeStat[] | null>(null);
+  const [liveTotals, setLiveTotals] = useState<LiveStatsPayload["totals"] | null>(null);
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
@@ -77,17 +97,28 @@ export function ProgressStats({ stats, totalNumbers, raffleSlug, prizeConfigs }:
 
     return entries.map((entry) => {
       const total = Math.max(entry.totalNumbers ?? totalNumbers, 1);
-      const sold = typeof (entry as PrizeConfigEntry).stats?.sold === "number" ? (entry as PrizeConfigEntry).stats!.sold : stats.soldNumbers;
+      const liveRow = livePrizes?.find((p) => p.prizeOrder === entry.prizeOrder);
+      const sold =
+        typeof liveRow?.sold === "number"
+          ? liveRow.sold
+          : typeof (entry as PrizeConfigEntry).stats?.sold === "number"
+            ? (entry as PrizeConfigEntry).stats!.sold
+            : stats.soldNumbers;
       const reserved =
-        typeof (entry as PrizeConfigEntry).stats?.reserved === "number"
-          ? (entry as PrizeConfigEntry).stats!.reserved
-          : stats.reservedNumbers;
-      const available = Math.max(
-        0,
-        typeof (entry as PrizeConfigEntry).stats?.available === "number"
-          ? (entry as PrizeConfigEntry).stats!.available
-          : total - sold - reserved,
-      );
+        typeof liveRow?.reserved === "number"
+          ? liveRow.reserved
+          : typeof (entry as PrizeConfigEntry).stats?.reserved === "number"
+            ? (entry as PrizeConfigEntry).stats!.reserved
+            : stats.reservedNumbers;
+      const available =
+        typeof liveRow?.available === "number"
+          ? liveRow.available
+          : Math.max(
+              0,
+              typeof (entry as PrizeConfigEntry).stats?.available === "number"
+                ? (entry as PrizeConfigEntry).stats!.available
+                : total - sold - reserved,
+            );
       const soldPercent = Math.min(100, Math.max(0, (sold / total) * 100));
       const socialPressure = Math.min(100, Math.max(0, ((sold + reserved) / total) * 100));
       const remaining = Math.max(0, total - sold - reserved);
@@ -104,10 +135,37 @@ export function ProgressStats({ stats, totalNumbers, raffleSlug, prizeConfigs }:
         reserved,
       };
     });
-  }, [prizeConfigs, stats.reservedNumbers, stats.soldNumbers, totalNumbers]);
+  }, [livePrizes, prizeConfigs, stats.reservedNumbers, stats.soldNumbers, totalNumbers]);
 
   const remainingNumbers =
-    rows[0]?.remaining ?? Math.max(0, totalNumbers - stats.soldNumbers - stats.reservedNumbers);
+    rows[0]?.remaining ??
+    Math.max(
+      0,
+      (liveTotals?.totalNumbers ?? totalNumbers) - (liveTotals?.sold ?? stats.soldNumbers) - (liveTotals?.reserved ?? stats.reservedNumbers),
+    );
+
+  // Pull fresh stats every 20s
+  useEffect(() => {
+    let active = true;
+    const fetchStats = async () => {
+      try {
+        const res = await fetch(`/api/raffles/${encodeURIComponent(raffleSlug)}/stats`, { cache: "no-store" });
+        if (!res.ok) return;
+        const json = (await res.json()) as LiveStatsPayload;
+        if (!active) return;
+        setLivePrizes(json.prizes ?? null);
+        setLiveTotals(json.totals ?? null);
+      } catch {
+        // ignore
+      }
+    };
+    fetchStats();
+    const interval = window.setInterval(fetchStats, 20_000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, [raffleSlug]);
 
   return (
     <section className={styles.section} id="escassez">

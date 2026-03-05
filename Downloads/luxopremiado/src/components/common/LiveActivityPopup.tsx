@@ -21,90 +21,8 @@ interface ActivityItem {
   icon: string;
 }
 
-const templatePool: Record<Scope, Array<Omit<ActivityItem, "id" | "minutesAgo">>> = {
-  landing: [
-    {
-      title: "Números sendo escolhidos",
-      subtitle: "Pessoas avaliando a campanha agora",
-      tone: "blue",
-      icon: "🎟️",
-    },
-    {
-      title: "Pagamento recebido",
-      subtitle: "Checkout confirmado no PIX",
-      tone: "green",
-      icon: "💸",
-    },
-    {
-      title: "Usuário se cadastrou",
-      subtitle: "Conta criada para garantir números",
-      tone: "yellow",
-      icon: "👤",
-    },
-    {
-      title: "Nova mensagem",
-      subtitle: "Suporte respondeu pelo chat",
-      tone: "pink",
-      icon: "💬",
-    },
-    {
-      title: "Nova reserva",
-      subtitle: "Números adicionados ao carrinho",
-      tone: "purple",
-      icon: "✅",
-    },
-  ],
-  login: [
-    {
-      title: "Login concluído",
-      subtitle: "Acesso liberado para comprar",
-      tone: "blue",
-      icon: "🔐",
-    },
-    {
-      title: "Pagamento recebido",
-      subtitle: "Compra finalizada no PIX",
-      tone: "green",
-      icon: "💸",
-    },
-    {
-      title: "Conta criada",
-      subtitle: "Novo participante confirmado",
-      tone: "yellow",
-      icon: "👤",
-    },
-    {
-      title: "Números escolhidos",
-      subtitle: "Checkout rápido liberado",
-      tone: "purple",
-      icon: "🎯",
-    },
-    {
-      title: "Suporte ativo",
-      subtitle: "Equipe online para ajudar",
-      tone: "pink",
-      icon: "💬",
-    },
-  ],
-};
-
-function randomBetween(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function buildActivity(scope: Scope): ActivityItem {
-  const templateOptions = templatePool[scope];
-  const template = templateOptions[randomBetween(0, templateOptions.length - 1)];
-
-  return {
-    ...template,
-    minutesAgo: randomBetween(1, 18),
-    id: `${template.title}-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
-  };
-}
-
-function buildInitialFeed(scope: Scope): ActivityItem[] {
-  return [buildActivity(scope)];
+function buildInitialFeed(): ActivityItem[] {
+  return [];
 }
 
 export function LiveActivityPopup({ scope = "landing" }: LiveActivityPopupProps) {
@@ -113,22 +31,35 @@ export function LiveActivityPopup({ scope = "landing" }: LiveActivityPopupProps)
   const [items, setItems] = useState<ActivityItem[]>([]);
 
   // First paint after mount, and whenever scope changes
+  // Fetch real recent purchases periodically
   useEffect(() => {
-    setItems(buildInitialFeed(scope));
-  }, [scope]);
-
-  // Progressive reveal & steady rotation
-  useEffect(() => {
-    const showDelay = window.setTimeout(() => setIsVisible(true), 320);
-    const interval = window.setInterval(() => {
-      setItems((previous) => {
-        const next = [buildActivity(scope), ...previous];
-        return next.slice(0, 2);
-      });
-    }, 120_000); // a cada 2 minutos
-
+    let active = true;
+    const fetchActivity = async () => {
+      try {
+        const res = await fetch(`/api/raffles/luxo-premiado/recent-activity`, { cache: "no-store" });
+        if (!res.ok) return;
+        const json = (await res.json()) as {
+          activities?: Array<{ buyerName: string; quantity: number; updatedAt: string }>;
+        };
+        if (!active || !json.activities?.length) return;
+        const mapped = json.activities.slice(0, 2).map((a, index) => ({
+          id: `${a.updatedAt}-${index}`,
+          title: `${a.buyerName} comprou ${a.quantity} número${a.quantity > 1 ? "s" : ""}`,
+          subtitle: "Compra confirmada agora",
+          minutesAgo: Math.max(0, Math.round((Date.now() - Date.parse(a.updatedAt)) / 60000)),
+          tone: "green" as AccentTone,
+          icon: "🎟️",
+        }));
+        setItems(mapped);
+        setIsVisible(true);
+      } catch {
+        // ignore
+      }
+    };
+    fetchActivity();
+    const interval = window.setInterval(fetchActivity, 30_000);
     return () => {
-      window.clearTimeout(showDelay);
+      active = false;
       window.clearInterval(interval);
     };
   }, [scope]);
@@ -143,7 +74,7 @@ export function LiveActivityPopup({ scope = "landing" }: LiveActivityPopupProps)
     const timeout = window.setTimeout(() => {
       setIsVisible(false);
       setItems([]);
-    }, 2_200);
+    }, 3_000);
     return () => window.clearTimeout(timeout);
   }, [items]);
 
