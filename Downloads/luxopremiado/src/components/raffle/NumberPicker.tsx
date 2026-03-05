@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import styles from "@/components/raffle/sections.module.css";
 import { NumberGridLive } from "@/components/raffle/NumberGridLive";
-import { NumberTile } from "@/types/raffle";
+import { NumberTile, PrizeConfigEntry } from "@/types/raffle";
 
 interface ReservationState {
   orderId: string;
@@ -14,18 +14,8 @@ interface ReservationState {
   expiresAt: string | null;
 }
 
-interface PaymentState {
-  providerReference: string;
-  status: "pending" | "initiated";
-  pixQrCode?: string;
-  pixCopyPaste?: string;
-  checkoutUrl?: string;
-  expiresAt?: string;
-}
-
 interface StoredCheckoutState {
   reservation: ReservationState;
-  payment: PaymentState | null;
   orderStatus: string;
   savedAt: string;
 }
@@ -43,6 +33,7 @@ interface NumberPickerProps {
     soldNumbers: number;
   };
   recommendedPackQty?: number | null;
+  prizeConfigs?: PrizeConfigEntry[];
 }
 
 function formatBrl(cents: number): string {
@@ -83,18 +74,12 @@ function readStorage(key: string): StoredCheckoutState | null {
 
     return {
       reservation: parsed.reservation,
-      payment: parsed.payment ?? null,
       orderStatus: typeof parsed.orderStatus === "string" ? parsed.orderStatus : "pending",
       savedAt: typeof parsed.savedAt === "string" ? parsed.savedAt : new Date().toISOString(),
     };
   } catch {
     return null;
   }
-}
-
-function getRawString(raw: Record<string, unknown> | null | undefined, key: string): string | undefined {
-  const value = raw?.[key];
-  return typeof value === "string" && value.trim().length > 0 ? value : undefined;
 }
 
 export function NumberPicker({
@@ -106,18 +91,23 @@ export function NumberPicker({
   maxNumbersPerUser,
   initialStats,
   recommendedPackQty = null,
+  prizeConfigs,
 }: NumberPickerProps) {
   const [reservation, setReservation] = useState<ReservationState | null>(null);
-  const [payment, setPayment] = useState<PaymentState | null>(null);
-  const [checkoutTurnstileToken, setCheckoutTurnstileToken] = useState<string | null>(null);
-  const [paymentProvider, setPaymentProvider] = useState<"stripe" | "mercadopago" | "asaas">("mercadopago");
-  const [paymentMethod, setPaymentMethod] = useState<"pix" | "card">("pix");
-  const [paymentLoading, setPaymentLoading] = useState(false);
   const [statusLoading, setStatusLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const [orderStatus, setOrderStatus] = useState<string>("-");
   const [countdown, setCountdown] = useState("--:--");
-  const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
+  const prizeOptions = useMemo(
+    () =>
+      prizeConfigs && prizeConfigs.length
+        ? [...prizeConfigs].sort((a, b) => a.prizeOrder - b.prizeOrder)
+        : null,
+    [prizeConfigs],
+  );
+  const [selectedPrizeOrder, setSelectedPrizeOrder] = useState<number | null>(
+    prizeOptions?.[0]?.prizeOrder ?? null,
+  );
   const checkoutStorageKey = useMemo(() => `lp_active_checkout:${raffleSlug}`, [raffleSlug]);
 
   useEffect(() => {
@@ -136,11 +126,26 @@ export function NumberPicker({
   }, [reservation?.expiresAt]);
 
   const selectedCount = reservation?.reservedNumbers.length ?? 0;
+  const filteredNumbers = useMemo(() => {
+    if (!selectedPrizeOrder) return numbers;
+    return numbers.filter(
+      (n) => n.prizeOrder === selectedPrizeOrder || (typeof n.prizeOrder === "undefined" && selectedPrizeOrder === 1),
+    );
+  }, [numbers, selectedPrizeOrder]);
 
-  const canStartPayment = useMemo(
-    () => Boolean(reservation?.orderId) && !paymentLoading,
-    [paymentLoading, reservation?.orderId],
-  );
+  const selectedStats = useMemo(() => {
+    if (prizeOptions && selectedPrizeOrder) {
+      const match = prizeOptions.find((p) => p.prizeOrder === selectedPrizeOrder);
+      if (match?.stats) {
+        return {
+          availableNumbers: match.stats.available,
+          reservedNumbers: match.stats.reserved,
+          soldNumbers: match.stats.sold,
+        };
+      }
+    }
+    return initialStats;
+  }, [initialStats, prizeOptions, selectedPrizeOrder]);
 
   const isPaid = orderStatus === "paid";
   const isExpired = orderStatus === "expired" || (countdown === "00:00" && !isPaid);
@@ -155,7 +160,6 @@ export function NumberPicker({
 
     if (stored) {
       setReservation(stored.reservation);
-      setPayment(stored.payment);
       setOrderStatus(stored.orderStatus);
       setStatusMessage("Checkout restaurado. Continue o pagamento.");
     }
@@ -189,7 +193,6 @@ export function NumberPicker({
 
         setReservation(data.checkout.reservation);
         setOrderStatus(data.checkout.orderStatus);
-        setPayment(data.checkout.latestPayment ?? null);
 
         if (!stored || stored.reservation.orderId !== data.checkout.reservation.orderId) {
           setStatusMessage("Checkout ativo encontrado no servidor. Continue o pagamento.");
@@ -218,78 +221,16 @@ export function NumberPicker({
 
     const payload: StoredCheckoutState = {
       reservation,
-      payment,
       orderStatus,
       savedAt: new Date().toISOString(),
     };
     window.localStorage.setItem(checkoutStorageKey, JSON.stringify(payload));
-  }, [checkoutStorageKey, isAuthenticated, isExpired, isPaid, orderStatus, payment, reservation]);
+  }, [checkoutStorageKey, isAuthenticated, isExpired, isPaid, orderStatus, reservation]);
 
   function handleReservationCreated(next: ReservationState) {
     setReservation(next);
-    setPayment(null);
     setOrderStatus("pending");
     setStatusMessage("Reserva criada. Finalize o pagamento antes do prazo.");
-  }
-
-  async function startPayment() {
-    if (!reservation) {
-      setStatusMessage("Reserve números antes de iniciar pagamento.");
-      return;
-    }
-
-    setPaymentLoading(true);
-    setStatusMessage("");
-
-    try {
-      if (turnstileEnabled && !checkoutTurnstileToken) {
-        setStatusMessage("Complete a validação de segurança para iniciar o pagamento.");
-        return;
-      }
-
-      const response = await fetch("/api/payments/create", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
-          orderId: reservation.orderId,
-          provider: paymentProvider,
-          method: paymentMethod,
-          botTrap: "",
-          turnstileToken: checkoutTurnstileToken ?? undefined,
-        }),
-      });
-
-      const data = (await response.json()) as {
-        error?: string;
-        payment?: {
-          providerReference: string;
-          status: "pending" | "initiated";
-          pixQrCode?: string;
-          pixCopyPaste?: string;
-          checkoutUrl?: string;
-          expiresAt?: string;
-        };
-      };
-
-      if (!response.ok || !data.payment) {
-        setStatusMessage(data.error ?? "Não foi possível criar pagamento.");
-        return;
-      }
-
-      setPayment(data.payment);
-      setStatusMessage("Pagamento iniciado. Acompanhe o status abaixo.");
-      setOrderStatus("pending");
-
-      if (data.payment.checkoutUrl) {
-        window.open(data.payment.checkoutUrl, "_blank", "noopener,noreferrer");
-      }
-    } catch {
-      setStatusMessage("Falha de conexão ao iniciar pagamento.");
-    } finally {
-      setPaymentLoading(false);
-    }
   }
 
   const refreshOrderStatus = useCallback(async () => {
@@ -336,19 +277,6 @@ export function NumberPicker({
         );
       }
 
-      if (data.latestPayment?.provider_reference) {
-        setPayment({
-          providerReference: data.latestPayment.provider_reference,
-          status: data.latestPayment.status === "initiated" ? "initiated" : "pending",
-          pixQrCode: data.latestPayment.pix_qr_code ?? undefined,
-          pixCopyPaste: data.latestPayment.pix_copy_paste ?? undefined,
-          checkoutUrl:
-            getRawString(data.latestPayment.raw, "checkoutUrl") ??
-            getRawString(data.latestPayment.raw, "checkout_url"),
-          expiresAt: getRawString(data.latestPayment.raw, "expiresAt"),
-        });
-      }
-
       if (data.order.status === "paid") {
         setStatusMessage("Pagamento confirmado. Seus números estão garantidos.");
       } else if (data.order.status === "expired") {
@@ -384,21 +312,38 @@ export function NumberPicker({
           <p className={styles.sectionSubtitle}>
             Seleção manual ou pacotes aleatórios com reserva temporária automática para fechar no PIX.
           </p>
+          {prizeOptions && (
+            <div className={styles.prizeSelectorRow}>
+              <label className={styles.prizeSelectorLabel}>
+                Escolha o prêmio para concorrer
+                <select
+                  className={styles.prizeSelector}
+                  value={selectedPrizeOrder ?? ""}
+                  onChange={(e) => setSelectedPrizeOrder(Number(e.target.value) || null)}
+                >
+                  {prizeOptions.map((p) => (
+                    <option key={p.prizeOrder} value={p.prizeOrder}>
+                      {p.prizeLabel}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          )}
         </header>
 
         <div className={styles.numberPickerWrap}>
           <div>
             <NumberGridLive
-              initialNumbers={numbers}
+              initialNumbers={filteredNumbers}
               initialGlobalStats={{
-                available: initialStats.availableNumbers,
-                reserved: initialStats.reservedNumbers,
-                sold: initialStats.soldNumbers,
+                available: selectedStats.availableNumbers,
+                reserved: selectedStats.reservedNumbers,
+                sold: selectedStats.soldNumbers,
               }}
               isAuthenticated={isAuthenticated}
               maxNumbersPerUser={maxNumbersPerUser}
               onReservationCreated={handleReservationCreated}
-              onTurnstileTokenChange={setCheckoutTurnstileToken}
               raffleId={raffleId}
               raffleSlug={raffleSlug}
               recommendedPackQty={recommendedPackQty}
@@ -436,34 +381,9 @@ export function NumberPicker({
             </ul>
 
             <div className={styles.checkoutControls}>
-              <label className={styles.checkoutLabel}>
-                Provider
-                <select
-                  className={styles.checkoutSelect}
-                  onChange={(event) => setPaymentProvider(event.target.value as "stripe" | "mercadopago" | "asaas")}
-                  value={paymentProvider}
-                >
-                  <option value="mercadopago">Mercado Pago</option>
-                  <option value="stripe">Stripe</option>
-                  <option value="asaas">Asaas</option>
-                </select>
-              </label>
-
-              <label className={styles.checkoutLabel}>
-                Método
-                <select
-                  className={styles.checkoutSelect}
-                  onChange={(event) => setPaymentMethod(event.target.value as "pix" | "card")}
-                  value={paymentMethod}
-                >
-                  <option value="pix">PIX</option>
-                  <option value="card">Cartão</option>
-                </select>
-              </label>
-
-              <button className={styles.actionButton} disabled={!canStartPayment} onClick={startPayment} type="button">
-                {paymentLoading ? "Iniciando..." : "Iniciar pagamento"}
-              </button>
+              <p className={styles.checkoutWarning}>
+                Pagamento temporariamente indisponível nesta etapa. Reserve seus números e acompanhe o status do pedido.
+              </p>
 
               <button
                 className={styles.actionButtonGhost}
@@ -480,19 +400,6 @@ export function NumberPicker({
               <p className={styles.checkoutWarning}>
                 Reserva expirada. Volte para a grade e faça uma nova reserva para continuar.
               </p>
-            ) : null}
-
-            {payment?.pixCopyPaste ? (
-              <div className={styles.pixBox}>
-                <strong>PIX Copia e Cola</strong>
-                <p>{payment.pixCopyPaste}</p>
-              </div>
-            ) : null}
-
-            {payment?.checkoutUrl ? (
-              <a className={styles.heroCta} href={payment.checkoutUrl} rel="noreferrer" target="_blank">
-                Abrir checkout do provedor
-              </a>
             ) : null}
 
             {statusMessage ? <p className={styles.liveMeta}>{statusMessage}</p> : null}

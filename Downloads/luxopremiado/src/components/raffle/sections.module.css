@@ -287,6 +287,28 @@
   margin-bottom: 2rem;
 }
 
+.prizeSelectorRow {
+  margin-top: 0.35rem;
+}
+
+.prizeSelectorLabel {
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.prizeSelector {
+  background: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 0.75rem;
+  color: #f8fafc;
+  font-weight: 600;
+  padding: 0.55rem 0.8rem;
+  max-width: 260px;
+}
+
 .sectionTitle {
   color: #f8fafc;
   font-size: clamp(1.5rem, 3vw, 2.3rem);

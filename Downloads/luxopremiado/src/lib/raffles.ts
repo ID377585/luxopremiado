@@ -246,7 +246,7 @@ export async function getRaffleLandingData(
             .limit(3),
           dataClient
             .from("v_raffle_numbers_public")
-            .select("number, status")
+            .select("number, status, prize_order")
             .eq("raffle_id", raffle.id)
             .order("number", { ascending: true })
             .limit(200),
@@ -460,10 +460,20 @@ export async function getRaffleLandingData(
       },
       numberTiles:
         (Array.isArray((numbersResult as any)?.data)
-          ? ((numbersResult as any).data as Array<Record<string, unknown>>).map((item) => ({
-              number: Number(item.number),
-              status: normalizeNumberStatus(typeof item.status === "string" ? item.status : null),
-            }))
+          ? ((numbersResult as any).data as Array<Record<string, unknown>>).map((item) => {
+              const num = Number(item.number);
+              const prizeOrderExplicit =
+                typeof item.prize_order === "number" && item.prize_order > 0 ? Number(item.prize_order) : null;
+              const derivedOrder =
+                prizeOrderExplicit ??
+                prizeRanges.find((range) => num >= range.start && num <= range.end)?.order ??
+                null;
+              return {
+                number: num,
+                status: normalizeNumberStatus(typeof item.status === "string" ? item.status : null),
+                prizeOrder: derivedOrder,
+              };
+            })
           : null) ??
         fallbackRaffleData.numberTiles,
       buyerRanking:

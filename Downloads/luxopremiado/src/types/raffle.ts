@@ -22,6 +22,11 @@ export interface PrizeConfigEntry {
   totalNumbers?: number;
   drawDate?: string | null;
   luckyNumber?: number | null;
+  stats?: {
+    available: number;
+    reserved: number;
+    sold: number;
+  };
 }
 
 export interface PrizeData {
@@ -40,6 +45,7 @@ export interface HowItWorksStep {
 export interface NumberTile {
   number: number;
   status: NumberStatus;
+  prizeOrder?: number | null;
 }
 
 export interface CheckoutMethod {

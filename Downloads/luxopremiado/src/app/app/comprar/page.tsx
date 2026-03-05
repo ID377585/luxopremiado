@@ -37,6 +37,7 @@ export default async function BuyNumbersPage({ searchParams }: BuyNumbersPagePro
         isAuthenticated={Boolean(user)}
         maxNumbersPerUser={raffle.maxNumbersPerUser}
         numbers={raffle.numberTiles}
+        prizeConfigs={raffle.prize.configs}
         raffleId={raffle.raffleId}
         raffleSlug={raffle.slug}
         recommendedPackQty={recommendedPackQty}
