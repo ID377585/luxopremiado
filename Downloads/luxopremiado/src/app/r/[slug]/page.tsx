@@ -61,14 +61,14 @@ export default async function RafflePage({ params }: RafflePageProps) {
       <TopMenu />
       <Hero data={raffle.hero} prizeTitle={raffle.prize.title} />
       <LuckyNumberBanner raffleSlug={raffle.slug} stats={raffle.stats} />
+      <Packages packages={raffle.packages} raffleSlug={raffle.slug} />
+      <Prize data={raffle.prize} />
       <ProgressStats
         raffleSlug={raffle.slug}
         stats={raffle.stats}
         totalNumbers={raffle.totalNumbers}
         prizeConfigs={raffle.prize.configs}
       />
-      <Packages packages={raffle.packages} raffleSlug={raffle.slug} />
-      <Prize data={raffle.prize} />
       <HowItWorks steps={raffle.howItWorks} />
       <BuyerRanking entries={raffle.buyerRanking} />
       <SocialProof entries={raffle.socialProof} winnerWall={raffle.winnerWall} />
