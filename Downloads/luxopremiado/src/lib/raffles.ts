@@ -334,12 +334,16 @@ export async function getRaffleLandingData(
       )
       .filter((url: string | null): url is string => typeof url === "string" && Boolean(url));
 
+    const raffleImagesFromDb =
+      imagesResult.data?.length && imagesResult.data.every((item) => Boolean(item.url))
+        ? (imagesResult.data.map((item) => item.url) as string[])
+        : null;
+
+    // Use config images only when there's at least one per prize; otherwise keep the gallery from DB or fallback
     const images =
-      configImages.length > 0
+      resolvedPrizeConfigs.length > 0 && configImages.length >= resolvedPrizeConfigs.length
         ? configImages
-        : imagesResult.data?.length && imagesResult.data.every((item) => Boolean(item.url))
-          ? (imagesResult.data.map((item) => item.url) as string[])
-          : fallbackRaffleData.prize.images;
+        : raffleImagesFromDb ?? fallbackRaffleData.prize.images;
 
     const transparencyData = (transparencyResult as any)?.data as Record<string, unknown> | null;
 
