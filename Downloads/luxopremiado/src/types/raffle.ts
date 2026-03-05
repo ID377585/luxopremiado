@@ -19,6 +19,9 @@ export interface PrizeConfigEntry {
   prizeLabel: string;
   prizeValueCents: number;
   imageUrl?: string | null;
+  totalNumbers?: number;
+  drawDate?: string | null;
+  luckyNumber?: number | null;
 }
 
 export interface PrizeData {

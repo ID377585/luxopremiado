@@ -1,5 +1,4 @@
 "use client";
-"use client";
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -153,8 +152,8 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
         <div
           key={prize.prizeOrder}
           style={{
-            background: "linear-gradient(135deg, rgba(15,23,42,0.9), rgba(17,24,39,0.85))",
-            border: "1px solid rgba(234,88,12,0.35)",
+            background: "linear-gradient(135deg, rgba(15,23,42,0.94), rgba(17,24,39,0.92))",
+            border: "1px solid rgba(234,88,12,0.4)",
             borderRadius: "14px",
             padding: "1rem",
             boxShadow: "0 10px 28px rgba(15,23,42,0.35)",
@@ -164,7 +163,7 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
             <h3 style={{ color: "#f8fafc", margin: 0 }}>{prize.prizeLabel}</h3>
             <span style={{ color: "#cbd5e1", fontSize: ".9rem" }}>Ordem {prize.prizeOrder}</span>
           </div>
-          <div style={{ display: "grid", gap: ".65rem", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
+          <div style={{ display: "grid", gap: ".9rem", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))" }}>
             <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
               Título do prêmio
               <input
@@ -174,7 +173,7 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
               />
             </label>
             <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
-              Valor (R$)
+              Valor do prêmio (R$)
               <input
                 inputMode="numeric"
                 value={(prize.prizeValueCents / 100).toFixed(2)}
@@ -231,24 +230,41 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
                     color: "#f8fafc",
                   }}
                 />
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    const supabase = getSupabaseClient();
-                    const filePath = `prizes/${prize.prizeOrder}-${Date.now()}-${file.name}`;
-                    const upload = await supabase.storage.from("prize-images").upload(filePath, file, { upsert: true });
-                    if (upload.error) {
-                      setStatus("Erro ao enviar imagem: " + upload.error.message);
-                      return;
-                    }
-                    const { data: urlData } = supabase.storage.from("prize-images").getPublicUrl(filePath);
-                    handleChange(index, "imageUrl", urlData.publicUrl);
+                <label
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: ".35rem",
+                    padding: ".55rem .9rem",
+                    borderRadius: "10px",
+                    border: "1px dashed #ea580c",
+                    background: "rgba(234,88,12,0.08)",
+                    color: "#f8fafc",
+                    cursor: "pointer",
+                    fontWeight: 600,
+                    whiteSpace: "nowrap",
                   }}
-                  style={{ color: "#e2e8f0" }}
-                />
+                >
+                  Upload imagem
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const supabase = getSupabaseClient();
+                      const filePath = `prizes/${prize.prizeOrder}-${Date.now()}-${file.name}`.replace(/\\s+/g, "-");
+                      const upload = await supabase.storage.from("prize-images").upload(filePath, file, { upsert: true });
+                      if (upload.error) {
+                        setStatus("Erro ao enviar imagem: " + upload.error.message);
+                        return;
+                      }
+                      const { data: urlData } = supabase.storage.from("prize-images").getPublicUrl(filePath);
+                      handleChange(index, "imageUrl", urlData.publicUrl);
+                    }}
+                    style={{ display: "none" }}
+                  />
+                </label>
               </div>
               {prize.imageUrl && (
                 <div style={{ position: "relative", marginTop: ".4rem", height: 120, maxWidth: 200 }}>

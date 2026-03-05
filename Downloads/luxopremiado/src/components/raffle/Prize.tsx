@@ -23,12 +23,34 @@ export function Prize({ data }: PrizeProps) {
 
   const detailTitle = active?.prizeLabel ?? data.title;
   const detailImage = active?.imageUrl ?? data.images[0];
-  const valueFeature =
-    typeof active?.prizeValueCents === "number"
-      ? { label: "Valor do prêmio", value: formatBrlFromCents(active.prizeValueCents) }
-      : null;
+  const features = useMemo(() => {
+    if (!active) return data.features;
 
-  const features = valueFeature ? [valueFeature, ...data.features] : data.features;
+    const items: { label: string; value: string }[] = [];
+
+    if (typeof active.prizeValueCents === "number" && active.prizeValueCents >= 0) {
+      items.push({ label: "Valor do prêmio", value: formatBrlFromCents(active.prizeValueCents) });
+    }
+
+    if (typeof active.totalNumbers === "number" && active.totalNumbers > 0) {
+      items.push({ label: "Total de números", value: active.totalNumbers.toLocaleString("pt-BR") });
+    }
+
+    if (typeof active.drawDate === "string" && active.drawDate.trim().length > 0) {
+      const safeDate = new Date(active.drawDate);
+      const formatted =
+        Number.isNaN(safeDate.getTime()) === false
+          ? safeDate.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })
+          : active.drawDate;
+      items.push({ label: "Data do sorteio", value: formatted });
+    }
+
+    if (typeof active.luckyNumber === "number" && active.luckyNumber > 0) {
+      items.push({ label: "Número da sorte", value: `#${active.luckyNumber}` });
+    }
+
+    return items.length ? [...items, ...data.features] : data.features;
+  }, [active, data.features]);
 
   return (
     <section className={styles.section} id="premio">

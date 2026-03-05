@@ -239,7 +239,7 @@ export async function getRaffleLandingData(
             .order("sort_order", { ascending: true }),
           dataClient
             .from("prize_configurations")
-            .select("prize_order, prize_label, prize_value_cents, image_url")
+            .select("prize_order, prize_label, prize_value_cents, image_url, total_numbers, draw_date, lucky_number")
             .eq("raffle_slug", resolvedSlug)
             .order("prize_order", { ascending: true })
             .limit(3),
@@ -309,7 +309,26 @@ export async function getRaffleLandingData(
     const winnerRows = socialRows.filter((item) => item.type === "winner");
 
     const prizeConfigs = Array.isArray((prizeConfigResult as any)?.data) ? (prizeConfigResult as any).data : [];
-    const configImages = prizeConfigs
+    let resolvedPrizeConfigs = prizeConfigs as Array<Record<string, unknown>>;
+
+    if (resolvedPrizeConfigs.length === 0) {
+      try {
+        const serviceClient = createSupabaseServiceClient();
+        const { data: servicePrizeConfigs } = await serviceClient
+          .from("prize_configurations")
+          .select("prize_order, prize_label, prize_value_cents, image_url, total_numbers, draw_date, lucky_number")
+          .eq("raffle_slug", resolvedSlug)
+          .order("prize_order", { ascending: true })
+          .limit(3);
+
+        if (servicePrizeConfigs?.length) {
+          resolvedPrizeConfigs = servicePrizeConfigs as Array<Record<string, unknown>>;
+        }
+      } catch {
+        // noop: fallback to existing result
+      }
+    }
+    const configImages = resolvedPrizeConfigs
       .map((c: Record<string, unknown>) =>
         typeof c.image_url === "string" && c.image_url.trim().length > 0 ? c.image_url.trim() : null,
       )
@@ -321,21 +340,6 @@ export async function getRaffleLandingData(
         : imagesResult.data?.length && imagesResult.data.every((item) => Boolean(item.url))
           ? (imagesResult.data.map((item) => item.url) as string[])
           : fallbackRaffleData.prize.images;
-
-    const valueFeatures =
-      prizeConfigs.length > 0
-        ? prizeConfigs
-            .filter((c: Record<string, unknown>) => typeof c.prize_value_cents === "number" && c.prize_value_cents >= 0)
-            .map((c: Record<string, unknown>) => ({
-              label: (c.prize_label as string) ?? `Prêmio ${c.prize_order}`,
-              value: formatBrlFromCents(Number(c.prize_value_cents)),
-            }))
-        : [];
-
-    const mergedFeatures =
-      valueFeatures.length > 0
-        ? [...valueFeatures, ...fallbackRaffleData.prize.features].slice(0, 6)
-        : fallbackRaffleData.prize.features;
 
     const transparencyData = (transparencyResult as any)?.data as Record<string, unknown> | null;
 
@@ -359,8 +363,8 @@ export async function getRaffleLandingData(
         description: raffle.description ?? fallbackRaffleData.prize.description,
         images,
         configs:
-          prizeConfigs.length > 0
-            ? prizeConfigs
+          resolvedPrizeConfigs.length > 0
+            ? resolvedPrizeConfigs
                 .filter((c: Record<string, unknown>) => typeof c.prize_order === "number")
                 .map((c: Record<string, unknown>) => ({
                   prizeOrder: Number(c.prize_order ?? 0),
@@ -369,11 +373,14 @@ export async function getRaffleLandingData(
                       ? (c.prize_label as string)
                       : `Prêmio ${c.prize_order}`,
                   prizeValueCents: typeof c.prize_value_cents === "number" ? Number(c.prize_value_cents) : 0,
+                  totalNumbers: typeof c.total_numbers === "number" ? Number(c.total_numbers) : undefined,
+                  drawDate: typeof c.draw_date === "string" ? (c.draw_date as string) : undefined,
+                  luckyNumber: typeof c.lucky_number === "number" ? Number(c.lucky_number) : undefined,
                   imageUrl:
                     typeof c.image_url === "string" && c.image_url.trim().length > 0 ? (c.image_url as string) : undefined,
                 }))
             : undefined,
-        features: mergedFeatures,
+        features: fallbackRaffleData.prize.features,
       },
       numberTiles:
         (Array.isArray((numbersResult as any)?.data)
