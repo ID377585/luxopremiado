@@ -71,13 +71,26 @@ export function ProgressStats({ stats, totalNumbers, raffleSlug, prizeConfigs }:
     const entries =
       prizeConfigs?.length && prizeConfigs.length > 0
         ? [...prizeConfigs].sort((a, b) => a.prizeOrder - b.prizeOrder)
-        : [{ prizeOrder: 1, prizeLabel: "Prêmios", totalNumbers }];
+        : ([{ prizeOrder: 1, prizeLabel: "Prêmios", totalNumbers }] as Array<
+            PrizeConfigEntry & { totalNumbers: number }
+          >);
 
     return entries.map((entry) => {
       const total = Math.max(entry.totalNumbers ?? totalNumbers, 1);
-      const soldPercent = Math.min(100, Math.max(0, (stats.soldNumbers / total) * 100));
-      const socialPressure = Math.min(100, Math.max(0, ((stats.soldNumbers + stats.reservedNumbers) / total) * 100));
-      const remaining = Math.max(0, total - stats.soldNumbers - stats.reservedNumbers);
+      const sold = typeof (entry as PrizeConfigEntry).stats?.sold === "number" ? (entry as PrizeConfigEntry).stats!.sold : stats.soldNumbers;
+      const reserved =
+        typeof (entry as PrizeConfigEntry).stats?.reserved === "number"
+          ? (entry as PrizeConfigEntry).stats!.reserved
+          : stats.reservedNumbers;
+      const available = Math.max(
+        0,
+        typeof (entry as PrizeConfigEntry).stats?.available === "number"
+          ? (entry as PrizeConfigEntry).stats!.available
+          : total - sold - reserved,
+      );
+      const soldPercent = Math.min(100, Math.max(0, (sold / total) * 100));
+      const socialPressure = Math.min(100, Math.max(0, ((sold + reserved) / total) * 100));
+      const remaining = Math.max(0, total - sold - reserved);
 
       return {
         key: `${entry.prizeOrder}-${entry.prizeLabel}`,
@@ -86,6 +99,9 @@ export function ProgressStats({ stats, totalNumbers, raffleSlug, prizeConfigs }:
         socialPressure,
         remaining,
         total,
+        available,
+        sold,
+        reserved,
       };
     });
   }, [prizeConfigs, stats.reservedNumbers, stats.soldNumbers, totalNumbers]);
@@ -129,6 +145,24 @@ export function ProgressStats({ stats, totalNumbers, raffleSlug, prizeConfigs }:
                 <p className={styles.progressPercent}>
                   Faltam {row.remaining.toLocaleString("pt-BR")} números para encerrar (total {row.total.toLocaleString("pt-BR")}).
                 </p>
+                <ul className={styles.progressStatsGrid}>
+                  <li className={styles.statCard}>
+                    <p className={styles.statLabel}>Disponíveis</p>
+                    <p className={styles.statValue}>{row.available.toLocaleString("pt-BR")}</p>
+                  </li>
+                  <li className={styles.statCard}>
+                    <p className={styles.statLabel}>Reservados</p>
+                    <p className={styles.statValue}>{row.reserved.toLocaleString("pt-BR")}</p>
+                  </li>
+                  <li className={styles.statCard}>
+                    <p className={styles.statLabel}>Vendidos</p>
+                    <p className={styles.statValue}>{row.sold.toLocaleString("pt-BR")}</p>
+                  </li>
+                  <li className={styles.statCard}>
+                    <p className={styles.statLabel}>Média por usuário</p>
+                    <p className={styles.statValue}>{stats.averagePerUser.toLocaleString("pt-BR")}</p>
+                  </li>
+                </ul>
               </div>
             ))}
           </div>

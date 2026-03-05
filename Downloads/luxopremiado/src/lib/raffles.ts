@@ -229,6 +229,7 @@ export async function getRaffleLandingData(
       soldCountResult,
       reservedCountResult,
       prizeConfigResult,
+      prizeStatusResult,
     ] =
       await withTimeout(
         Promise.all([
@@ -279,6 +280,7 @@ export async function getRaffleLandingData(
                 .select("id", { count: "exact", head: true })
                 .eq("raffle_id", raffle.id)
                 .eq("status", "reserved"),
+          dataClient.from("raffle_numbers").select("prize_order, status").eq("raffle_id", raffle.id),
         ]),
         timeoutMs,
         "raffles.aggregate_queries",
@@ -310,6 +312,23 @@ export async function getRaffleLandingData(
 
     const prizeConfigs = Array.isArray((prizeConfigResult as any)?.data) ? (prizeConfigResult as any).data : [];
     let resolvedPrizeConfigs = prizeConfigs as Array<Record<string, unknown>>;
+
+    const soldByPrizeMap = new Map<number, number>();
+    const reservedByPrizeMap = new Map<number, number>();
+
+    const statusRows = Array.isArray((prizeStatusResult as any)?.data)
+      ? ((prizeStatusResult as any).data as Array<any>)
+      : [];
+    for (const row of statusRows) {
+      const order = Number(row?.prize_order ?? 0);
+      const status = String(row?.status ?? "");
+      if (!order || !status) continue;
+      if (status === "sold") {
+        soldByPrizeMap.set(order, (soldByPrizeMap.get(order) ?? 0) + 1);
+      } else if (status === "reserved") {
+        reservedByPrizeMap.set(order, (reservedByPrizeMap.get(order) ?? 0) + 1);
+      }
+    }
 
     if (resolvedPrizeConfigs.length === 0) {
       try {
@@ -380,6 +399,15 @@ export async function getRaffleLandingData(
                   totalNumbers: typeof c.total_numbers === "number" ? Number(c.total_numbers) : undefined,
                   drawDate: typeof c.draw_date === "string" ? (c.draw_date as string) : undefined,
                   luckyNumber: typeof c.lucky_number === "number" ? Number(c.lucky_number) : undefined,
+                  stats: (() => {
+                    const order = Number(c.prize_order ?? 0);
+                    if (!order) return undefined;
+                    const sold = soldByPrizeMap.get(order) ?? 0;
+                    const reserved = reservedByPrizeMap.get(order) ?? 0;
+                    const total = typeof c.total_numbers === "number" ? Number(c.total_numbers) : totalNumbers;
+                    const available = Math.max(0, total - sold - reserved);
+                    return { sold, reserved, available };
+                  })(),
                   imageUrl:
                     typeof c.image_url === "string" && c.image_url.trim().length > 0 ? (c.image_url as string) : undefined,
                 }))
