@@ -280,7 +280,7 @@ export async function getRaffleLandingData(
                 .select("id", { count: "exact", head: true })
                 .eq("raffle_id", raffle.id)
                 .eq("status", "reserved"),
-          dataClient.from("raffle_numbers").select("prize_order, status").eq("raffle_id", raffle.id),
+          dataClient.from("raffle_numbers").select("number, status").eq("raffle_id", raffle.id),
         ]),
         timeoutMs,
         "raffles.aggregate_queries",
@@ -316,18 +316,62 @@ export async function getRaffleLandingData(
     const soldByPrizeMap = new Map<number, number>();
     const reservedByPrizeMap = new Map<number, number>();
 
-    const statusRows = Array.isArray((prizeStatusResult as any)?.data)
-      ? ((prizeStatusResult as any).data as Array<any>)
-      : [];
-    for (const row of statusRows) {
-      const order = Number(row?.prize_order ?? 0);
-      const status = String(row?.status ?? "");
-      if (!order || !status) continue;
-      if (status === "sold") {
-        soldByPrizeMap.set(order, (soldByPrizeMap.get(order) ?? 0) + 1);
-      } else if (status === "reserved") {
-        reservedByPrizeMap.set(order, (reservedByPrizeMap.get(order) ?? 0) + 1);
-      }
+    const prizeRanges = (() => {
+      if (!resolvedPrizeConfigs.length) return [];
+      const ranges: Array<{ order: number; start: number; end: number }> = [];
+      let cursor = 1;
+      const totalPool = Math.max(totalNumbers, 1);
+      const totalDefined = resolvedPrizeConfigs.reduce(
+        (sum, p) => (typeof p.total_numbers === "number" ? sum + Number(p.total_numbers) : sum),
+        0,
+      );
+      const fallbackRemaining = Math.max(totalPool - totalDefined, 0);
+
+      resolvedPrizeConfigs
+        .slice()
+        .sort((a, b) => Number(a.prize_order ?? 0) - Number(b.prize_order ?? 0))
+        .forEach((p, index) => {
+          const order = Number(p.prize_order ?? 0);
+          const size =
+            typeof p.total_numbers === "number" && p.total_numbers > 0
+              ? Number(p.total_numbers)
+              : index === resolvedPrizeConfigs.length - 1
+                ? Math.max(fallbackRemaining, totalPool - cursor + 1)
+                : Math.max(Math.floor(totalPool / resolvedPrizeConfigs.length), 1);
+          const start = cursor;
+          const end = Math.min(cursor + size - 1, totalPool);
+          ranges.push({ order, start, end });
+          cursor = end + 1;
+        });
+      return ranges;
+    })();
+
+    if (prizeRanges.length) {
+      await Promise.all(
+        prizeRanges.map(async (range) => {
+          const [soldQuery, reservedQuery] = await Promise.all([
+            dataClient
+              .from("raffle_numbers")
+              .select("id", { count: "exact", head: true })
+              .eq("raffle_id", raffle.id)
+              .eq("status", "sold")
+              .gte("number", range.start)
+              .lte("number", range.end),
+            dataClient
+              .from("raffle_numbers")
+              .select("id", { count: "exact", head: true })
+              .eq("raffle_id", raffle.id)
+              .eq("status", "reserved")
+              .gte("number", range.start)
+              .lte("number", range.end),
+          ]);
+
+          const sold = Number(soldQuery.count ?? 0);
+          const reserved = Number(reservedQuery.count ?? 0);
+          soldByPrizeMap.set(range.order, sold);
+          reservedByPrizeMap.set(range.order, reserved);
+        }),
+      );
     }
 
     if (resolvedPrizeConfigs.length === 0) {
