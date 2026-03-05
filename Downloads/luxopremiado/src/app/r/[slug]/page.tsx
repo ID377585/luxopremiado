@@ -59,9 +59,14 @@ export default async function RafflePage({ params }: RafflePageProps) {
       <AffiliateTracker />
       <LiveActivityPopup scope="landing" />
       <TopMenu />
-      <Hero data={raffle.hero} prizeTitle={raffle.prize.title} stats={raffle.stats} />
+      <Hero data={raffle.hero} prizeTitle={raffle.prize.title} />
       <LuckyNumberBanner raffleSlug={raffle.slug} stats={raffle.stats} />
-      <ProgressStats raffleSlug={raffle.slug} stats={raffle.stats} totalNumbers={raffle.totalNumbers} />
+      <ProgressStats
+        raffleSlug={raffle.slug}
+        stats={raffle.stats}
+        totalNumbers={raffle.totalNumbers}
+        prizeConfigs={raffle.prize.configs}
+      />
       <Packages packages={raffle.packages} raffleSlug={raffle.slug} />
       <Prize data={raffle.prize} />
       <HowItWorks steps={raffle.howItWorks} />

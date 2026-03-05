@@ -308,7 +308,7 @@
   align-items: stretch;
   display: grid;
   gap: 1rem;
-  grid-template-columns: 1.15fr 0.85fr;
+  grid-template-columns: 1fr;
 }
 
 .heroPanel {
@@ -370,7 +370,7 @@
   color: #f1f5f9;
   font-size: 1.05rem;
   line-height: 1.5;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.75rem;
   max-width: 52ch;
   position: relative;
 }
@@ -414,35 +414,6 @@
   color: #cbd5e1;
   font-size: 0.8rem;
   margin-top: 0.7rem;
-}
-
-.heroAside {
-  background: #020617;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 1.5rem;
-  color: #f8fafc;
-  display: grid;
-  gap: 0.85rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  padding: 1.1rem;
-}
-
-.heroPrizeCard {
-  grid-column: 1 / -1;
-}
-
-.heroPrizeTitle {
-  color: #fff7ed;
-  font-size: 0.98rem;
-  font-weight: 700;
-}
-
-.heroPrizeMeta {
-  color: #cbd5e1;
-  display: grid;
-  font-size: 0.82rem;
-  gap: 0.25rem;
-  margin-top: 0.45rem;
 }
 
 .progressCard {
@@ -505,15 +476,49 @@
 }
 
 .progressPercent {
-  color: #fed7aa;
-  font-size: 0.85rem;
-  margin-top: 0.55rem;
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  margin-top: 0.45rem;
+}
+
+.progressLines {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 0.75rem;
+}
+
+.progressLineItem {
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  border-radius: 0.9rem;
+  padding: 0.75rem 0.85rem;
+}
+
+.progressLineHeader {
+  align-items: center;
+  color: #e2e8f0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+  font-size: 0.95rem;
+}
+
+.progressLineHeader strong {
+  color: #fff7ed;
+  font-weight: 800;
+}
+
+.progressLineHeader span {
+  color: #cbd5e1;
+  font-size: 0.9rem;
 }
 
 .progressStatsGrid {
   display: grid;
   gap: 0.78rem;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   list-style: none;
   margin-top: 1rem;
 }

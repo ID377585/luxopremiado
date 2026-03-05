@@ -3,13 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
-import { CampaignStats } from "@/types/raffle";
+import { CampaignStats, PrizeConfigEntry } from "@/types/raffle";
 import styles from "@/components/raffle/sections.module.css";
 
 interface ProgressStatsProps {
   stats: CampaignStats;
   totalNumbers: number;
   raffleSlug: string;
+  prizeConfigs?: PrizeConfigEntry[];
 }
 
 interface LiveUrgencyPulse {
@@ -53,7 +54,7 @@ function buildNextPulse(
   };
 }
 
-export function ProgressStats({ stats, totalNumbers, raffleSlug }: ProgressStatsProps) {
+export function ProgressStats({ stats, totalNumbers, raffleSlug, prizeConfigs }: ProgressStatsProps) {
   const [pulse, setPulse] = useState<LiveUrgencyPulse>(() => buildInitialPulse(stats, totalNumbers));
 
   useEffect(() => {
@@ -66,15 +67,31 @@ export function ProgressStats({ stats, totalNumbers, raffleSlug }: ProgressStats
     };
   }, [stats, totalNumbers]);
 
-  const safeTotal = Math.max(totalNumbers, 1);
-  const soldPercent = Math.min(100, Math.max(0, (stats.soldNumbers / safeTotal) * 100));
-  const remainingNumbers = Math.max(0, totalNumbers - stats.soldNumbers - stats.reservedNumbers);
-  const socialPressurePercent = useMemo(() => {
-    if (totalNumbers <= 0) {
-      return 0;
-    }
-    return Math.min(100, Math.max(0, ((stats.soldNumbers + stats.reservedNumbers) / totalNumbers) * 100));
-  }, [stats.reservedNumbers, stats.soldNumbers, totalNumbers]);
+  const rows = useMemo(() => {
+    const entries =
+      prizeConfigs?.length && prizeConfigs.length > 0
+        ? [...prizeConfigs].sort((a, b) => a.prizeOrder - b.prizeOrder)
+        : [{ prizeOrder: 1, prizeLabel: "Prêmios", totalNumbers }];
+
+    return entries.map((entry) => {
+      const total = Math.max(entry.totalNumbers ?? totalNumbers, 1);
+      const soldPercent = Math.min(100, Math.max(0, (stats.soldNumbers / total) * 100));
+      const socialPressure = Math.min(100, Math.max(0, ((stats.soldNumbers + stats.reservedNumbers) / total) * 100));
+      const remaining = Math.max(0, total - stats.soldNumbers - stats.reservedNumbers);
+
+      return {
+        key: `${entry.prizeOrder}-${entry.prizeLabel}`,
+        label: entry.prizeLabel,
+        soldPercent,
+        socialPressure,
+        remaining,
+        total,
+      };
+    });
+  }, [prizeConfigs, stats.reservedNumbers, stats.soldNumbers, totalNumbers]);
+
+  const remainingNumbers =
+    rows[0]?.remaining ?? Math.max(0, totalNumbers - stats.soldNumbers - stats.reservedNumbers);
 
   return (
     <section className={styles.section} id="escassez">
@@ -97,13 +114,24 @@ export function ProgressStats({ stats, totalNumbers, raffleSlug }: ProgressStats
             </p>
           </div>
 
-          <div className={styles.progressBarTrack} aria-label="Progresso de números vendidos">
-            <div className={styles.progressBarFill} style={{ width: `${soldPercent}%` }} />
+          <div className={styles.progressLines}>
+            {rows.map((row) => (
+              <div key={row.key} className={styles.progressLineItem}>
+                <div className={styles.progressLineHeader}>
+                  <strong>{row.label}</strong>
+                  <span>
+                    Vendidos: {row.soldPercent.toFixed(1)}% • Pressão: {row.socialPressure.toFixed(1)}%
+                  </span>
+                </div>
+                <div className={styles.progressBarTrack} aria-label={`Progresso de ${row.label}`}>
+                  <div className={styles.progressBarFill} style={{ width: `${row.soldPercent}%` }} />
+                </div>
+                <p className={styles.progressPercent}>
+                  Faltam {row.remaining.toLocaleString("pt-BR")} números para encerrar (total {row.total.toLocaleString("pt-BR")}).
+                </p>
+              </div>
+            ))}
           </div>
-
-          <p className={styles.progressPercent}>
-            Vendidos: {soldPercent.toFixed(1)}% • Pressão de compra: {socialPressurePercent.toFixed(1)}%
-          </p>
 
           <ul className={styles.progressStatsGrid}>
             <li className={styles.statCard}>
