@@ -27,6 +27,12 @@ export interface PrizeConfigEntry {
     reserved: number;
     sold: number;
   };
+  yearModelLabel?: string | null;
+  yearModelValue?: string | null;
+  motorLabel?: string | null;
+  motorValue?: string | null;
+  guaranteeValue?: string | null;
+  deliveryValue?: string | null;
 }
 
 export interface PrizeData {

@@ -45,8 +45,29 @@ export function Prize({ data }: PrizeProps) {
       items.push({ label: "Data do sorteio", value: formatted });
     }
 
-    if (typeof active.luckyNumber === "number" && active.luckyNumber > 0) {
+    const soldOut = (active.stats?.available ?? 1) <= 0 && (active.stats?.sold ?? 0) >= (active.totalNumbers ?? 0);
+    if (soldOut && typeof active.luckyNumber === "number" && active.luckyNumber > 0) {
       items.push({ label: "Número da sorte", value: `#${active.luckyNumber}` });
+    }
+
+    const yearModelLabel = active.yearModelLabel || "Ano/Modelo";
+    if (active.yearModelValue && active.yearModelValue.trim().length > 0) {
+      items.push({ label: yearModelLabel, value: active.yearModelValue });
+    }
+
+    const motorLabel = active.motorLabel || "Motor";
+    if (active.motorValue && active.motorValue.trim().length > 0) {
+      items.push({ label: motorLabel, value: active.motorValue });
+    }
+
+    const guaranteeValue = active.guaranteeValue?.trim();
+    if (guaranteeValue) {
+      items.push({ label: "Garantia", value: guaranteeValue });
+    }
+
+    const deliveryValue = active.deliveryValue?.trim();
+    if (deliveryValue) {
+      items.push({ label: "Entrega", value: deliveryValue });
     }
 
     return items.length ? [...items, ...data.features] : data.features;

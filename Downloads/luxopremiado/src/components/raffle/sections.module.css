@@ -768,10 +768,10 @@
 
 .prizeDetailHeader {
   display: grid;
-  gap: 0.85rem;
-  grid-template-columns: 160px 1fr;
+  gap: 1rem;
+  grid-template-columns: 200px 1fr;
   align-items: center;
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.9rem;
 }
 
 .prizeDetailImage {

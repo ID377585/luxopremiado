@@ -17,6 +17,12 @@ interface PrizeConfig {
   totalNumbers: number;
   drawDate: string;
   luckyNumber: number;
+  yearModelLabel: string;
+  yearModelValue: string;
+  motorLabel: string;
+  motorValue: string;
+  guaranteeValue: string;
+  deliveryValue: string;
 }
 
 interface Props {
@@ -32,6 +38,12 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
       luckyNumber: 1,
       prizeValueCents: 0,
       imageUrl: "",
+      yearModelLabel: "Ano/Modelo",
+      yearModelValue: "",
+      motorLabel: "Motor",
+      motorValue: "",
+      guaranteeValue: "Fábrica",
+      deliveryValue: "Todo o Brasil",
     })),
   );
   const [status, setStatus] = useState<string | null>(null);
@@ -72,6 +84,34 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
               const imageUrl =
                 typeof match?.image_url === "string" && match.image_url.trim().length > 0 ? (match.image_url as string) : "";
 
+              const yearModelLabel =
+                typeof match?.year_model_label === "string" && match.year_model_label.trim().length > 0
+                  ? (match.year_model_label as string)
+                  : "Ano/Modelo";
+              const yearModelValue =
+                typeof match?.year_model_value === "string" && match.year_model_value.trim().length > 0
+                  ? (match.year_model_value as string)
+                  : "";
+
+              const motorLabel =
+                typeof match?.motor_label === "string" && match.motor_label.trim().length > 0
+                  ? (match.motor_label as string)
+                  : "Motor";
+              const motorValue =
+                typeof match?.motor_value === "string" && match.motor_value.trim().length > 0
+                  ? (match.motor_value as string)
+                  : "";
+
+              const guaranteeValue =
+                typeof match?.guarantee_value === "string" && match.guarantee_value.trim().length > 0
+                  ? (match.guarantee_value as string)
+                  : "Fábrica";
+
+              const deliveryValue =
+                typeof match?.delivery_value === "string" && match.delivery_value.trim().length > 0
+                  ? (match.delivery_value as string)
+                  : "Todo o Brasil";
+
               return {
                 prizeOrder: base.prizeOrder,
                 prizeLabel,
@@ -80,6 +120,12 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
                 totalNumbers,
                 drawDate,
                 luckyNumber,
+                yearModelLabel,
+                yearModelValue,
+                motorLabel,
+                motorValue,
+                guaranteeValue,
+                deliveryValue,
               };
             }),
           );
@@ -123,6 +169,12 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
         totalNumbers: p.totalNumbers,
         drawDate: p.drawDate,
         luckyNumber: p.luckyNumber,
+        yearModelLabel: p.yearModelLabel,
+        yearModelValue: p.yearModelValue,
+        motorLabel: p.motorLabel,
+        motorValue: p.motorValue,
+        guaranteeValue: p.guaranteeValue,
+        deliveryValue: p.deliveryValue,
       })),
     };
 
@@ -211,6 +263,89 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
                 onChange={(e) => handleChange(index, "luckyNumber", e.target.value)}
                 style={{ padding: ".55rem .7rem", borderRadius: "10px", border: "1px solid #334155", background: "#0f172a", color: "#f8fafc" }}
               />
+            </label>
+            <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
+              Rótulo Ano/Modelo
+              <input
+                value={prize.yearModelLabel}
+                onChange={(e) => handleChange(index, "yearModelLabel", e.target.value)}
+                style={{ padding: ".55rem .7rem", borderRadius: "10px", border: "1px solid #334155", background: "#0f172a", color: "#f8fafc" }}
+              />
+            </label>
+            <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
+              Valor Ano/Modelo
+              <input
+                value={prize.yearModelValue}
+                onChange={(e) => handleChange(index, "yearModelValue", e.target.value)}
+                style={{ padding: ".55rem .7rem", borderRadius: "10px", border: "1px solid #334155", background: "#0f172a", color: "#f8fafc" }}
+              />
+            </label>
+            <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
+              Rótulo Motor
+              <input
+                value={prize.motorLabel}
+                onChange={(e) => handleChange(index, "motorLabel", e.target.value)}
+                style={{ padding: ".55rem .7rem", borderRadius: "10px", border: "1px solid #334155", background: "#0f172a", color: "#f8fafc" }}
+              />
+            </label>
+            <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
+              Valor do motor
+              <input
+                value={prize.motorValue}
+                onChange={(e) => handleChange(index, "motorValue", e.target.value)}
+                style={{ padding: ".55rem .7rem", borderRadius: "10px", border: "1px solid #334155", background: "#0f172a", color: "#f8fafc" }}
+              />
+            </label>
+            <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
+              Garantia
+              <input
+                value={prize.guaranteeValue}
+                onChange={(e) => handleChange(index, "guaranteeValue", e.target.value)}
+                style={{ padding: ".55rem .7rem", borderRadius: "10px", border: "1px solid #334155", background: "#0f172a", color: "#f8fafc" }}
+              />
+            </label>
+            <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
+              Entrega (estado)
+              <select
+                value={prize.deliveryValue}
+                onChange={(e) => handleChange(index, "deliveryValue", e.target.value)}
+                style={{
+                  padding: ".55rem .7rem",
+                  borderRadius: "10px",
+                  border: "1px solid #334155",
+                  background: "#0f172a",
+                  color: "#f8fafc",
+                }}
+              >
+                <option value="Todo o Brasil">Todo o Brasil</option>
+                <option value="AC">AC</option>
+                <option value="AL">AL</option>
+                <option value="AP">AP</option>
+                <option value="AM">AM</option>
+                <option value="BA">BA</option>
+                <option value="CE">CE</option>
+                <option value="DF">DF</option>
+                <option value="ES">ES</option>
+                <option value="GO">GO</option>
+                <option value="MA">MA</option>
+                <option value="MT">MT</option>
+                <option value="MS">MS</option>
+                <option value="MG">MG</option>
+                <option value="PA">PA</option>
+                <option value="PB">PB</option>
+                <option value="PR">PR</option>
+                <option value="PE">PE</option>
+                <option value="PI">PI</option>
+                <option value="RJ">RJ</option>
+                <option value="RN">RN</option>
+                <option value="RS">RS</option>
+                <option value="RO">RO</option>
+                <option value="RR">RR</option>
+                <option value="SC">SC</option>
+                <option value="SP">SP</option>
+                <option value="SE">SE</option>
+                <option value="TO">TO</option>
+              </select>
             </label>
             <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
               Imagem do prêmio (URL ou upload)

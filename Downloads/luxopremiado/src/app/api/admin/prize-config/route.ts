@@ -22,7 +22,9 @@ export async function GET(request: Request) {
   const supabase = createSupabaseServiceClient();
   const { data, error } = await supabase
     .from("prize_configurations")
-    .select("*")
+    .select(
+      "*, year_model_label, year_model_value, motor_label, motor_value, guarantee_value, delivery_value",
+    )
     .eq("raffle_slug", raffleSlug)
     .order("prize_order", { ascending: true });
 
@@ -41,6 +43,12 @@ interface PrizePayload {
   totalNumbers: number;
   drawDate: string;
   luckyNumber: number;
+  yearModelLabel?: string;
+  yearModelValue?: string;
+  motorLabel?: string;
+  motorValue?: string;
+  guaranteeValue?: string;
+  deliveryValue?: string;
 }
 
 export async function POST(request: Request) {
@@ -66,6 +74,12 @@ export async function POST(request: Request) {
     total_numbers: p.totalNumbers,
     draw_date: p.drawDate,
     lucky_number: p.luckyNumber,
+    year_model_label: p.yearModelLabel?.trim() || null,
+    year_model_value: p.yearModelValue?.trim() || null,
+    motor_label: p.motorLabel?.trim() || null,
+    motor_value: p.motorValue?.trim() || null,
+    guarantee_value: p.guaranteeValue?.trim() || null,
+    delivery_value: p.deliveryValue?.trim() || null,
     updated_by: user.email ?? "admin",
   }));
 

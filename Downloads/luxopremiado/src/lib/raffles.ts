@@ -452,6 +452,26 @@ export async function getRaffleLandingData(
                     const available = Math.max(0, total - sold - reserved);
                     return { sold, reserved, available };
                   })(),
+                  yearModelLabel:
+                    typeof c.year_model_label === "string" && c.year_model_label.trim().length > 0
+                      ? (c.year_model_label as string)
+                      : null,
+                  yearModelValue:
+                    typeof c.year_model_value === "string" && c.year_model_value.trim().length > 0
+                      ? (c.year_model_value as string)
+                      : null,
+                  motorLabel:
+                    typeof c.motor_label === "string" && c.motor_label.trim().length > 0 ? (c.motor_label as string) : null,
+                  motorValue:
+                    typeof c.motor_value === "string" && c.motor_value.trim().length > 0 ? (c.motor_value as string) : null,
+                  guaranteeValue:
+                    typeof c.guarantee_value === "string" && c.guarantee_value.trim().length > 0
+                      ? (c.guarantee_value as string)
+                      : null,
+                  deliveryValue:
+                    typeof c.delivery_value === "string" && c.delivery_value.trim().length > 0
+                      ? (c.delivery_value as string)
+                      : null,
                   imageUrl:
                     typeof c.image_url === "string" && c.image_url.trim().length > 0 ? (c.image_url as string) : undefined,
                 }))
