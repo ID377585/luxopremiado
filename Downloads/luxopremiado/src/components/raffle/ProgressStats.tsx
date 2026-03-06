@@ -223,25 +223,6 @@ export function ProgressStats({ stats, totalNumbers, raffleSlug, prizeConfigs }:
             ))}
           </div>
 
-          <ul className={styles.progressStatsGrid}>
-            <li className={styles.statCard}>
-              <p className={styles.statLabel}>Disponíveis</p>
-              <p className={styles.statValue}>{stats.availableNumbers.toLocaleString("pt-BR")}</p>
-            </li>
-            <li className={styles.statCard}>
-              <p className={styles.statLabel}>Reservados</p>
-              <p className={styles.statValue}>{stats.reservedNumbers.toLocaleString("pt-BR")}</p>
-            </li>
-            <li className={styles.statCard}>
-              <p className={styles.statLabel}>Vendidos</p>
-              <p className={styles.statValue}>{stats.soldNumbers.toLocaleString("pt-BR")}</p>
-            </li>
-            <li className={styles.statCard}>
-              <p className={styles.statLabel}>Média por usuário</p>
-              <p className={styles.statValue}>{stats.averagePerUser.toLocaleString("pt-BR")}</p>
-            </li>
-          </ul>
-
           <p className={styles.progressUrgency}>Hoje já saíram vários números. Não deixa para a última hora.</p>
 
           <Link className={styles.progressCta} href={`/app/comprar?slug=${encodeURIComponent(raffleSlug)}`}>
