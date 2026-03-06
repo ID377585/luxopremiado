@@ -43,25 +43,16 @@ export async function GET(request: NextRequest, context: { params: Promise<{ slu
 
   const countsByPrize = await Promise.all(
     ranges.map(async (range) => {
-      const [sold, reserved] = await Promise.all([
-        supabase
-          .from("raffle_numbers")
-          .select("id", { count: "exact", head: true })
-          .eq("raffle_id", raffle.id)
-          .eq("status", "sold")
-          .gte("number", range.start)
-          .lte("number", range.end),
-        supabase
-          .from("raffle_numbers")
-          .select("id", { count: "exact", head: true })
-          .eq("raffle_id", raffle.id)
-          .eq("status", "reserved")
-          .gte("number", range.start)
-          .lte("number", range.end),
-      ]);
-      const soldCount = Number(sold.count ?? 0);
-      const reservedCount = Number(reserved.count ?? 0);
-      const available = Math.max(0, range.total - soldCount - reservedCount);
+      const { count: soldCountRaw } = await supabase
+        .from("raffle_numbers")
+        .select("id", { count: "exact", head: true })
+        .eq("raffle_id", raffle.id)
+        .eq("status", "sold")
+        .gte("number", range.start)
+        .lte("number", range.end);
+      const soldCount = Number(soldCountRaw ?? 0);
+      const reservedCount = 0; // não contar reservas
+      const available = Math.max(0, range.total - soldCount);
       return {
         prizeOrder: range.order,
         total: range.total,
@@ -78,15 +69,9 @@ export async function GET(request: NextRequest, context: { params: Promise<{ slu
     .select("id", { count: "exact", head: true })
     .eq("raffle_id", raffle.id)
     .eq("status", "sold");
-  const { count: reservedGlobal } = await supabase
-    .from("raffle_numbers")
-    .select("id", { count: "exact", head: true })
-    .eq("raffle_id", raffle.id)
-    .eq("status", "reserved");
-
   const sold = Number(soldGlobal ?? 0);
-  const reserved = Number(reservedGlobal ?? 0);
-  const available = Math.max(0, totalNumbers - sold - reserved);
+  const reserved = 0; // não contar reservas
+  const available = Math.max(0, totalNumbers - sold);
 
   return NextResponse.json({
     totals: {
