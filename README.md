@@ -1,6 +1,6 @@
-# Luxo Premiado (`luxopremiado.com.br`)
+# BIGODE
 
-Plataforma de sorteio/rifas com foco em produção, usando Next.js + TypeScript + Supabase.
+Plataforma de sorteio com foco em produção, usando Next.js + TypeScript + Supabase.
 
 ## O que já está implementado
 
