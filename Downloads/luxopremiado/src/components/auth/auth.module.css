@@ -41,6 +41,24 @@
   padding: 0.7rem 0.8rem;
 }
 
+.profileForm {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.formGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.label {
+  display: grid;
+  gap: 0.35rem;
+  color: #cbd5e1;
+  font-size: 0.9rem;
+}
+
 .button {
   background: linear-gradient(95deg, #fb923c, #ea580c);
   border: none;
@@ -119,6 +137,106 @@
   gap: 0.6rem;
 }
 
+.xpBanner {
+  background:
+    radial-gradient(circle at top left, rgba(251, 191, 36, 0.18), transparent 30%),
+    radial-gradient(circle at top right, rgba(59, 130, 246, 0.16), transparent 30%),
+    linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(30, 41, 59, 0.94));
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  border-radius: 1rem;
+  box-shadow: 0 18px 40px rgba(2, 6, 23, 0.32);
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+}
+
+.xpBannerHeader {
+  align-items: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  justify-content: space-between;
+}
+
+.xpBannerKicker {
+  color: #fcd34d;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.xpBannerTitle {
+  color: #fff7ed;
+  font-size: clamp(1.05rem, 2vw, 1.5rem);
+  line-height: 1.15;
+  margin-top: 0.3rem;
+}
+
+.xpBannerMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  justify-content: flex-end;
+}
+
+.xpBadge {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 999px;
+  color: #e2e8f0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.42rem 0.7rem;
+}
+
+.xpTrack {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 999px;
+  height: 0.95rem;
+  overflow: hidden;
+}
+
+.xpFill {
+  background: linear-gradient(90deg, #f59e0b, #fb923c, #38bdf8);
+  display: block;
+  height: 100%;
+}
+
+.xpBenefitGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.xpBenefitCard {
+  background: rgba(2, 6, 23, 0.42);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 0.85rem;
+  padding: 0.8rem;
+}
+
+.xpBenefitLabel {
+  color: #94a3b8;
+  font-size: 0.78rem;
+  margin-bottom: 0.28rem;
+  text-transform: uppercase;
+}
+
+.xpBenefitValue {
+  color: #fff7ed;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.xpBenefitText {
+  color: #e2e8f0;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
 .dashboardLink {
   border: 1px solid rgba(148, 163, 184, 0.35);
   border-radius: 0.7rem;
@@ -156,6 +274,21 @@
 
 @media (max-width: 800px) {
   .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .xpBenefitGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .xpBannerMeta,
+  .xpBannerHeader {
+    justify-content: flex-start;
+  }
+
+  .xpBenefitGrid {
     grid-template-columns: 1fr;
   }
 }

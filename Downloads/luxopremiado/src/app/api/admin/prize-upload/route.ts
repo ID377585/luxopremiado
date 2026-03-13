@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
 
-import { getSessionUser } from "@/lib/session";
+import { getSessionUser, isAdminUser } from "@/lib/session";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 
-const ADMIN_EMAIL = "recovery.contas.mail@gmail.com";
 const BUCKET = "prize-images";
 
 export async function POST(request: Request) {
   const user = await getSessionUser();
-  if (!user || user.email?.toLowerCase() !== ADMIN_EMAIL) {
+  if (!user || !(await isAdminUser(user.id, user.email))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

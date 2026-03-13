@@ -18,9 +18,13 @@ export interface PrizeConfigEntry {
   prizeOrder: number;
   prizeLabel: string;
   prizeValueCents: number;
+  prizeValueLabel?: string | null;
   imageUrl?: string | null;
+  totalNumbersLabel?: string | null;
   totalNumbers?: number;
+  drawDateLabel?: string | null;
   drawDate?: string | null;
+  luckyNumberLabel?: string | null;
   luckyNumber?: number | null;
   stats?: {
     available: number;
@@ -31,7 +35,9 @@ export interface PrizeConfigEntry {
   yearModelValue?: string | null;
   motorLabel?: string | null;
   motorValue?: string | null;
+  guaranteeLabel?: string | null;
   guaranteeValue?: string | null;
+  deliveryLabel?: string | null;
   deliveryValue?: string | null;
 }
 

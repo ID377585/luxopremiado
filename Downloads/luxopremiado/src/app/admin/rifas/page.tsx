@@ -58,12 +58,12 @@ export default async function AdminRafflesPage({ searchParams }: AdminRafflesPag
           <div className={styles.grid3}>
             <label className={styles.label}>
               Título
-              <input className={styles.input} name="title" placeholder="Ex: Jeep Compass Série S" required />
+              <input className={styles.input} name="title" placeholder="Ex: Bigode das Rifas" required />
             </label>
 
             <label className={styles.label}>
               Slug (opcional)
-              <input className={styles.input} name="slug" placeholder="jeep-compass-serie-s" />
+              <input className={styles.input} name="slug" placeholder="bigode-das-rifas" />
             </label>
 
             <label className={styles.label}>

@@ -2,7 +2,11 @@
   "crons": [
     {
       "path": "/api/cron/expire-reservations",
-      "schedule": "0 3 * * *"
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/vip-birthday",
+      "schedule": "5 3 * * *"
     }
   ]
 }

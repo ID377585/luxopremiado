@@ -3,9 +3,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { emitAlert, getRequestId, logStructured, persistPlatformEvent } from "@/lib/observability";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 
-export async function POST(request: NextRequest) {
+async function handleExpireReservations(request: NextRequest) {
   const requestId = getRequestId(request);
   const expectedSecret = process.env.CRON_SECRET;
+
+  if (!expectedSecret && process.env.NODE_ENV === "production") {
+    logStructured("error", "cron.expire_reservations.missing_secret", { requestId });
+    return NextResponse.json(
+      { error: "CRON_SECRET ausente em produção." },
+      { status: 503 },
+    );
+  }
 
   if (expectedSecret) {
     const providedSecret = request.headers.get("x-cron-secret");
@@ -74,4 +82,12 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json({ error: message }, { status: 500 });
   }
+}
+
+export async function POST(request: NextRequest) {
+  return handleExpireReservations(request);
+}
+
+export async function GET(request: NextRequest) {
+  return handleExpireReservations(request);
 }

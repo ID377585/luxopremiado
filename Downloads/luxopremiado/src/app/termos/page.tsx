@@ -8,7 +8,7 @@ export default function TermsPage() {
 
       <section style={{ color: "#e2e8f0", display: "grid", gap: "1rem", lineHeight: 1.65, marginTop: "1.5rem" }}>
         <p>
-          Estes termos regulam o acesso e uso da plataforma <strong>luxopremiado.com.br</strong>, incluindo cadastro,
+          Estes termos regulam o acesso e uso da plataforma <strong>bigodedasrifas.com</strong>, incluindo cadastro,
           compra de números, pagamentos e participação em campanhas promocionais.
         </p>
 

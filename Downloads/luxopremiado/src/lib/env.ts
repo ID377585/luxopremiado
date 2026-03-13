@@ -9,6 +9,10 @@ function requireEnv(name: string): string {
 }
 
 function getDefaultSiteUrl(): string {
+  if (process.env.NODE_ENV === "production") {
+    return "https://www.bigodedasrifas.com";
+  }
+
   const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL;
 
   if (vercelHost) {
@@ -16,10 +20,6 @@ function getDefaultSiteUrl(): string {
     if (host) {
       return `https://${host}`;
     }
-  }
-
-  if (process.env.NODE_ENV === "production") {
-    return "https://luxopremiado.vercel.app";
   }
 
   return "http://localhost:3000";
@@ -35,6 +35,9 @@ function normalizeSiteUrl(rawValue: string | undefined): string {
 
   try {
     const url = new URL(normalized);
+    if (process.env.NODE_ENV === "production" && url.hostname !== "www.bigodedasrifas.com") {
+      return fallback;
+    }
     return url.toString().replace(/\/$/, "");
   } catch {
     return fallback;
@@ -67,4 +70,11 @@ export function canUseDemoFallback(): boolean {
   }
 
   return process.env.NODE_ENV !== "production";
+}
+
+export function isPaymentFlowEnabled(): boolean {
+  return (
+    process.env.ENABLE_PAYMENTS === "true" ||
+    process.env.NEXT_PUBLIC_ENABLE_PAYMENTS === "true"
+  );
 }

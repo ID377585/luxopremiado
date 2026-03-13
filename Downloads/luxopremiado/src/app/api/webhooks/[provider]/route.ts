@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { emitAlert, getRequestId, logStructured, persistPlatformEvent } from "@/lib/observability";
 import { PaymentProviderName, verifyAndParseWebhook } from "@/lib/payments/providers";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
+import { processVipRewardsForPaidOrder } from "@/lib/vip-runtime";
 
 interface WebhookRouteContext {
   params: Promise<{ provider: string }>;
@@ -118,6 +119,7 @@ export async function POST(request: NextRequest, context: WebhookRouteContext) {
         orderId: parsed.orderId,
         providerReference: parsed.providerReference,
       });
+      await processVipRewardsForPaidOrder(parsed.orderId);
       await persistPlatformEvent({
         event_type: "webhook_payment_confirmed",
         request_id: requestId,

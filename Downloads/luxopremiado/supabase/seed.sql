@@ -15,8 +15,8 @@ insert into public.raffles (
 )
 values (
   gen_random_uuid(),
-  'luxo-premiado',
-  'Luxo Premiado - Jeep Compass Série S',
+  'bigode-das-rifas',
+  'Bigode das Rifas',
   'Campanha principal de lançamento da plataforma.',
   '/images/prize/compass-1.svg',
   1990,

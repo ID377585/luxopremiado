@@ -302,7 +302,7 @@ const fallbackTestimonials: SocialProofEntry[] = [
 const fallbackWinnerWall: WinnerWallEntry[] = [
   {
     name: "Luciana M.",
-    prize: "Jeep Compass Série S 0km",
+    prize: "Bigode das Rifas",
     city: "Fortaleza/CE",
     mediaUrl: "/images/winners/winner-1.svg",
     mediaType: "image",
@@ -411,9 +411,6 @@ export function SocialProof({ entries, winnerWall }: SocialProofProps) {
       <div className={styles.container}>
         <header className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Quem participa, recomenda</h2>
-          <p className={styles.sectionSubtitle}>
-            Prova social visual com participantes e ganhadores verificados para reforçar confiança e desejo de compra.
-          </p>
         </header>
 
         <div className={styles.proofCarousel} role="region" aria-label="Carrossel de depoimentos de participantes">

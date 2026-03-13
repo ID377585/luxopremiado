@@ -5,6 +5,7 @@ import { AuthMessage } from "@/components/auth/AuthMessage";
 import authStyles from "@/components/auth/auth.module.css";
 import loginStyles from "@/app/login/login.module.css";
 import { signInAction } from "@/lib/actions/auth";
+import { formatBrlFromCents } from "@/lib/format";
 import { buildLandingPathForSlug } from "@/lib/raffle-slug";
 import { resolveAvailableRaffleSlug } from "@/lib/raffle-slug.server";
 import { getRaffleLandingData } from "@/lib/raffles";
@@ -35,6 +36,10 @@ function mapFriendlyError(error?: string): string | undefined {
     return "Use uma conta autorizada para acessar o painel administrativo.";
   }
 
+  if (normalized.includes("área vip") || normalized.includes("programa vip")) {
+    return "Faça login para verificar seu status e entrar na área VIP quando estiver liberada.";
+  }
+
   return error;
 }
 
@@ -54,10 +59,37 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const soldPercent = raffle
     ? Math.min(100, Math.max(0, (raffle.stats.soldNumbers / Math.max(raffle.totalNumbers, 1)) * 100))
     : 0;
-  const topBuyer = raffle?.buyerRanking[0];
+  const prizeOne = raffle?.prize.configs?.find((entry) => entry.prizeOrder === 1) ?? raffle?.prize.configs?.[0];
+  const prizeOneStats = prizeOne?.stats;
+  const prizeOneTotal =
+    typeof prizeOne?.totalNumbers === "number" && prizeOne.totalNumbers > 0 ? prizeOne.totalNumbers : raffle?.totalNumbers ?? 0;
+  const prizeOneSold = prizeOneStats?.sold ?? Math.round((soldPercent / 100) * Math.max(prizeOneTotal, 0));
+  const prizeOneReserved = prizeOneStats?.reserved ?? 0;
+  const prizeOneAvailable = prizeOneStats?.available ?? Math.max(0, prizeOneTotal - prizeOneSold - prizeOneReserved);
+  const prizeOneSoldPercent =
+    prizeOneTotal > 0 ? Math.min(100, Math.max(0, (prizeOneSold / prizeOneTotal) * 100)) : 0;
+  const prizeOneDrawDateLabel = (() => {
+    if (prizeOne?.drawDateLabel) {
+      return prizeOne.drawDateLabel;
+    }
+
+    if (prizeOne?.drawDate) {
+      const parsed = new Date(prizeOne.drawDate);
+      if (!Number.isNaN(parsed.getTime())) {
+        return parsed.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+      }
+    }
+
+    return "A definir";
+  })();
+  const prizeOneValueLabel =
+    prizeOne?.prizeValueLabel ?? (typeof prizeOne?.prizeValueCents === "number" ? formatBrlFromCents(prizeOne.prizeValueCents) : "A definir");
+
   const friendlyError = mapFriendlyError(params.error);
   const nextPath = normalizeNextPath(params.next);
   const landingHref = buildLandingPathForSlug(raffle?.slug ?? preferredSlug, "inicio");
+  const isVipIntent = nextPath.startsWith("/app/vip");
+  const headlinePrize = prizeOne?.prizeLabel ?? raffle?.prize.title ?? "o prêmio principal";
 
   return (
     <main className={loginStyles.page}>
@@ -65,66 +97,57 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
       <section className={loginStyles.layout}>
         <aside className={loginStyles.showcase}>
-          <p className={loginStyles.showcaseKicker}>Área VIP do Participante</p>
-          <h2 className={loginStyles.showcaseTitle}>Jeep Compass 0km pode ser seu. Não deixe seus números escaparem.</h2>
+          <p className={loginStyles.showcaseKicker}>{isVipIntent ? "Programa VIP" : "Área do Participante"}</p>
+          <h2 className={loginStyles.showcaseTitle}>
+            {isVipIntent
+              ? "Entre para verificar seu nível e liberar os benefícios exclusivos do programa VIP."
+              : `Entre agora e dispute ${headlinePrize} com seus melhores números.`}
+          </h2>
           <p className={loginStyles.showcaseSubtitle}>
-            Quem entra primeiro escolhe melhor. Seu acesso libera checkout rápido e confirmação automática no PIX.
+            {isVipIntent
+              ? "O acesso VIP depende do seu perfil de afiliado e da pontuação acumulada em compras, leilões e indicações."
+              : "Quem entra primeiro escolhe melhor. Seu acesso libera checkout rápido, confirmação automática no PIX e acompanhamento da campanha."}
           </p>
 
           <div className={loginStyles.metricGrid}>
             <article className={loginStyles.metricCard}>
-              <p className={loginStyles.metricLabel}>Vendidos</p>
-              <p className={loginStyles.metricValue}>{raffle ? `${soldPercent.toFixed(1)}%` : "Indisponível"}</p>
+              <p className={loginStyles.metricLabel}>Prêmio 1</p>
+              <p className={loginStyles.metricValue}>{prizeOne?.prizeLabel ?? raffle?.prize.title ?? "Indisponível"}</p>
             </article>
             <article className={loginStyles.metricCard}>
-              <p className={loginStyles.metricLabel}>Disponíveis</p>
-              <p className={loginStyles.metricValue}>
-                {raffle ? raffle.stats.availableNumbers.toLocaleString("pt-BR") : "Indisponível"}
-              </p>
+              <p className={loginStyles.metricLabel}>Valor</p>
+              <p className={loginStyles.metricValue}>{prizeOneValueLabel}</p>
             </article>
             <article className={loginStyles.metricCard}>
-              <p className={loginStyles.metricLabel}>Top Ranking</p>
+              <p className={loginStyles.metricLabel}>Data do sorteio</p>
               <p className={loginStyles.metricValue}>
-                {topBuyer ? `${topBuyer.participant} · ${topBuyer.totalNumbers}` : "Atualizando..."}
+                {prizeOneDrawDateLabel}
               </p>
             </article>
           </div>
 
           <div className={loginStyles.progressWrap} aria-label="Progresso de números vendidos">
             <div className={loginStyles.progressTrack}>
-              <span className={loginStyles.progressFill} style={{ width: `${soldPercent}%` }} />
+              <span className={loginStyles.progressFill} style={{ width: `${prizeOneSoldPercent}%` }} />
             </div>
             <p className={loginStyles.progressText}>
               {raffle
-                ? `${soldPercent.toFixed(1)}% já vendidos. Ainda dá tempo de entrar no Top 10 hoje.`
+                ? `Prêmio 1: ${prizeOneSoldPercent.toFixed(1)}% vendidos (${prizeOneSold.toLocaleString("pt-BR")} de ${Math.max(prizeOneTotal, 0).toLocaleString("pt-BR")}). Restam ${prizeOneAvailable.toLocaleString("pt-BR")} números.`
                 : "Dados da campanha indisponíveis no momento."}
             </p>
           </div>
         </aside>
 
         <section className={loginStyles.loginCard}>
-          <p className={loginStyles.vipTag}>Acesso exclusivo</p>
-          <h1 className={loginStyles.title}>Você está a um passo de garantir seus números!</h1>
+          <p className={loginStyles.vipTag}>{isVipIntent ? "Acesso ao programa VIP" : "Acesso à sua conta"}</p>
+          <h1 className={loginStyles.title}>
+            {isVipIntent ? "Faça login para continuar no programa VIP" : "Você está a um passo de garantir seus números!"}
+          </h1>
           <p className={loginStyles.subtitle}>
-            Seus números só ficam garantidos após o login. Faça agora e finalize em menos de 1 minuto.
-          </p>
-          <p className={loginStyles.urgencyLine}>
-            Seus números podem ser escolhidos por outra pessoa a qualquer momento.
+            {isVipIntent ? "Depois do login você verá sua pontuação, regras do programa e liberação da área exclusiva." : "Seus números só ficam garantidos após o login."}
           </p>
 
           <AuthMessage error={friendlyError} success={params.success} />
-
-          <ul className={loginStyles.benefitList}>
-            <li>Garantir seus números antes que acabem</li>
-            <li>Acompanhar sua posição no ranking</li>
-            <li>Receber confirmação automática no PIX</li>
-            <li>Participar oficialmente do sorteio</li>
-          </ul>
-
-          <div className={loginStyles.bonusBox}>
-            <p className={loginStyles.bonusTitle}>Bônus de boas-vindas</p>
-            <p className={loginStyles.bonusText}>Entre agora e desbloqueie compra rápida com priorização no checkout.</p>
-          </div>
 
           <form action={signInAction} className={authStyles.form}>
             <input name="next" type="hidden" value={nextPath} />
@@ -134,8 +157,6 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               ENTRAR E GARANTIR MEUS NÚMEROS
             </button>
           </form>
-
-          <p className={loginStyles.microtext}>Leva menos de 1 minuto. Simples e rápido.</p>
 
           <div className={authStyles.links}>
             <Link className={authStyles.buttonSecondary} href="/cadastro">

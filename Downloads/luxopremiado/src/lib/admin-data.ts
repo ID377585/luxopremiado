@@ -68,8 +68,8 @@ function fallbackRaffles(): AdminRaffle[] {
   return [
     {
       id: "demo-raffle-001",
-      slug: "luxo-premiado",
-      title: "Luxo Premiado - Jeep Compass Série S",
+      slug: "bigode-das-rifas",
+      title: "Bigode das Rifas",
       description: "Rifa de demonstração enquanto o Supabase não está configurado.",
       cover_image_url: "/images/prize/compass-1.svg",
       price_cents: 1990,

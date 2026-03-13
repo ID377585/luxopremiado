@@ -14,9 +14,18 @@ const bodyFont = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Luxo Premiado",
-  description:
-    "Plataforma de sorteios premium com compra de números, pagamento online e transparência auditável.",
+  title: "Bigode das Rifas",
+  description: "Bigode das Rifas — experiência premium, rápida e auditável.",
+  icons: {
+    icon: [
+      {
+        url: "/vercel.svg?v=20260312",
+        type: "image/svg+xml",
+      },
+    ],
+    shortcut: ["/vercel.svg?v=20260312"],
+    apple: ["/vercel.svg?v=20260312"],
+  },
 };
 
 export default function RootLayout({

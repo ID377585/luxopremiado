@@ -13,15 +13,21 @@ interface PrizeConfig {
   prizeOrder: number;
   prizeLabel: string;
   prizeValueCents: number;
+  prizeValueLabel: string;
   imageUrl: string;
+  totalNumbersLabel: string;
   totalNumbers: number;
+  drawDateLabel: string;
   drawDate: string;
+  luckyNumberLabel: string;
   luckyNumber: number;
   yearModelLabel: string;
   yearModelValue: string;
   motorLabel: string;
   motorValue: string;
+  guaranteeLabel: string;
   guaranteeValue: string;
+  deliveryLabel: string;
   deliveryValue: string;
 }
 
@@ -34,15 +40,21 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
     PRIZES.map((p) => ({
       ...p,
       totalNumbers: 100,
+      totalNumbersLabel: "Total de números",
       drawDate: new Date().toISOString().slice(0, 16),
+      drawDateLabel: "Data do sorteio",
       luckyNumber: 1,
+      luckyNumberLabel: "Número da sorte (fixo)",
       prizeValueCents: 0,
+      prizeValueLabel: "Valor do prêmio (R$)",
       imageUrl: "",
       yearModelLabel: "Ano/Modelo",
       yearModelValue: "",
       motorLabel: "Motor",
       motorValue: "",
+      guaranteeLabel: "Garantia",
       guaranteeValue: "Fábrica",
+      deliveryLabel: "Entrega",
       deliveryValue: "Todo o Brasil",
     })),
   );
@@ -67,14 +79,30 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
                   ? (match.prize_label as string)
                   : base.prizeLabel;
 
+              const prizeValueLabel =
+                typeof match?.prize_value_label === "string" && match.prize_value_label.trim().length > 0
+                  ? (match.prize_value_label as string)
+                  : "Valor do prêmio (R$)";
               const totalNumbers =
                 typeof match?.total_numbers === "number" && match.total_numbers > 0 ? (match.total_numbers as number) : 100;
+              const totalNumbersLabel =
+                typeof match?.total_numbers_label === "string" && match.total_numbers_label.trim().length > 0
+                  ? (match.total_numbers_label as string)
+                  : "Total de números";
 
               const drawDateRaw = typeof match?.draw_date === "string" ? (match.draw_date as string) : null;
               const drawDate = drawDateRaw ? drawDateRaw.slice(0, 16) : new Date().toISOString().slice(0, 16);
+              const drawDateLabel =
+                typeof match?.draw_date_label === "string" && match.draw_date_label.trim().length > 0
+                  ? (match.draw_date_label as string)
+                  : "Data do sorteio";
 
               const luckyNumber =
                 typeof match?.lucky_number === "number" && match.lucky_number > 0 ? (match.lucky_number as number) : 1;
+              const luckyNumberLabel =
+                typeof match?.lucky_number_label === "string" && match.lucky_number_label.trim().length > 0
+                  ? (match.lucky_number_label as string)
+                  : "Número da sorte (fixo)";
 
               const prizeValueCents =
                 typeof match?.prize_value_cents === "number" && match.prize_value_cents >= 0
@@ -102,11 +130,19 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
                   ? (match.motor_value as string)
                   : "";
 
+              const guaranteeLabel =
+                typeof match?.guarantee_label === "string" && match.guarantee_label.trim().length > 0
+                  ? (match.guarantee_label as string)
+                  : "Garantia";
               const guaranteeValue =
                 typeof match?.guarantee_value === "string" && match.guarantee_value.trim().length > 0
                   ? (match.guarantee_value as string)
                   : "Fábrica";
 
+              const deliveryLabel =
+                typeof match?.delivery_label === "string" && match.delivery_label.trim().length > 0
+                  ? (match.delivery_label as string)
+                  : "Entrega";
               const deliveryValue =
                 typeof match?.delivery_value === "string" && match.delivery_value.trim().length > 0
                   ? (match.delivery_value as string)
@@ -115,16 +151,22 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
               return {
                 prizeOrder: base.prizeOrder,
                 prizeLabel,
+                prizeValueLabel,
+                totalNumbersLabel,
                 prizeValueCents,
                 imageUrl,
                 totalNumbers,
                 drawDate,
+                drawDateLabel,
                 luckyNumber,
+                luckyNumberLabel,
                 yearModelLabel,
                 yearModelValue,
                 motorLabel,
                 motorValue,
+                guaranteeLabel,
                 guaranteeValue,
+                deliveryLabel,
                 deliveryValue,
               };
             }),
@@ -164,16 +206,22 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
       prizes: prizes.map((p) => ({
         prizeOrder: p.prizeOrder,
         prizeLabel: p.prizeLabel,
+        prizeValueLabel: p.prizeValueLabel,
         prizeValueCents: p.prizeValueCents,
         imageUrl: p.imageUrl,
+        totalNumbersLabel: p.totalNumbersLabel,
         totalNumbers: p.totalNumbers,
         drawDate: p.drawDate,
+        drawDateLabel: p.drawDateLabel,
         luckyNumber: p.luckyNumber,
+        luckyNumberLabel: p.luckyNumberLabel,
         yearModelLabel: p.yearModelLabel,
         yearModelValue: p.yearModelValue,
         motorLabel: p.motorLabel,
         motorValue: p.motorValue,
+        guaranteeLabel: p.guaranteeLabel,
         guaranteeValue: p.guaranteeValue,
+        deliveryLabel: p.deliveryLabel,
         deliveryValue: p.deliveryValue,
       })),
     };
@@ -197,7 +245,7 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
   return (
     <form onSubmit={handleSubmit} style={{ display: "grid", gap: "1rem", maxWidth: 720 }}>
       <p style={{ color: "#cbd5e1" }}>
-        Apenas o administrador autorizado pode alterar estas configurações. Rifa alvo: <strong>{raffleSlug}</strong>
+        Apenas o administrador autorizado pode alterar estas configurações da campanha principal da Bigode das Rifas.
       </p>
       {prizes.map((prize, index) => (
         <div
@@ -212,7 +260,7 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: ".6rem" }}>
             <h3 style={{ color: "#f8fafc", margin: 0 }}>{prize.prizeLabel}</h3>
-            <span style={{ color: "#cbd5e1", fontSize: ".9rem" }}>Ordem {prize.prizeOrder}</span>
+            <span style={{ color: "#cbd5e1", fontSize: ".9rem" }}>Prêmio {prize.prizeOrder}</span>
           </div>
           <div style={{ display: "grid", gap: ".9rem", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))" }}>
             <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
@@ -224,7 +272,15 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
               />
             </label>
             <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
-              Valor do prêmio (R$)
+              Rótulo valor do prêmio
+              <input
+                value={prize.prizeValueLabel}
+                onChange={(e) => handleChange(index, "prizeValueLabel", e.target.value)}
+                style={{ padding: ".55rem .7rem", borderRadius: "10px", border: "1px solid #334155", background: "#0f172a", color: "#f8fafc" }}
+              />
+            </label>
+            <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
+              {prize.prizeValueLabel || "Valor do prêmio (R$)"}
               <input
                 inputMode="numeric"
                 value={(prize.prizeValueCents / 100).toFixed(2)}
@@ -236,7 +292,15 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
               />
             </label>
             <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
-              Total de números
+              Rótulo total de números
+              <input
+                value={prize.totalNumbersLabel}
+                onChange={(e) => handleChange(index, "totalNumbersLabel", e.target.value)}
+                style={{ padding: ".55rem .7rem", borderRadius: "10px", border: "1px solid #334155", background: "#0f172a", color: "#f8fafc" }}
+              />
+            </label>
+            <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
+              {prize.totalNumbersLabel || "Total de números"}
               <input
                 type="number"
                 min={1}
@@ -246,7 +310,15 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
               />
             </label>
             <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
-              Data do sorteio
+              Rótulo data do sorteio
+              <input
+                value={prize.drawDateLabel}
+                onChange={(e) => handleChange(index, "drawDateLabel", e.target.value)}
+                style={{ padding: ".55rem .7rem", borderRadius: "10px", border: "1px solid #334155", background: "#0f172a", color: "#f8fafc" }}
+              />
+            </label>
+            <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
+              {prize.drawDateLabel || "Data do sorteio"}
               <input
                 type="datetime-local"
                 value={prize.drawDate}
@@ -255,7 +327,15 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
               />
             </label>
             <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
-              Número da sorte (fixo)
+              Rótulo número da sorte
+              <input
+                value={prize.luckyNumberLabel}
+                onChange={(e) => handleChange(index, "luckyNumberLabel", e.target.value)}
+                style={{ padding: ".55rem .7rem", borderRadius: "10px", border: "1px solid #334155", background: "#0f172a", color: "#f8fafc" }}
+              />
+            </label>
+            <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
+              {prize.luckyNumberLabel || "Número da sorte (fixo)"}
               <input
                 type="number"
                 min={1}
@@ -297,7 +377,15 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
               />
             </label>
             <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
-              Garantia
+              Rótulo garantia
+              <input
+                value={prize.guaranteeLabel}
+                onChange={(e) => handleChange(index, "guaranteeLabel", e.target.value)}
+                style={{ padding: ".55rem .7rem", borderRadius: "10px", border: "1px solid #334155", background: "#0f172a", color: "#f8fafc" }}
+              />
+            </label>
+            <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
+              {prize.guaranteeLabel || "Garantia"}
               <input
                 value={prize.guaranteeValue}
                 onChange={(e) => handleChange(index, "guaranteeValue", e.target.value)}
@@ -305,7 +393,15 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
               />
             </label>
             <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
-              Entrega (estado)
+              Rótulo entrega
+              <input
+                value={prize.deliveryLabel}
+                onChange={(e) => handleChange(index, "deliveryLabel", e.target.value)}
+                style={{ padding: ".55rem .7rem", borderRadius: "10px", border: "1px solid #334155", background: "#0f172a", color: "#f8fafc" }}
+              />
+            </label>
+            <label style={{ color: "#e2e8f0", display: "flex", flexDirection: "column", gap: ".25rem" }}>
+              {prize.deliveryLabel || "Entrega"}
               <select
                 value={prize.deliveryValue}
                 onChange={(e) => handleChange(index, "deliveryValue", e.target.value)}

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/env", () => ({
   hasSupabaseEnv: () => true,
+  isPaymentFlowEnabled: () => true,
 }));
 
 vi.mock("@/lib/observability", () => ({
@@ -27,10 +28,15 @@ vi.mock("@/lib/supabase/service", () => ({
   createSupabaseServiceClient: vi.fn(),
 }));
 
+vi.mock("@/lib/vip-runtime", () => ({
+  applyVipBenefitsToOrder: vi.fn(async () => null),
+}));
+
 import { createPaymentProvider } from "@/lib/payments/providers";
 import { enforceAntiBot } from "@/lib/security/anti-bot";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
+import { applyVipBenefitsToOrder } from "@/lib/vip-runtime";
 
 import { POST } from "@/app/api/payments/create/route";
 
@@ -124,6 +130,7 @@ describe("POST /api/payments/create", () => {
     });
 
     mockInsertPayment.mockResolvedValue({ error: null });
+    vi.mocked(applyVipBenefitsToOrder).mockResolvedValue(null);
   });
 
   it("reusa cobrança pendente quando o método é o mesmo", async () => {
@@ -172,6 +179,10 @@ describe("POST /api/payments/create", () => {
     expect(payload.reused).toBe(true);
     expect(createPaymentProvider).not.toHaveBeenCalled();
     expect(mockCloseOpenPayments).not.toHaveBeenCalled();
+    expect(applyVipBenefitsToOrder).toHaveBeenCalledWith({
+      orderId: "11111111-1111-4111-8111-111111111111",
+      userId: "user-1",
+    });
   });
 
   it("fecha cobrança antiga quando método mudou e cria nova cobrança", async () => {

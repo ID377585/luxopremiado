@@ -10,7 +10,6 @@ const packageTemplates = [
     name: "Pacote Popular",
     quantity: 10,
     discountPercent: 5,
-    badge: "Mais vendido",
     description: "Entrada rápida na disputa com economia por número e confirmação mais ágil.",
     highlight: true,
   },
@@ -19,6 +18,7 @@ const packageTemplates = [
     name: "Pacote Turbo",
     quantity: 25,
     discountPercent: 10,
+    badge: "Mais vendido",
     description: "Mais volume para subir no ranking e aumentar alcance no sorteio.",
   },
   {
@@ -87,11 +87,11 @@ export function buildPackageOffersForUnitPrice(unitPriceCents: number) {
 
 export const fallbackRaffleData: RaffleLandingData = {
   raffleId: null,
-  slug: "luxo-premiado",
+  slug: "bigode-das-rifas",
   totalNumbers: FALLBACK_TOTAL_NUMBERS,
   maxNumbersPerUser: 50,
   hero: {
-    title: "Sua chance de concorrer a um prêmio grande começa com poucos cliques.",
+    title: "SUA CHANCE DE OURO\nCOMEÇA AQUI.",
     subtitle:
       "Escolha seus números, pague no PIX e acompanhe tudo com transparência. Compra rápida, confirmação automática e sorteio auditável.",
     drawDateLabel: "Sorteio: 30/04/2026 às 19:00",
@@ -100,9 +100,9 @@ export const fallbackRaffleData: RaffleLandingData = {
     ctaLabel: "QUERO ESCOLHER MEUS NÚMEROS AGORA",
   },
   prize: {
-    title: "Jeep Compass Série S 0km",
+    title: "Bigode das Rifas",
     description:
-      "Veículo novo, documentação regular e entrega com transmissão ao vivo para garantir transparência total.",
+      "Campanha oficial da Bigode das Rifas com compra rápida, acompanhamento transparente e experiência premium.",
     images: [
       "/images/prize/compass-1.svg",
       "/images/prize/compass-2.svg",
@@ -150,7 +150,7 @@ export const fallbackRaffleData: RaffleLandingData = {
     availableNumbers: 8412,
     reservedNumbers: 1142,
     soldNumbers: 7846,
-    averagePerUser: 4.8,
+    averagePerUser: 0,
   },
   checkoutMethods: [
     {
@@ -164,9 +164,9 @@ export const fallbackRaffleData: RaffleLandingData = {
   ],
   transparency: {
     drawMethod: "Baseado no resultado da Loteria Federal",
-    organizer: "Luxo Premiado Entretenimento Ltda.",
+    organizer: "Bigode das Rifas",
     organizerDoc: "CNPJ 00.000.000/0001-00",
-    contact: "suporte@luxopremiado.com.br",
+    contact: "suporte@bigodedasrifas.com",
     rulesSummary:
       "Todos os números ficam auditáveis em tempo real e o regulamento completo é publicado antes da abertura das vendas.",
   },
@@ -223,7 +223,7 @@ export const fallbackRaffleData: RaffleLandingData = {
   winnerWall: [
     {
       name: "Luciana M.",
-      prize: "Jeep Compass Série S 0km",
+      prize: "Bigode das Rifas",
       city: "Fortaleza/CE",
       mediaUrl: "/images/winners/winner-1.svg",
       mediaType: "image",
@@ -332,6 +332,30 @@ export const fallbackRaffleData: RaffleLandingData = {
       question: "Posso transferir meus números para outra pessoa?",
       answer:
         "A transferência depende das regras da campanha ativa. Consulte o regulamento da rifa para saber os critérios e prazos permitidos.",
+    },
+    {
+      question: "Os pacotes valem para qual prêmio?",
+      answer: "Os pacotes são aplicados apenas ao 1º prêmio, garantindo foco no principal e somando no ranking.",
+    },
+    {
+      question: "Existe limite de números por usuário?",
+      answer:
+        "Sim. Cada rifa define um limite máximo por usuário. O contador no topo da grade mostra o limite aplicado à sua conta.",
+    },
+    {
+      question: "Como cancelo uma reserva que não vou pagar?",
+      answer:
+        "No checkout, clique em “Cancelar reserva e liberar números”. Os números voltam para a disponibilidade imediatamente.",
+    },
+    {
+      question: "O que acontece quando todos os números acabam?",
+      answer:
+        "A campanha é encerrada, o sorteio segue o método publicado e os compradores recebem atualização com o status final.",
+    },
+    {
+      question: "Posso usar PIX copia e cola ou apenas QR Code?",
+      answer:
+        "Aceitamos os dois formatos. Após gerar o pagamento, copie o código ou escaneie o QR; a confirmação é automática.",
     },
   ],
 };

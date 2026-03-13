@@ -7,13 +7,10 @@ interface TransparencyProps {
 
 export function Transparency({ data }: TransparencyProps) {
   return (
-    <section className={styles.section} id="transparencia">
+    <section className={`${styles.section} ${styles.transparencySection}`} id="transparencia">
       <div className={styles.container}>
         <header className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Transparência de verdade</h2>
-          <p className={styles.sectionSubtitle}>
-            Método do sorteio, regras e dados do organizador publicados para você participar com tranquilidade.
-          </p>
         </header>
 
         <ul className={styles.transparencyList}>
@@ -38,6 +35,39 @@ export function Transparency({ data }: TransparencyProps) {
             <span>{data.rulesSummary}</span>
           </li>
         </ul>
+        <div className={styles.transparencyBadges} aria-label="Garantias rápidas e auditáveis">
+          <div className={styles.transparencyBadge}>
+            <svg
+              aria-hidden
+              className={styles.transparencyIcon}
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.6"
+              viewBox="0 0 24 24"
+            >
+              <path d="M13 2 4 14h7l-1 8 9-12h-7z" />
+            </svg>
+            <span>PIX imediato</span>
+          </div>
+          <div className={styles.transparencyBadge}>
+            <svg
+              aria-hidden
+              className={styles.transparencyIcon}
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.6"
+              viewBox="0 0 24 24"
+            >
+              <path d="M12 3 4.5 6v5.6c0 4.2 3.2 8 7.5 9.4 4.3-1.4 7.5-5.2 7.5-9.4V6L12 3z" />
+              <path d="m9.5 12 1.8 1.8 3.2-3.6" />
+            </svg>
+            <span>Sorteio auditável</span>
+          </div>
+        </div>
         <p className={styles.transparencyFootnote}>Tudo que é combinado fica registrado na página da campanha.</p>
       </div>
     </section>

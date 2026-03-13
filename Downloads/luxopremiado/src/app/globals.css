@@ -29,9 +29,8 @@ html {
 
 body {
   background:
-    radial-gradient(circle at 0% 0%, rgba(251, 146, 60, 0.16), transparent 35%),
-    radial-gradient(circle at 100% 0%, rgba(59, 130, 246, 0.12), transparent 33%),
-    linear-gradient(180deg, #020617 0%, #0b1120 48%, #020617 100%);
+    linear-gradient(180deg, rgba(0, 46, 140, 0.9) 0%, rgba(0, 11, 68, 0.92) 50%, rgba(0, 46, 140, 0.9) 100%),
+    url("/images/branding/pagina1.svg") center center / cover no-repeat fixed;
   color: var(--text);
   font-family: var(--font-body), sans-serif;
   -webkit-font-smoothing: antialiased;

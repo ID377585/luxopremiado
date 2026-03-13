@@ -12,6 +12,15 @@ interface ReservationState {
   reservedNumbers: number[];
   amountCents: number;
   expiresAt: string | null;
+  vip?: {
+    originalAmountCents: number;
+    discountCents: number;
+    cashbackCents: number;
+    rakebackCents: number;
+    xpEarned: number;
+    benefitLevelId?: string | null;
+    benefitLabel?: string | null;
+  } | null;
 }
 
 interface StoredCheckoutState {
@@ -98,6 +107,9 @@ export function NumberPicker({
   const [statusMessage, setStatusMessage] = useState("");
   const [orderStatus, setOrderStatus] = useState<string>("-");
   const [countdown, setCountdown] = useState("--:--");
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [payLoading, setPayLoading] = useState(false);
+  const [liveToast, setLiveToast] = useState<string | null>(null);
   const prizeOptions = useMemo(
     () =>
       prizeConfigs && prizeConfigs.length
@@ -126,12 +138,7 @@ export function NumberPicker({
   }, [reservation?.expiresAt]);
 
   const selectedCount = reservation?.reservedNumbers.length ?? 0;
-  const filteredNumbers = useMemo(() => {
-    if (!selectedPrizeOrder) return numbers;
-    return numbers.filter(
-      (n) => n.prizeOrder === selectedPrizeOrder || (typeof n.prizeOrder === "undefined" && selectedPrizeOrder === 1),
-    );
-  }, [numbers, selectedPrizeOrder]);
+  const filteredNumbers = numbers;
 
   const selectedStats = useMemo(() => {
     if (prizeOptions && selectedPrizeOrder) {
@@ -227,6 +234,39 @@ export function NumberPicker({
     window.localStorage.setItem(checkoutStorageKey, JSON.stringify(payload));
   }, [checkoutStorageKey, isAuthenticated, isExpired, isPaid, orderStatus, reservation]);
 
+  // Toast de atividade recente
+  useEffect(() => {
+    let active = true;
+    let lastId: string | null = null;
+
+    const fetchActivity = async () => {
+      try {
+        const res = await fetch(`/api/raffles/${encodeURIComponent(raffleSlug)}/recent-activity?limit=1`, {
+          cache: "no-store",
+        });
+        if (!res.ok) return;
+        const json = (await res.json()) as { activities?: Array<{ id?: string; quantity: number; updatedAt: string }> };
+        const sale = json.activities?.[0];
+        if (!active || !sale) return;
+        const candidateId = sale.id ?? `${sale.updatedAt}-${sale.quantity}`;
+        if (candidateId === lastId) return;
+        lastId = candidateId;
+        const minutesAgo = Math.max(0, Math.round((Date.now() - Date.parse(sale.updatedAt)) / 60000));
+        setLiveToast(`Alguém comprou ${sale.quantity} número(s) há ${minutesAgo} min`);
+        window.setTimeout(() => setLiveToast(null), 5500);
+      } catch {
+        /* ignore */
+      }
+    };
+
+    void fetchActivity();
+    const interval = window.setInterval(fetchActivity, 20_000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, [raffleSlug]);
+
   function handleReservationCreated(next: ReservationState) {
     setReservation(next);
     setOrderStatus("pending");
@@ -291,6 +331,68 @@ export function NumberPicker({
     }
   }, [reservation?.orderId]);
 
+  const cancelReservation = useCallback(async () => {
+    if (!reservation?.orderId) return;
+    setCancelLoading(true);
+    try {
+      const response = await fetch(`/api/orders/${encodeURIComponent(reservation.orderId)}/cancel`, {
+        method: "POST",
+        cache: "no-store",
+      });
+      const data = (await response.json()) as { error?: string; success?: boolean };
+
+      if (!response.ok || !data.success) {
+        setStatusMessage(data.error ?? "Não foi possível cancelar a reserva.");
+        return;
+      }
+
+      setReservation(null);
+      setOrderStatus("-");
+      setStatusMessage("Reserva cancelada e números liberados.");
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem(checkoutStorageKey);
+      }
+    } catch {
+      setStatusMessage("Erro ao cancelar a reserva. Tente novamente.");
+    } finally {
+      setCancelLoading(false);
+    }
+  }, [checkoutStorageKey, reservation?.orderId]);
+
+  const handleStartPayment = useCallback(async () => {
+    if (!reservation?.orderId) return;
+    setPayLoading(true);
+    setStatusMessage("");
+    try {
+      const res = await fetch("/api/payments/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: reservation.orderId,
+          provider: "mercadopago",
+          method: "card",
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error ?? "Não foi possível iniciar o pagamento.");
+      }
+      const payment = json.payment ?? json;
+      const url = payment?.checkoutUrl ?? payment?.checkout_url ?? null;
+      if (url) {
+        window.open(url, "_blank");
+        setStatusMessage("Abrimos o checkout em uma nova aba. Conclua o pagamento e depois atualize o status.");
+      } else {
+        setStatusMessage("Pagamento iniciado. Atualize o status para confirmar.");
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setStatusMessage(message);
+    } finally {
+      setPayLoading(false);
+    }
+  }, [reservation?.orderId]);
+
   useEffect(() => {
     if (!reservation?.orderId) {
       return;
@@ -307,14 +409,22 @@ export function NumberPicker({
   return (
     <section className={styles.section} id="escolher-numeros">
       <div className={styles.container}>
+        <div className={styles.probabilityCard} aria-live="polite">
+          <strong>Probabilidade</strong>
+          <p>
+            1 número = 1 em {selectedStats.availableNumbers + selectedStats.reservedNumbers + selectedStats.soldNumbers} chance.
+          </p>
+          <p>
+            Comprando {maxNumbersPerUser} (limite) você cobre{" "}
+            {(((maxNumbersPerUser / totalNumbers) * 100) || 0).toFixed(2)}% dos números deste prêmio.
+          </p>
+        </div>
+
         <header className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Escolher Números</h2>
-          <p className={styles.sectionSubtitle}>
-            Seleção manual ou pacotes aleatórios com reserva temporária automática para fechar no PIX.
-          </p>
           {prizeOptions && (
             <div className={styles.prizeSelectorRow}>
-              <label className={styles.prizeSelectorLabel}>
+              <label className={`${styles.prizeSelectorLabel} ${styles.prizeSelectorLabelHighlight}`}>
                 Escolha o prêmio para concorrer
                 <select
                   className={styles.prizeSelector}
@@ -344,12 +454,14 @@ export function NumberPicker({
               isAuthenticated={isAuthenticated}
               maxNumbersPerUser={maxNumbersPerUser}
               onReservationCreated={handleReservationCreated}
+              prizeOrder={selectedPrizeOrder}
               raffleId={raffleId}
               raffleSlug={raffleSlug}
               recommendedPackQty={recommendedPackQty}
               totalNumbers={totalNumbers}
             />
           </div>
+          {liveToast ? <div className={styles.liveToast}>{liveToast}</div> : null}
 
           <aside className={styles.card}>
             <h3 className={styles.cardTitle}>Checkout do participante</h3>
@@ -370,6 +482,24 @@ export function NumberPicker({
                 <span>Total</span>
                 <strong>{reservation ? formatBrl(reservation.amountCents) : "-"}</strong>
               </li>
+              {reservation?.vip?.discountCents ? (
+                <li className={styles.featureItem}>
+                  <span>Desconto VIP</span>
+                  <strong>-{formatBrl(reservation.vip.discountCents)}</strong>
+                </li>
+              ) : null}
+              {reservation?.vip?.cashbackCents ? (
+                <li className={styles.featureItem}>
+                  <span>Cashback previsto</span>
+                  <strong>{formatBrl(reservation.vip.cashbackCents)}</strong>
+                </li>
+              ) : null}
+              {reservation?.vip?.xpEarned ? (
+                <li className={styles.featureItem}>
+                  <span>XP desta compra</span>
+                  <strong>{reservation.vip.xpEarned.toLocaleString("pt-BR")} XP</strong>
+                </li>
+              ) : null}
               <li className={styles.featureItem}>
                 <span>Tempo restante</span>
                 <strong>{countdown}</strong>
@@ -381,9 +511,16 @@ export function NumberPicker({
             </ul>
 
             <div className={styles.checkoutControls}>
-              <p className={styles.checkoutWarning}>
-                Pagamento temporariamente indisponível nesta etapa. Reserve seus números e acompanhe o status do pedido.
-              </p>
+              <div className={styles.paymentActions}>
+                <button
+                  className={styles.actionButton}
+                  disabled={!reservation?.orderId || isPaid || isExpired || payLoading}
+                  onClick={handleStartPayment}
+                  type="button"
+                >
+                  {payLoading ? "Abrindo checkout..." : "Iniciar pagamento"}
+                </button>
+              </div>
 
               <button
                 className={styles.actionButtonGhost}
@@ -392,6 +529,14 @@ export function NumberPicker({
                 type="button"
               >
                 {statusLoading ? "Consultando..." : "Atualizar status"}
+              </button>
+              <button
+                className={styles.actionButtonGhost}
+                disabled={!reservation?.orderId || cancelLoading || isPaid}
+                onClick={cancelReservation}
+                type="button"
+              >
+                {cancelLoading ? "Cancelando..." : "Cancelar reserva e liberar números"}
               </button>
             </div>
 
@@ -403,6 +548,12 @@ export function NumberPicker({
             ) : null}
 
             {statusMessage ? <p className={styles.liveMeta}>{statusMessage}</p> : null}
+            {reservation?.vip?.benefitLabel ? (
+              <p className={styles.liveMeta}>
+                Benefício ativo do seu nível: {reservation.vip.benefitLabel}
+                {reservation.vip.rakebackCents ? ` · Rakeback previsto ${formatBrl(reservation.vip.rakebackCents)}` : ""}
+              </p>
+            ) : null}
           </aside>
         </div>
       </div>

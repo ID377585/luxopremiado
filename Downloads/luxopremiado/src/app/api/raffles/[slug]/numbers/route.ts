@@ -32,6 +32,8 @@ export async function GET(request: NextRequest, context: RaffleNumbersRouteConte
   const pageSize = Math.min(500, Math.max(20, Number(request.nextUrl.searchParams.get("pageSize") ?? 200)));
   const includeStatsParam = request.nextUrl.searchParams.get("includeStats");
   const includeStats = includeStatsParam === "1" || includeStatsParam === "true" || page === 1;
+  const prizeOrderParam = request.nextUrl.searchParams.get("prizeOrder");
+  const prizeOrder = prizeOrderParam ? Number(prizeOrderParam) : null;
 
   if (!hasSupabaseEnv()) {
     if (!canUseDemoFallback()) {
@@ -64,7 +66,6 @@ export async function GET(request: NextRequest, context: RaffleNumbersRouteConte
 
   try {
     const { slug } = await context.params;
-    const offset = (page - 1) * pageSize;
 
     const supabase = await createSupabaseServerClient();
     let dataClient = supabase as unknown as SupabaseClient;
@@ -114,12 +115,47 @@ export async function GET(request: NextRequest, context: RaffleNumbersRouteConte
       return NextResponse.json({ error: "Rifa não encontrada." }, { status: 404 });
     }
 
+    const totalNumbersAll = Number(raffle.total_numbers ?? 0);
+    let rangeStart = 1;
+    let rangeEnd = totalNumbersAll;
+
+    if (prizeOrder && Number.isFinite(prizeOrder) && prizeOrder > 0) {
+      const { data: prizeConfigs } = await dataClient
+        .from("prize_configurations")
+        .select("prize_order, total_numbers")
+        .eq("raffle_slug", raffle.slug ?? slug)
+        .order("prize_order", { ascending: true });
+
+      if (prizeConfigs?.length) {
+        let cursor = 1;
+        for (const cfg of prizeConfigs) {
+          const order = Number(cfg.prize_order ?? 0);
+          const size =
+            typeof cfg.total_numbers === "number" && cfg.total_numbers > 0
+              ? Number(cfg.total_numbers)
+              : Math.max(1, Math.floor(totalNumbersAll / prizeConfigs.length));
+          const start = cursor;
+          const end = Math.min(cursor + size - 1, totalNumbersAll || start + size - 1);
+          if (order === prizeOrder) {
+            rangeStart = start;
+            rangeEnd = end;
+            break;
+          }
+          cursor = end + 1;
+        }
+      }
+    }
+
+    const rangeOffset = (page - 1) * pageSize;
+
     const rowsPromise = dataClient
       .from("v_raffle_numbers_public")
       .select("number, status")
       .eq("raffle_id", raffle.id)
+      .gte("number", rangeStart)
+      .lte("number", rangeEnd)
       .order("number", { ascending: true })
-      .range(offset, offset + pageSize - 1);
+      .range(rangeOffset, rangeOffset + pageSize - 1);
 
     let rowsResult = await rowsPromise;
 
@@ -128,16 +164,18 @@ export async function GET(request: NextRequest, context: RaffleNumbersRouteConte
         .from("raffle_numbers")
         .select("number, status")
         .eq("raffle_id", raffle.id)
+        .gte("number", rangeStart)
+        .lte("number", rangeEnd)
         .order("number", { ascending: true })
-        .range(offset, offset + pageSize - 1);
+        .range(rangeOffset, rangeOffset + pageSize - 1);
     }
 
     if (rowsResult.error) {
       return NextResponse.json({ error: rowsResult.error.message }, { status: 400 });
     }
 
-    const totalCount = Number(raffle.total_numbers ?? 0);
-    const cachedStats = includeStats ? getCachedRaffleStats(String(raffle.id)) : null;
+    const totalCount = rangeEnd - rangeStart + 1;
+    const cachedStats = includeStats && !prizeOrder ? getCachedRaffleStats(String(raffle.id)) : null;
     let soldCount = cachedStats?.sold ?? 0;
     let reservedCount = cachedStats?.reserved ?? 0;
 
@@ -147,12 +185,16 @@ export async function GET(request: NextRequest, context: RaffleNumbersRouteConte
           .from("raffle_numbers")
           .select("id", { count: "exact", head: true })
           .eq("raffle_id", raffle.id)
-          .eq("status", "sold"),
+          .eq("status", "sold")
+          .gte("number", rangeStart)
+          .lte("number", rangeEnd),
         dataClient
           .from("raffle_numbers")
           .select("id", { count: "exact", head: true })
           .eq("raffle_id", raffle.id)
-          .eq("status", "reserved"),
+          .eq("status", "reserved")
+          .gte("number", rangeStart)
+          .lte("number", rangeEnd),
       ]);
 
       if (soldCountResult.error) {
@@ -165,12 +207,14 @@ export async function GET(request: NextRequest, context: RaffleNumbersRouteConte
 
       soldCount = Number(soldCountResult.count ?? 0);
       reservedCount = Number(reservedCountResult.count ?? 0);
-      setCachedRaffleStats({
-        raffleId: String(raffle.id),
-        total: totalCount,
-        sold: soldCount,
-        reserved: reservedCount,
-      });
+      if (!prizeOrder) {
+        setCachedRaffleStats({
+          raffleId: String(raffle.id),
+          total: totalCount,
+          sold: soldCount,
+          reserved: reservedCount,
+        });
+      }
     }
 
     const availableCount = Math.max(0, totalCount - soldCount - reservedCount);

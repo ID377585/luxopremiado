@@ -8,7 +8,7 @@ export default function PrivacyPage() {
 
       <section style={{ color: "#e2e8f0", display: "grid", gap: "1rem", lineHeight: 1.65, marginTop: "1.5rem" }}>
         <p>
-          Esta política descreve como o <strong>luxopremiado.com.br</strong> coleta, usa, armazena e protege dados
+          Esta política descreve como o <strong>bigodedasrifas.com</strong> coleta, usa, armazena e protege dados
           pessoais em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).
         </p>
 

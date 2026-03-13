@@ -5,10 +5,11 @@ import styles from "@/app/area-do-usuario/user-area.module.css";
 import { buildLandingPathForSlug } from "@/lib/raffle-slug";
 import { resolveAvailableRaffleSlug } from "@/lib/raffle-slug.server";
 import { getRaffleLandingData } from "@/lib/raffles";
-import { getSessionUser } from "@/lib/session";
+import { getSessionUser, isAdminUser } from "@/lib/session";
 
 export default async function UserAreaPage() {
   const user = await getSessionUser();
+  const isAdmin = user ? await isAdminUser(user.id, user.email) : false;
   const preferredSlug = await resolveAvailableRaffleSlug();
   let raffle: Awaited<ReturnType<typeof getRaffleLandingData>> | null = null;
 
@@ -34,7 +35,7 @@ export default async function UserAreaPage() {
 
       <section className={styles.layout}>
         <aside className={styles.showcase}>
-          <p className={styles.kicker}>Área VIP do Participante</p>
+          <p className={styles.kicker}>Área do Participante</p>
           <h1 className={styles.title}>
             {isLoggedIn
               ? `Olá, ${user?.name ?? user?.email}. Sua área está pronta para compra rápida.`
@@ -105,6 +106,11 @@ export default async function UserAreaPage() {
                 <Link className={styles.secondaryAction} href="/app/pagamentos">
                   VER PAGAMENTOS
                 </Link>
+                {isAdmin ? (
+                  <Link className={styles.secondaryAction} href="/app/configuracoes">
+                    ABRIR CONFIGURAÇÕES
+                  </Link>
+                ) : null}
                 <Link className={styles.secondaryAction} href={landingHref}>
                   VOLTAR PARA CAMPANHA
                 </Link>

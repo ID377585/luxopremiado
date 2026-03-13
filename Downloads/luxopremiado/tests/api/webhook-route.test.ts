@@ -16,8 +16,13 @@ vi.mock("@/lib/supabase/service", () => ({
   createSupabaseServiceClient: vi.fn(),
 }));
 
+vi.mock("@/lib/vip-runtime", () => ({
+  processVipRewardsForPaidOrder: vi.fn(async () => null),
+}));
+
 import { verifyAndParseWebhook } from "@/lib/payments/providers";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
+import { processVipRewardsForPaidOrder } from "@/lib/vip-runtime";
 
 import { POST } from "@/app/api/webhooks/[provider]/route";
 
@@ -124,5 +129,6 @@ describe("POST /api/webhooks/[provider]", () => {
       p_provider_reference: "evt_2",
       p_raw: { test: true },
     });
+    expect(processVipRewardsForPaidOrder).toHaveBeenCalledWith("order-2");
   });
 });

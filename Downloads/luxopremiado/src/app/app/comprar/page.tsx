@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { Checkout } from "@/components/raffle/Checkout";
 import { NumberPicker } from "@/components/raffle/NumberPicker";
@@ -13,10 +13,20 @@ interface BuyNumbersPageProps {
 export default async function BuyNumbersPage({ searchParams }: BuyNumbersPageProps) {
   const params = await searchParams;
   const user = await getSessionUser();
-  const slug = await resolveAvailableRaffleSlug(params.slug);
+  const requestedSlug = params.slug?.trim() || null;
+  const slug = await resolveAvailableRaffleSlug(requestedSlug);
   const pack = Number(params.pack ?? "0");
   const recommendedPackQty = Number.isFinite(pack) && [5, 10, 25, 50].includes(pack) ? pack : null;
   let raffle;
+
+  if (requestedSlug && requestedSlug !== slug) {
+    const nextParams = new URLSearchParams();
+    nextParams.set("slug", slug);
+    if (params.pack?.trim()) {
+      nextParams.set("pack", params.pack.trim());
+    }
+    redirect(`/app/comprar?${nextParams.toString()}`);
+  }
 
   try {
     raffle = await getRaffleLandingData(slug, {

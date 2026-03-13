@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import styles from "@/components/common/live-activity-popup.module.css";
+import { getDefaultRaffleSlug } from "@/lib/raffle-slug";
 
 type Scope = "login" | "landing";
 
@@ -21,14 +22,11 @@ interface ActivityItem {
   icon: string;
 }
 
-function buildInitialFeed(): ActivityItem[] {
-  return [];
-}
-
 export function LiveActivityPopup({ scope = "landing" }: LiveActivityPopupProps) {
-  const [isVisible, setIsVisible] = useState(false);
   // Start empty to avoid SSR/client mismatch; hydrate content after mount.
   const [items, setItems] = useState<ActivityItem[]>([]);
+  const isVisible = items.length > 0;
+  const raffleSlug = getDefaultRaffleSlug();
 
   // First paint after mount, and whenever scope changes
   // Fetch real recent purchases periodically
@@ -36,7 +34,7 @@ export function LiveActivityPopup({ scope = "landing" }: LiveActivityPopupProps)
     let active = true;
     const fetchActivity = async () => {
       try {
-        const res = await fetch(`/api/raffles/luxo-premiado/recent-activity`, { cache: "no-store" });
+        const res = await fetch(`/api/raffles/${encodeURIComponent(raffleSlug)}/recent-activity`, { cache: "no-store" });
         if (!res.ok) return;
         const json = (await res.json()) as {
           activities?: Array<{ buyerName: string; quantity: number; updatedAt: string }>;
@@ -51,7 +49,6 @@ export function LiveActivityPopup({ scope = "landing" }: LiveActivityPopupProps)
           icon: "🎟️",
         }));
         setItems(mapped);
-        setIsVisible(true);
       } catch {
         // ignore
       }
@@ -62,17 +59,14 @@ export function LiveActivityPopup({ scope = "landing" }: LiveActivityPopupProps)
       active = false;
       window.clearInterval(interval);
     };
-  }, [scope]);
+  }, [raffleSlug, scope]);
 
   // Auto-hide each batch after ~2s
   useEffect(() => {
     if (items.length === 0) {
-      setIsVisible(false);
       return;
     }
-    setIsVisible(true);
     const timeout = window.setTimeout(() => {
-      setIsVisible(false);
       setItems([]);
     }, 3_000);
     return () => window.clearTimeout(timeout);

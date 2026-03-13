@@ -24,7 +24,7 @@ begin
     'luxo-premiado',
     'Jeep Compass Série S 0km',
     'Campanha oficial Luxo Premiado com compra de números e sorteio auditável.',
-    '/images/prize/compass-main.svg',
+    '/images/prize/compass-1.svg',
     1990,
     10000,
     50,

@@ -22,7 +22,7 @@ export function Packages({ packages, raffleSlug }: PackagesProps) {
         <header className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Leve mais números e aumente suas chances</h2>
           <p className={styles.sectionSubtitle}>
-            Compare com a compra avulsa, economize por número e acelere sua subida no ranking de compradores.
+            Pacotes valem apenas para o 1º prêmio: economize por número e suba no ranking focando no prêmio principal.
           </p>
         </header>
 

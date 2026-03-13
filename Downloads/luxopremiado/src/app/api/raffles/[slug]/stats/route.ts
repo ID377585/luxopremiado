@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { getDefaultRaffleSlug } from "@/lib/raffle-slug";
+import { resolveAvailableRaffleSlug } from "@/lib/raffle-slug.server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 
 export async function GET(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
   const { slug: rawSlug } = await context.params;
-  const slug = rawSlug?.trim() || getDefaultRaffleSlug();
+  const slug = await resolveAvailableRaffleSlug(rawSlug?.trim() || null);
   const supabase = createSupabaseServiceClient();
 
   // Resolve raffle id

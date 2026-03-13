@@ -24,9 +24,14 @@ vi.mock("@/lib/supabase/server", () => ({
   createSupabaseServerClient: vi.fn(),
 }));
 
+vi.mock("@/lib/vip-runtime", () => ({
+  applyVipBenefitsToOrder: vi.fn(async () => null),
+}));
+
 import { attachAffiliateToOrder } from "@/lib/affiliates";
 import { enforceAntiBot } from "@/lib/security/anti-bot";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { applyVipBenefitsToOrder } from "@/lib/vip-runtime";
 
 import { POST } from "@/app/api/raffles/[slug]/reserve/route";
 
@@ -50,6 +55,7 @@ describe("POST /api/raffles/[slug]/reserve", () => {
     });
 
     mockGetUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
+    vi.mocked(applyVipBenefitsToOrder).mockResolvedValue(null);
   });
 
   it("retorna erro de concorrência quando os números já foram reservados", async () => {
@@ -133,5 +139,6 @@ describe("POST /api/raffles/[slug]/reserve", () => {
     expect(payload.reservation?.orderId).toBe("order-1");
     expect(payload.reservation?.reservedNumbers).toEqual([7, 8]);
     expect(attachAffiliateToOrder).toHaveBeenCalledWith("order-1", "afiliado1");
+    expect(applyVipBenefitsToOrder).toHaveBeenCalledWith({ orderId: "order-1", userId: "user-1" });
   });
 });

@@ -13,7 +13,6 @@ export function FAQ({ items }: FAQProps) {
       <div className={styles.container}>
         <header className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Dúvidas rápidas</h2>
-          <p className={styles.sectionSubtitle}>Perguntas objetivas sobre compra, sorteio e confirmação.</p>
         </header>
 
         <ul className={styles.faqList}>

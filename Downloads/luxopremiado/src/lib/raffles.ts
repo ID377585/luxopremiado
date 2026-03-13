@@ -221,6 +221,7 @@ export async function getRaffleLandingData(
 
     const [
       imagesResult,
+      prizeConfigResult,
       numbersResult,
       socialProofResult,
       faqResult,
@@ -228,8 +229,6 @@ export async function getRaffleLandingData(
       rankingResult,
       soldCountResult,
       reservedCountResult,
-      prizeConfigResult,
-      prizeStatusResult,
     ] =
       await withTimeout(
         Promise.all([
@@ -240,13 +239,15 @@ export async function getRaffleLandingData(
             .order("sort_order", { ascending: true }),
           dataClient
             .from("prize_configurations")
-            .select("prize_order, prize_label, prize_value_cents, image_url, total_numbers, draw_date, lucky_number")
+            .select(
+              "prize_order, prize_label, prize_value_cents, prize_value_label, image_url, total_numbers, total_numbers_label, draw_date, draw_date_label, lucky_number, lucky_number_label, year_model_label, year_model_value, motor_label, motor_value, guarantee_label, guarantee_value, delivery_label, delivery_value",
+            )
             .eq("raffle_slug", resolvedSlug)
             .order("prize_order", { ascending: true })
             .limit(3),
           dataClient
             .from("v_raffle_numbers_public")
-            .select("number, status, prize_order")
+            .select("number, status")
             .eq("raffle_id", raffle.id)
             .order("number", { ascending: true })
             .limit(200),
@@ -280,7 +281,6 @@ export async function getRaffleLandingData(
                 .select("id", { count: "exact", head: true })
                 .eq("raffle_id", raffle.id)
                 .eq("status", "reserved"),
-          dataClient.from("raffle_numbers").select("number, status").eq("raffle_id", raffle.id),
         ]),
         timeoutMs,
         "raffles.aggregate_queries",
@@ -291,11 +291,11 @@ export async function getRaffleLandingData(
           dateStyle: "short",
           timeStyle: "short",
         })
-      : fallbackRaffleData.hero.drawDateLabel;
+      : fallbackRaffleData.hero.drawDateLabel.replace(/^Sorteio:\s*/i, "");
     const soldNumbers = Number(soldCountResult.count ?? fallbackRaffleData.stats.soldNumbers);
     const reservedNumbers = Number(reservedCountResult.count ?? fallbackRaffleData.stats.reservedNumbers);
     const totalNumbers = Number(raffle.total_numbers ?? fallbackRaffleData.totalNumbers);
-    const unitPriceCents = Number(raffle.price_cents ?? 1990);
+
     const availableNumbers = Math.max(0, totalNumbers - soldNumbers - reservedNumbers);
 
     if (!cachedStats) {
@@ -306,12 +306,52 @@ export async function getRaffleLandingData(
         reserved: reservedNumbers,
       });
     }
+    type PrizeConfigRow = {
+      prize_order?: number | null;
+      prize_label?: string | null;
+      prize_value_cents?: number | null;
+      prize_value_label?: string | null;
+      image_url?: string | null;
+      total_numbers?: number | null;
+      total_numbers_label?: string | null;
+      draw_date?: string | null;
+      draw_date_label?: string | null;
+      lucky_number?: number | null;
+      lucky_number_label?: string | null;
+      year_model_label?: string | null;
+      year_model_value?: string | null;
+      motor_label?: string | null;
+      motor_value?: string | null;
+      guarantee_label?: string | null;
+      guarantee_value?: string | null;
+      delivery_label?: string | null;
+      delivery_value?: string | null;
+    };
+
+    type RaffleNumberPublicRow = { number: number; status: string };
+    type FaqRow = { question?: string | null; answer?: string | null };
+    type TransparencyRow = {
+      draw_method?: string | null;
+      organizer_name?: string | null;
+      organizer_doc?: string | null;
+      contact?: string | null;
+      rules?: string | null;
+    };
+
     const socialRows = (socialProofResult.data ?? []) as Array<Record<string, unknown>>;
     const testimonialRows = socialRows.filter((item) => item.type !== "winner");
     const winnerRows = socialRows.filter((item) => item.type === "winner");
 
-    const prizeConfigs = Array.isArray((prizeConfigResult as any)?.data) ? (prizeConfigResult as any).data : [];
-    let resolvedPrizeConfigs = prizeConfigs as Array<Record<string, unknown>>;
+    const extractArray = <T>(res: { data?: unknown }): T[] =>
+      res && Array.isArray((res as { data?: unknown }).data) ? ((res as { data: unknown[] }).data as T[]) : [];
+
+    const prizeConfigs = extractArray<PrizeConfigRow>(prizeConfigResult as { data?: unknown });
+    let resolvedPrizeConfigs: PrizeConfigRow[] = prizeConfigs;
+
+    const numberRows = extractArray<RaffleNumberPublicRow>(numbersResult as { data?: unknown });
+    const rankingRows = extractArray<BuyerRankingRow>(rankingResult as { data?: unknown });
+    const faqRows = extractArray<FaqRow>(faqResult as { data?: unknown });
+    const transparencyData = (transparencyResult?.data ?? null) as TransparencyRow | null;
 
     const soldByPrizeMap = new Map<number, number>();
     const reservedByPrizeMap = new Map<number, number>();
@@ -379,7 +419,9 @@ export async function getRaffleLandingData(
         const serviceClient = createSupabaseServiceClient();
         const { data: servicePrizeConfigs } = await serviceClient
           .from("prize_configurations")
-          .select("prize_order, prize_label, prize_value_cents, image_url, total_numbers, draw_date, lucky_number")
+          .select(
+            "prize_order, prize_label, prize_value_cents, prize_value_label, image_url, total_numbers, total_numbers_label, draw_date, draw_date_label, lucky_number, lucky_number_label, year_model_label, year_model_value, motor_label, motor_value, guarantee_label, guarantee_value, delivery_label, delivery_value",
+          )
           .eq("raffle_slug", resolvedSlug)
           .order("prize_order", { ascending: true })
           .limit(3);
@@ -408,7 +450,16 @@ export async function getRaffleLandingData(
         ? configImages
         : raffleImagesFromDb ?? fallbackRaffleData.prize.images;
 
-    const transparencyData = (transparencyResult as any)?.data as Record<string, unknown> | null;
+    const primaryPrize = resolvedPrizeConfigs.find((p) => Number(p.prize_order ?? 0) === 1);
+    const primaryPrizeValueCents = Number(primaryPrize?.prize_value_cents ?? raffle.price_cents ?? 0);
+    const primaryPrizeTotalNumbers = Number(
+      primaryPrize?.total_numbers ?? raffle.total_numbers ?? fallbackRaffleData.totalNumbers,
+    );
+    const derivedUnitPriceCents =
+      primaryPrizeValueCents > 0 && primaryPrizeTotalNumbers > 0
+        ? Math.max(1, Math.round(primaryPrizeValueCents / primaryPrizeTotalNumbers))
+        : Number(raffle.price_cents ?? 1990);
+    const unitPriceCents = derivedUnitPriceCents;
 
     return {
       ...fallbackRaffleData,
@@ -440,9 +491,25 @@ export async function getRaffleLandingData(
                       ? (c.prize_label as string)
                       : `Prêmio ${c.prize_order}`,
                   prizeValueCents: typeof c.prize_value_cents === "number" ? Number(c.prize_value_cents) : 0,
+                  prizeValueLabel:
+                    typeof c.prize_value_label === "string" && c.prize_value_label.trim().length > 0
+                      ? (c.prize_value_label as string)
+                      : null,
                   totalNumbers: typeof c.total_numbers === "number" ? Number(c.total_numbers) : undefined,
+                  totalNumbersLabel:
+                    typeof c.total_numbers_label === "string" && c.total_numbers_label.trim().length > 0
+                      ? (c.total_numbers_label as string)
+                      : null,
                   drawDate: typeof c.draw_date === "string" ? (c.draw_date as string) : undefined,
+                  drawDateLabel:
+                    typeof c.draw_date_label === "string" && c.draw_date_label.trim().length > 0
+                      ? (c.draw_date_label as string)
+                      : null,
                   luckyNumber: typeof c.lucky_number === "number" ? Number(c.lucky_number) : undefined,
+                  luckyNumberLabel:
+                    typeof c.lucky_number_label === "string" && c.lucky_number_label.trim().length > 0
+                      ? (c.lucky_number_label as string)
+                      : null,
                   stats: (() => {
                     const order = Number(c.prize_order ?? 0);
                     if (!order) return undefined;
@@ -464,9 +531,17 @@ export async function getRaffleLandingData(
                     typeof c.motor_label === "string" && c.motor_label.trim().length > 0 ? (c.motor_label as string) : null,
                   motorValue:
                     typeof c.motor_value === "string" && c.motor_value.trim().length > 0 ? (c.motor_value as string) : null,
+                  guaranteeLabel:
+                    typeof c.guarantee_label === "string" && c.guarantee_label.trim().length > 0
+                      ? (c.guarantee_label as string)
+                      : null,
                   guaranteeValue:
                     typeof c.guarantee_value === "string" && c.guarantee_value.trim().length > 0
                       ? (c.guarantee_value as string)
+                      : null,
+                  deliveryLabel:
+                    typeof c.delivery_label === "string" && c.delivery_label.trim().length > 0
+                      ? (c.delivery_label as string)
                       : null,
                   deliveryValue:
                     typeof c.delivery_value === "string" && c.delivery_value.trim().length > 0
@@ -478,27 +553,33 @@ export async function getRaffleLandingData(
             : undefined,
         features: fallbackRaffleData.prize.features,
       },
-      numberTiles:
-        (Array.isArray((numbersResult as any)?.data)
-          ? ((numbersResult as any).data as Array<Record<string, unknown>>).map((item) => {
-              const num = Number(item.number);
-              const prizeOrderExplicit =
-                typeof item.prize_order === "number" && item.prize_order > 0 ? Number(item.prize_order) : null;
-              const derivedOrder =
-                prizeOrderExplicit ??
-                prizeRanges.find((range) => num >= range.start && num <= range.end)?.order ??
-                null;
-              return {
-                number: num,
-                status: normalizeNumberStatus(typeof item.status === "string" ? item.status : null),
-                prizeOrder: derivedOrder,
-              };
-            })
-          : null) ??
-        fallbackRaffleData.numberTiles,
+      numberTiles: (() => {
+        const mapped =
+          numberRows.length > 0
+            ? numberRows
+                .map((item) => {
+                  const num = Number(item.number);
+                  if (!Number.isFinite(num)) return null;
+                  const derivedOrder =
+                    prizeRanges.find((range) => num >= range.start && num <= range.end)?.order ?? null;
+                  return {
+                    number: num,
+                    status: normalizeNumberStatus(typeof item.status === "string" ? item.status : null),
+                    prizeOrder: derivedOrder,
+                  };
+                })
+                .filter((n): n is NonNullable<typeof n> => Boolean(n))
+            : null;
+
+        if (mapped && mapped.length > 0) {
+          return mapped;
+        }
+
+        return fallbackRaffleData.numberTiles;
+      })(),
       buyerRanking:
-        Array.isArray((rankingResult as any)?.data)
-          ? ((rankingResult as any).data as BuyerRankingRow[]).map((item) => ({
+        rankingRows.length > 0
+          ? rankingRows.map((item) => ({
               position: Number(item.position ?? 0),
               participant: String(item.participant ?? "Participante"),
               totalNumbers: Number(item.total_numbers ?? 0),
@@ -511,13 +592,19 @@ export async function getRaffleLandingData(
                       Number(item.total_numbers ?? 0),
                     ),
             }))
-          : fallbackRaffleData.buyerRanking,
+          : [],
       packages: buildPackageOffersForUnitPrice(unitPriceCents),
       stats: {
         availableNumbers,
         reservedNumbers,
         soldNumbers,
-        averagePerUser: fallbackRaffleData.stats.averagePerUser,
+        averagePerUser:
+          (soldNumbers + reservedNumbers) > 0 && typeof raffleWithOptionalLimit.max_numbers_per_user === "number"
+            ? Math.max(
+                0,
+                Number(((soldNumbers + reservedNumbers) / Math.max(1, raffleWithOptionalLimit.max_numbers_per_user)).toFixed(1)),
+              )
+            : 0,
       },
       socialProof:
         testimonialRows.length
@@ -556,9 +643,9 @@ export async function getRaffleLandingData(
           : fallbackRaffleData.winnerWall,
       retention: fallbackRaffleData.retention,
       faq:
-        Array.isArray((faqResult as any)?.data)
+        faqRows.length > 0
           ? mergeFaqItems(
-              ((faqResult as any).data as Array<Record<string, unknown>>).map((item) => ({
+              faqRows.map((item) => ({
                 question: typeof item.question === "string" ? item.question : "",
                 answer: typeof item.answer === "string" ? item.answer : "",
               })),

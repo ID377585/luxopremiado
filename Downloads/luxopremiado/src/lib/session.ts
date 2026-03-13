@@ -7,6 +7,8 @@ export interface SessionUser {
   name: string | null;
 }
 
+const ADMIN_EMAILS = new Set(["recovery.contas.mail@gmail.com"]);
+
 export async function getSessionUser(): Promise<SessionUser | null> {
   if (!hasSupabaseEnv()) {
     return null;
@@ -32,7 +34,15 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   };
 }
 
-export async function isAdminUser(userId: string): Promise<boolean> {
+export function hasAdminEmailAccess(email: string | null | undefined): boolean {
+  return Boolean(email && ADMIN_EMAILS.has(email.trim().toLowerCase()));
+}
+
+export async function isAdminUser(userId: string, email?: string | null): Promise<boolean> {
+  if (hasAdminEmailAccess(email)) {
+    return true;
+  }
+
   if (!hasSupabaseEnv()) {
     return false;
   }

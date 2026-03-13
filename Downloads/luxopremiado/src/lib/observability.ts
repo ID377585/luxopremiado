@@ -83,7 +83,7 @@ export async function emitAlert(title: string, detail: Record<string, unknown>) 
       body: JSON.stringify({
         title,
         detail,
-        source: "luxopremiado",
+        source: "bigodedasrifas",
         timestamp: new Date().toISOString(),
       }),
       cache: "no-store",

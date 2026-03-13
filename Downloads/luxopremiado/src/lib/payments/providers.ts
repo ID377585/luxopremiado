@@ -4,7 +4,7 @@ import Stripe from "stripe";
 
 import { getSiteUrl } from "@/lib/env";
 
-export type PaymentProviderName = "asaas" | "mercadopago" | "stripe";
+export type PaymentProviderName = "asaas" | "mercadopago" | "stripe" | "paypal";
 
 export interface PaymentProviderInput {
   provider: PaymentProviderName;
@@ -67,7 +67,7 @@ function sanitizeEmail(input?: string | null, userId?: string): string {
     return input;
   }
 
-  return `${(userId ?? "cliente").slice(0, 10)}@placeholder.luxopremiado.com.br`;
+  return `${(userId ?? "cliente").slice(0, 10)}@placeholder.bigodedasrifas.com`;
 }
 
 function sanitizeName(input?: string | null): string {
@@ -75,7 +75,84 @@ function sanitizeName(input?: string | null): string {
     return input.trim();
   }
 
-  return "Cliente Luxo Premiado";
+  return "Cliente Bigode das Rifas";
+}
+
+function getPayPalBaseUrl(): string {
+  if (process.env.PAYPAL_BASE_URL) return process.env.PAYPAL_BASE_URL;
+  return process.env.NODE_ENV === "production" ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com";
+}
+
+async function createPayPalPayment(input: PaymentProviderInput): Promise<PaymentProviderResult> {
+  if (input.method !== "card") {
+    throw new Error("PayPal: método inválido. Use 'card'.");
+  }
+
+  const clientId = requireEnv("PAYPAL_CLIENT_ID");
+  const clientSecret = requireEnv("PAYPAL_CLIENT_SECRET");
+  const baseUrl = getPayPalBaseUrl();
+
+  const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+  const tokenRes = await fetch(`${baseUrl}/v1/oauth2/token`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${basicAuth}`,
+    },
+    body: "grant_type=client_credentials",
+    cache: "no-store",
+  });
+
+  const tokenJson = (await tokenRes.json()) as { access_token?: string };
+  if (!tokenRes.ok || !tokenJson.access_token) {
+    throw new Error("PayPal: não foi possível obter token.");
+  }
+
+  const orderRes = await fetch(`${baseUrl}/v2/checkout/orders`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${tokenJson.access_token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      intent: "CAPTURE",
+      purchase_units: [
+        {
+          amount: {
+            currency_code: "BRL",
+            value: brlAmountFromCents(input.order.amount_cents).toFixed(2),
+          },
+          custom_id: input.order.id,
+        },
+      ],
+      application_context: {
+        return_url: buildSuccessUrl(input.order.id),
+        cancel_url: buildCancelUrl(input.order.id),
+        user_action: "PAY_NOW",
+      },
+    }),
+    cache: "no-store",
+  });
+
+  const orderJson = (await orderRes.json()) as JsonObject;
+  if (!orderRes.ok || !orderJson.id) {
+    throw new Error(`PayPal: erro ao criar ordem ${JSON.stringify(orderJson)}`);
+  }
+
+  const links = Array.isArray(orderJson.links) ? (orderJson.links as Array<{ rel?: string; href?: string }>) : [];
+  const approveUrl = links.find((l) => l.rel === "approve")?.href || undefined;
+
+  return {
+    providerReference: getStringFromStringOrNumber(orderJson.id) ?? randomUUID(),
+    checkoutUrl: approveUrl,
+    status: "pending",
+    raw: {
+      provider: "paypal",
+      orderId: orderJson.id,
+      status: orderJson.status,
+      links: orderJson.links,
+    },
+  };
 }
 
 function asObject(value: unknown): JsonObject | null {
@@ -115,7 +192,7 @@ async function createStripePayment(input: PaymentProviderInput): Promise<Payment
           unit_amount: input.order.amount_cents,
           product_data: {
             name: `Pedido ${input.order.id}`,
-            description: `Rifa ${input.order.raffle_id ?? "luxopremiado"}`,
+            description: `Campanha ${input.order.raffle_id ?? "bigodedasrifas"}`,
           },
         },
       },
@@ -315,7 +392,7 @@ async function createAsaasPayment(input: PaymentProviderInput): Promise<PaymentP
       method: "POST",
       body: JSON.stringify({
         name: `Pedido ${input.order.id}`,
-        description: `Rifa ${input.order.raffle_id ?? "luxopremiado"}`,
+        description: `Campanha ${input.order.raffle_id ?? "bigodedasrifas"}`,
         billingType: "UNDEFINED",
         chargeType: "DETACHED",
         value: brlAmountFromCents(input.order.amount_cents),
@@ -381,6 +458,10 @@ export async function createPaymentProvider(input: PaymentProviderInput): Promis
 
   if (input.provider === "mercadopago") {
     return createMercadoPagoPayment(input);
+  }
+
+  if (input.provider === "paypal") {
+    return createPayPalPayment(input);
   }
 
   if (input.provider === "asaas") {

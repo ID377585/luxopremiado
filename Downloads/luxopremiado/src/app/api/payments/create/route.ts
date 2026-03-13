@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { hasSupabaseEnv } from "@/lib/env";
+import { hasSupabaseEnv, isPaymentFlowEnabled } from "@/lib/env";
 import { getRequestId, logStructured, persistPlatformEvent } from "@/lib/observability";
 import { createPaymentProvider } from "@/lib/payments/providers";
 import { enforceAntiBot } from "@/lib/security/anti-bot";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { paymentSchema } from "@/lib/validators/payment";
+import { applyVipBenefitsToOrder } from "@/lib/vip-runtime";
 
 interface StoredPayment {
   id: string;
@@ -46,6 +47,16 @@ function mapStoredPayment(payment: StoredPayment) {
 
 export async function POST(request: NextRequest) {
   const requestId = getRequestId(request);
+
+  if (!isPaymentFlowEnabled()) {
+    return NextResponse.json(
+      {
+        error:
+          "Pagamento temporariamente indisponível nesta etapa. A reserva de números continua ativa.",
+      },
+      { status: 503 },
+    );
+  }
 
   if (!hasSupabaseEnv()) {
     return NextResponse.json(
@@ -123,8 +134,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Status inválido para pagamento" }, { status: 400 });
     }
 
+    const vipOrder = await applyVipBenefitsToOrder({ orderId: order.id, userId: user.id });
+    const payableOrder = vipOrder
+      ? {
+          ...order,
+          amount_cents: vipOrder.amountCents,
+        }
+      : order;
+
     const now = Date.now();
-    const expiresAtMs = order.expires_at ? Date.parse(String(order.expires_at)) : NaN;
+    const expiresAtMs = payableOrder.expires_at ? Date.parse(String(payableOrder.expires_at)) : NaN;
     if (Number.isFinite(expiresAtMs) && expiresAtMs <= now) {
       const serviceClient = createSupabaseServiceClient();
       await serviceClient
@@ -207,7 +226,7 @@ export async function POST(request: NextRequest) {
     const paymentResponse = await createPaymentProvider({
       provider: parsed.data.provider,
       method: parsed.data.method,
-      order,
+      order: payableOrder,
       customer: {
         email: authResult.data.user?.email ?? user.email ?? null,
         name: profileResult.data?.name ?? null,
@@ -287,20 +306,26 @@ export async function POST(request: NextRequest) {
       event_type: "payment_create_success",
       request_id: requestId,
       user_id: user.id,
-      order_id: order.id,
-      raffle_id: (order.raffle_id as string | null) ?? null,
+      order_id: payableOrder.id,
+      raffle_id: (payableOrder.raffle_id as string | null) ?? null,
       provider: parsed.data.provider,
       payload: {
         method: parsed.data.method,
         providerReference: paymentResponse.providerReference,
         status: paymentResponse.status,
+        amountCents: payableOrder.amount_cents,
+        vipDiscountCents: vipOrder?.discountCents ?? 0,
       },
     });
 
     return NextResponse.json({
       success: true,
       requestId,
-      payment: paymentResponse,
+      payment: {
+        ...paymentResponse,
+        amountCents: payableOrder.amount_cents,
+        vipDiscountCents: vipOrder?.discountCents ?? 0,
+      },
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erro inesperado";

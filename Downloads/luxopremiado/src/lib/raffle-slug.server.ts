@@ -5,7 +5,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { buildLandingPathForSlug, getDefaultRaffleSlug, normalizeRaffleSlug } from "@/lib/raffle-slug";
 
-const STATUS_PRIORITY = ["active", "draft", "closed", "drawn"] as const;
+const STATUS_PRIORITY = ["active", "closed", "drawn"] as const;
 
 interface RaffleSlugRow {
   slug: string | null;

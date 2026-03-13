@@ -7,6 +7,7 @@ import { resolveAvailableRaffleSlug } from "@/lib/raffle-slug.server";
 import { enforceAntiBot } from "@/lib/security/anti-bot";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { reserveSchema } from "@/lib/validators/reserve";
+import { applyVipBenefitsToOrder } from "@/lib/vip-runtime";
 
 interface ReserveRouteContext {
   params: Promise<{ slug: string }>;
@@ -105,6 +106,7 @@ export async function POST(request: NextRequest, context: ReserveRouteContext) {
     const reserveRow = Array.isArray(data) ? data[0] : data;
     const orderId = reserveRow?.order_id as string | undefined;
     const affiliateCode = parsed.data.affiliateCode ?? getAffiliateCodeFromRequest(request);
+    const vipOrder = orderId ? await applyVipBenefitsToOrder({ orderId, userId: user.id }) : null;
 
     if (orderId && affiliateCode) {
       await attachAffiliateToOrder(orderId, affiliateCode);
@@ -142,8 +144,19 @@ export async function POST(request: NextRequest, context: ReserveRouteContext) {
             reservedNumbers: Array.isArray(reserveRow.reserved_numbers)
               ? reserveRow.reserved_numbers.map((value: unknown) => Number(value))
               : [],
-            amountCents: Number(reserveRow.amount_cents ?? 0),
+            amountCents: vipOrder?.amountCents ?? Number(reserveRow.amount_cents ?? 0),
             expiresAt: (reserveRow.expires_at as string | null) ?? null,
+            vip: vipOrder
+              ? {
+                  originalAmountCents: vipOrder.originalAmountCents,
+                  discountCents: vipOrder.discountCents,
+                  cashbackCents: vipOrder.cashbackCents,
+                  rakebackCents: vipOrder.rakebackCents,
+                  xpEarned: vipOrder.xpEarned,
+                  benefitLevelId: vipOrder.benefitLevelId,
+                  benefitLabel: vipOrder.benefitLabel,
+                }
+              : null,
           }
         : null,
       data,

@@ -17,7 +17,7 @@ export default async function AdminLayout({
       redirect(`/login?error=${encodeURIComponent("Faça login para acessar o admin")}&next=${encodeURIComponent("/admin")}`);
     }
 
-    const isAdmin = await isAdminUser(user.id);
+    const isAdmin = await isAdminUser(user.id, user.email);
 
     if (!isAdmin) {
       redirect("/app");
@@ -28,7 +28,7 @@ export default async function AdminLayout({
     <main className={styles.dashboard}>
       <header className={styles.dashboardHeader}>
         <div>
-          <h1 className={styles.dashboardTitle}>Admin Luxo Premiado</h1>
+          <h1 className={styles.dashboardTitle}>Admin Bigode das Rifas</h1>
           <p className={styles.dashboardSubtitle}>Gerencie rifas, transparência e provas sociais.</p>
         </div>
         <nav className={styles.dashboardNav}>

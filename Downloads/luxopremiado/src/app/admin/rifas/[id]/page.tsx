@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import styles from "@/app/admin/admin.module.css";
+import { AuctionConfigForm } from "@/components/admin/AuctionConfigForm";
 import {
   createRaffleImageAction,
   deleteRaffleAction,
@@ -252,6 +253,11 @@ export default async function AdminRaffleDetailPage({
             ))
           )}
         </div>
+      </article>
+
+      <article className={styles.card}>
+        <h2 className={styles.cardTitle}>Leilão vinculado</h2>
+        <AuctionConfigForm raffleSlug={raffle.slug} />
       </article>
 
       <article className={styles.card}>

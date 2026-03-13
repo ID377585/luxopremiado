@@ -37,10 +37,6 @@ interface LiveStatsPayload {
   prizes: LivePrizeStat[];
 }
 
-function clampNumber(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value));
-}
-
 export function ProgressStats({ stats, totalNumbers, raffleSlug, prizeConfigs }: ProgressStatsProps) {
   const [pulse, setPulse] = useState<LiveUrgencyPulse>({ recentSold: null, minutesAgo: null, viewersNow: null });
   const [livePrizes, setLivePrizes] = useState<LivePrizeStat[] | null>(null);

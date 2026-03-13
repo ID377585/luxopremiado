@@ -21,6 +21,7 @@ interface NumberGridLiveProps {
   initialGlobalStats?: GlobalNumberStats;
   totalNumbers: number;
   maxNumbersPerUser: number;
+  prizeOrder: number | null;
   recommendedPackQty?: number | null;
   isAuthenticated?: boolean;
   onTurnstileTokenChange?: (token: string | null) => void;
@@ -120,6 +121,7 @@ export function NumberGridLive({
   initialGlobalStats,
   totalNumbers,
   maxNumbersPerUser,
+  prizeOrder,
   recommendedPackQty = null,
   isAuthenticated = false,
   onTurnstileTokenChange,
@@ -145,7 +147,7 @@ export function NumberGridLive({
   useEffect(() => {
     setNumbers(initialNumbers);
     setPage(1);
-  }, [initialNumbers]);
+  }, [initialNumbers, prizeOrder]);
 
   useEffect(() => {
     setGlobalStats(normalizeGlobalStats(initialGlobalStats, deriveGlobalStatsFromTiles(initialNumbers, totalNumbers)));
@@ -156,19 +158,15 @@ export function NumberGridLive({
   }, [onTurnstileTokenChange, turnstileToken]);
 
   useEffect(() => {
-    if (page === 1) {
-      setNumbers(initialNumbers);
-      setPageLoading(false);
-      return;
-    }
-
     const controller = new AbortController();
     setPageLoading(true);
 
     const fetchPage = async () => {
       try {
         const response = await fetch(
-          `/api/raffles/${encodeURIComponent(raffleSlug)}/numbers?page=${page}&pageSize=${pageSize}`,
+          `/api/raffles/${encodeURIComponent(raffleSlug)}/numbers?page=${page}&pageSize=${pageSize}${
+            prizeOrder ? `&prizeOrder=${prizeOrder}` : ""
+          }`,
           {
             method: "GET",
             cache: "no-store",
@@ -207,7 +205,12 @@ export function NumberGridLive({
     return () => {
       controller.abort();
     };
-  }, [initialNumbers, page, pageSize, raffleSlug]);
+  }, [page, pageSize, raffleSlug, prizeOrder]);
+
+  useEffect(() => {
+    setPage(1);
+    setNumbers([]);
+  }, [prizeOrder]);
 
   useEffect(() => {
     setSelectedNumbers((current) =>
@@ -329,6 +332,15 @@ export function NumberGridLive({
           reservedNumbers: number[];
           amountCents: number;
           expiresAt: string | null;
+          vip?: {
+            originalAmountCents: number;
+            discountCents: number;
+            cashbackCents: number;
+            rakebackCents: number;
+            xpEarned: number;
+            benefitLevelId?: string | null;
+            benefitLabel?: string | null;
+          } | null;
         } | null;
       };
 

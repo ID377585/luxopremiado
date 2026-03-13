@@ -11,7 +11,7 @@ export function Footer({ raffleSlug }: FooterProps) {
   return (
     <footer className={styles.footer} id="rodape">
       <div className={`${styles.container} ${styles.footerGrid}`}>
-        <p>© {new Date().getFullYear()} luxopremiado.com.br. Todos os direitos reservados.</p>
+        <p>© {new Date().getFullYear()} Bigode das Rifas. Todos os direitos reservados.</p>
         <nav className={styles.footerLinks}>
           <Link className={styles.footerLink} href="/termos">
             Termos
@@ -22,8 +22,8 @@ export function Footer({ raffleSlug }: FooterProps) {
           <Link className={styles.footerLink} href={buildLandingPathForSlug(raffleSlug, "transparencia")}>
             Transparência
           </Link>
-          <Link className={styles.footerLink} href="mailto:suporte@luxopremiado.com.br">
-            suporte@luxopremiado.com.br
+          <Link className={styles.footerLink} href="mailto:suporte@bigodedasrifas.com">
+            suporte@bigodedasrifas.com
           </Link>
         </nav>
       </div>

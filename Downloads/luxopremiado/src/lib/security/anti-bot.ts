@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 
 interface AntiBotOptions {
   request: NextRequest;
-  action: "reserve" | "payment";
+  action: "reserve" | "payment" | "auction";
   userId: string;
   botTrap?: string;
   turnstileToken?: string;
@@ -24,6 +24,7 @@ const USER_AGENT_BLOCKLIST = /(bot|crawler|spider|scrapy|curl|wget|python|httpcl
 const DEFAULT_LIMITS: Record<AntiBotOptions["action"], { max: number; windowMs: number }> = {
   reserve: { max: 30, windowMs: 60_000 },
   payment: { max: 12, windowMs: 60_000 },
+  auction: { max: 10, windowMs: 60_000 },
 };
 
 const globalStore = globalThis as typeof globalThis & {
@@ -52,6 +53,10 @@ function getUpstashRedis(): Redis | null {
   }
 
   return globalStore.__lpUpstashRedis;
+}
+
+function shouldBlockInMemoryFallback(): boolean {
+  return process.env.NODE_ENV === "production";
 }
 
 function clientIp(request: NextRequest): string {
@@ -90,8 +95,9 @@ async function rateLimit(options: {
 }): Promise<boolean> {
   const upstash = getUpstashRedis();
 
+  // If Upstash is available use it for consistent rate limiting across instances.
   if (upstash) {
-    const storageKey = `luxopremiado:antibot:${options.action}:${options.key}`;
+    const storageKey = `bigodedasrifas:antibot:${options.action}:${options.key}`;
     const count = Number(await upstash.incr(storageKey));
 
     if (count === 1) {
@@ -101,6 +107,14 @@ async function rateLimit(options: {
     return count <= options.max;
   }
 
+  // In production we must NOT fallback to the in-memory store because it is
+  // instance-local and causes inconsistent protections across horizontally
+  // scaled deployments. Deny when Upstash is not configured in production.
+  if (process.env.NODE_ENV === "production") {
+    return false;
+  }
+
+  // For non-production (dev/test) environments, fallback to in-memory for convenience.
   return rateLimitInMemory(`${options.action}:${options.key}`, options.max, options.windowMs);
 }
 
@@ -158,6 +172,14 @@ export async function enforceAntiBot(options: AntiBotOptions): Promise<AntiBotRe
   const ip = clientIp(options.request);
   const limits = DEFAULT_LIMITS[options.action];
 
+  if (shouldBlockInMemoryFallback() && !getUpstashRedis()) {
+    return {
+      ok: false,
+      status: 503,
+      error: "Proteção anti-bot indisponível. Configure UPSTASH_REDIS_REST_URL e UPSTASH_REDIS_REST_TOKEN.",
+    };
+  }
+
   const allowed = await rateLimit({
     key: `${options.userId}:${ip}`,
     action: options.action,
@@ -174,7 +196,7 @@ export async function enforceAntiBot(options: AntiBotOptions): Promise<AntiBotRe
   }
 
   const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
-  if (turnstileSecret && (options.action === "reserve" || options.action === "payment")) {
+  if (turnstileSecret && options.action === "reserve") {
     const validToken = await verifyTurnstileToken(options.turnstileToken ?? "", ip);
 
     if (!validToken) {

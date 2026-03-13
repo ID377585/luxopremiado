@@ -54,7 +54,7 @@ export async function GET(_: NextRequest, context: ActiveCheckoutRouteContext) {
       const { data: candidates } = await serviceClient
         .from("raffles")
         .select(raffleSelect)
-        .in("status", ["active", "draft", "closed", "drawn"])
+        .in("status", ["active", "closed", "drawn"])
         .order("created_at", { ascending: false })
         .limit(24);
 
@@ -69,7 +69,7 @@ export async function GET(_: NextRequest, context: ActiveCheckoutRouteContext) {
 
     const { data: order, error: orderError } = await serviceClient
       .from("orders")
-      .select("id, raffle_id, status, amount_cents, expires_at, created_at")
+      .select("id, raffle_id, status, amount_cents, expires_at, created_at, vip_original_amount_cents, vip_discount_cents, vip_cashback_cents, vip_rakeback_cents, vip_xp_earned, vip_benefit_level_id")
       .eq("user_id", user.id)
       .eq("raffle_id", raffle.id)
       .in("status", ["pending", "paid"])
@@ -114,6 +114,19 @@ export async function GET(_: NextRequest, context: ActiveCheckoutRouteContext) {
           reservedNumbers: (linkedNumbers ?? []).map((item) => Number(item.number)),
           amountCents: Number(order.amount_cents ?? 0),
           expiresAt: (order.expires_at as string | null) ?? null,
+          vip:
+            Number(order.vip_discount_cents ?? 0) > 0 ||
+            Number(order.vip_cashback_cents ?? 0) > 0 ||
+            Number(order.vip_rakeback_cents ?? 0) > 0
+              ? {
+                  originalAmountCents: Number(order.vip_original_amount_cents ?? order.amount_cents ?? 0),
+                  discountCents: Number(order.vip_discount_cents ?? 0),
+                  cashbackCents: Number(order.vip_cashback_cents ?? 0),
+                  rakebackCents: Number(order.vip_rakeback_cents ?? 0),
+                  xpEarned: Number(order.vip_xp_earned ?? 0),
+                  benefitLevelId: typeof order.vip_benefit_level_id === "string" ? order.vip_benefit_level_id : null,
+                }
+              : null,
         },
         orderStatus: computedStatus,
         latestPayment: latestPayment?.provider_reference
