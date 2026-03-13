@@ -7,26 +7,37 @@ import styles from "@/components/raffle/sections.module.css";
 const primaryItems: Array<{ label: string; href: string; icon?: "lock" }> = [
   { label: "Início", href: "#inicio" },
   { label: "Prêmio", href: "#premio" },
+];
+
+const baseQuickMenuItems: Array<{ label: string; href: string; icon?: "lock" }> = [
   { label: "Como Funciona", href: "#como-funciona" },
   { label: "Ranking", href: "#ranking-compradores" },
   { label: "Vencedores", href: "#prova-social" },
   { label: "Transparência", href: "#transparencia" },
   { label: "Alertas", href: "#alertas" },
   { label: "FAQ", href: "#faq" },
-  { label: "Área do Usuário", href: "/area-do-usuario", icon: "lock" },
-];
-
-const quickMenuItems: Array<{ label: string; href: string }> = [
   { label: "Escolher Números", href: "/app/comprar" },
   { label: "Pacotes", href: "#pacotes" },
   { label: "Pagamento", href: "/app/comprar#pagamento" },
   { label: "Prova Social", href: "#prova-social" },
-  { label: "Alertas", href: "#alertas" },
 ];
 
-export function TopMenu() {
+interface TopMenuProps {
+  userAreaHref?: string;
+  userAreaLabel?: string;
+}
+
+export function TopMenu({
+  userAreaHref = "/area-do-usuario",
+  userAreaLabel = "Área do Usuário",
+}: TopMenuProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLElement | null>(null);
+  const quickMenuItems = [
+    ...baseQuickMenuItems.slice(0, 6),
+    { label: userAreaLabel, href: userAreaHref, icon: "lock" as const },
+    ...baseQuickMenuItems.slice(6),
+  ];
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -110,10 +121,7 @@ export function TopMenu() {
           </button>
         </nav>
 
-        <div
-          className={`${styles.topMenuDrawer} ${isMenuOpen ? styles.topMenuDrawerOpen : ""}`}
-          id="menu-rapido-campanha"
-        >
+        <div className={`${styles.topMenuDrawer} ${isMenuOpen ? styles.topMenuDrawerOpen : ""}`} id="menu-rapido-campanha">
           {quickMenuItems.map((item) => (
             <a
               className={styles.topMenuDrawerLink}
@@ -121,6 +129,33 @@ export function TopMenu() {
               key={item.href}
               onClick={() => setIsMenuOpen(false)}
             >
+              {item.icon === "lock" ? (
+                <svg
+                  aria-hidden
+                  className={styles.topMenuLock}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M8 10V7.75C8 5.679 9.679 4 11.75 4H12.25C14.321 4 16 5.679 16 7.75V10"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.9"
+                  />
+                  <rect
+                    height="9"
+                    rx="2"
+                    stroke="currentColor"
+                    strokeLinejoin="round"
+                    strokeWidth="1.9"
+                    width="12"
+                    x="6"
+                    y="10"
+                  />
+                </svg>
+              ) : null}
               {item.label}
             </a>
           ))}
