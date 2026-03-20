@@ -3,16 +3,31 @@ import styles from "@/components/raffle/sections.module.css";
 
 interface FAQProps {
   items: FaqItem[];
+  limit?: number;
+  title?: string;
+  subtitle?: string;
+  id?: string;
+  ctaLabel?: string;
+  ctaHref?: string;
 }
 
-export function FAQ({ items }: FAQProps) {
-  const quickItems = items.slice(0, 4);
+export function FAQ({
+  items,
+  limit = 4,
+  title = "Dúvidas rápidas",
+  subtitle,
+  id = "faq",
+  ctaLabel = "ESCOLHER NÚMEROS AGORA",
+  ctaHref = "/app/comprar",
+}: FAQProps) {
+  const quickItems = limit > 0 ? items.slice(0, limit) : items;
 
   return (
-    <section className={styles.section} id="faq">
+    <section className={styles.section} id={id}>
       <div className={styles.container}>
         <header className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Dúvidas rápidas</h2>
+          <h2 className={styles.sectionTitle}>{title}</h2>
+          {subtitle ? <p className={styles.sectionSubtitle}>{subtitle}</p> : null}
         </header>
 
         <ul className={styles.faqList}>
@@ -30,9 +45,11 @@ export function FAQ({ items }: FAQProps) {
             </li>
           ))}
         </ul>
-        <a className={styles.faqCta} href="/app/comprar">
-          ESCOLHER NÚMEROS AGORA
-        </a>
+        {ctaLabel && ctaHref ? (
+          <a className={styles.faqCta} href={ctaHref}>
+            {ctaLabel}
+          </a>
+        ) : null}
       </div>
     </section>
   );

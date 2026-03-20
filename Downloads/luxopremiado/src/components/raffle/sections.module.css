@@ -2076,6 +2076,739 @@
   white-space: nowrap;
 }
 
+.highlightGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.highlightCard {
+  background: rgba(2, 6, 23, 0.75);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  box-shadow: 0 14px 30px rgba(2, 6, 23, 0.4);
+}
+
+.highlightIcon {
+  font-size: 1.6rem;
+}
+
+.highlightTitle {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.highlightText {
+  color: #cbd5e1;
+  margin: 0;
+}
+
+.modalityGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.modalityCard {
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  background: rgba(2, 6, 23, 0.65);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.modalityLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+  margin: 0;
+  color: #fbbf24;
+}
+
+.modalityTitle {
+  margin: 0;
+  font-size: 1rem;
+  color: #f8fafc;
+}
+
+.modalityCta {
+  align-self: flex-start;
+  color: #0f172a;
+  border-radius: 0.75rem;
+  background: #fbbf24;
+  padding: 0.45rem 1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+}
+
+.campaignGrid {
+  margin-top: 2rem;
+  display: grid;
+  gap: 1.2rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.campaignCard {
+  background: rgba(2, 6, 23, 0.78);
+  border-radius: 1rem;
+  padding: 1.2rem 1.3rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-height: 280px;
+}
+
+.campaignLabel {
+  font-size: 0.75rem;
+  color: #fef3c7;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.campaignTitle {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.campaignBlurb {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 0.95rem;
+}
+
+.campaignMeta {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.campaignProgress {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.campaignProgressTrack {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.3);
+  overflow: hidden;
+}
+
+.campaignProgressFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(140deg, #facc15, #f97316);
+}
+
+.campaignProgressValue {
+  font-size: 0.8rem;
+  color: #fef3c7;
+}
+
+.campaignCta {
+  margin-top: auto;
+  align-self: flex-start;
+  color: #0f172a;
+  background: #fbbf24;
+  border-radius: 0.75rem;
+  padding: 0.45rem 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+
+.benefitsGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.benefitCard {
+  border-radius: 1rem;
+  padding: 1.25rem;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.benefitIcon {
+  font-size: 1.4rem;
+}
+
+.winnerGallery {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.winnerCardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.winnerCard {
+  border-radius: 1rem;
+  background: rgba(2, 6, 23, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 320px;
+}
+
+.winnerImageWrap {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.winnerImage {
+  object-fit: cover;
+}
+
+.winnerMeta {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.winnerName {
+  margin: 0;
+  font-weight: 700;
+}
+
+.winnerPrize {
+  margin: 0;
+  color: #f8fafc;
+}
+
+.winnerCity,
+.winnerVerified {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 0.85rem;
+}
+
+.sectionCta {
+  margin-top: 1rem;
+  display: inline-flex;
+  background: #fbbf24;
+  color: #0f172a;
+  text-transform: uppercase;
+  padding: 0.55rem 1.1rem;
+  border-radius: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.processPreviewGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.processPreviewCard {
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  padding: 1.2rem;
+}
+
+.vipCallout {
+  background: rgba(10, 20, 56, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 1.2rem;
+}
+
+.vipCalloutGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 1rem;
+}
+
+.vipCalloutText {
+  color: #cbd5e1;
+  margin-bottom: 1rem;
+}
+
+.primaryCta {
+  border-radius: 0.8rem;
+  padding: 0.55rem 1.2rem;
+  background: var(--gold-sheen);
+  border: 2px solid rgba(231, 193, 97, 0.7);
+  color: #0f0a05;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.secondaryCta {
+  border-radius: 0.7rem;
+  padding: 0.5rem 1rem;
+  background: rgba(148, 163, 184, 0.2);
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  color: #e2e8f0;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.vipLevelsGrid {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.vipLevelCard {
+  border-radius: 0.9rem;
+  padding: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(2, 6, 23, 0.8);
+}
+
+.vipLevelTitle {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.vipLevelPerks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: #cbd5e1;
+  font-size: 0.9rem;
+}
+
+.callToAction {
+  background: rgba(15, 23, 42, 0.65);
+}
+
+.ctaShell {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(15, 118, 110, 0.6));
+}
+
+.ctaLabel {
+  margin: 0;
+  color: #fef3c7;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+}
+
+.ctaTitle {
+  margin: 0.25rem 0 0;
+  color: #fff7ed;
+  font-size: 1.5rem;
+}
+
+.rifasSection {
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.7), rgba(2, 6, 23, 0.9));
+  border-radius: 1.2rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.rifasFilters {
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.rifasFilterButton {
+  background: rgba(148, 163, 184, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 0.7rem;
+  padding: 0.45rem 0.9rem;
+  color: #e2e8f0;
+  font-size: 0.85rem;
+}
+
+.rifaCardsGrid {
+  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.rifaCard {
+  background: rgba(2, 6, 23, 0.75);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 1rem;
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.rifaCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.rifaBadge {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #fbbf24;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.rifaStatus {
+  font-size: 0.8rem;
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+
+.rifaPrice {
+  color: #fef3c7;
+  margin: 0;
+  font-weight: 700;
+}
+
+.rifaMeta {
+  color: #94a3b8;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.rifaProgressBar {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.3);
+  overflow: hidden;
+}
+
+.rifaProgressFill {
+  height: 100%;
+  background: linear-gradient(120deg, #fbbf24, #f97316);
+}
+
+.rifaStats {
+  color: #cbd5e1;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.rifasFaqGrid {
+  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.rifasFaqCard {
+  border-radius: 1rem;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.auctionSection {
+  background: rgba(15, 23, 42, 0.7);
+  border-radius: 1.2rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.auctionLayout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.auctionMain {
+  background: rgba(2, 6, 23, 0.8);
+  border-radius: 1rem;
+  padding: 0.8rem;
+}
+
+.auctionSidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.auctionSidebarCard {
+  background: rgba(2, 6, 23, 0.75);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.auctionRules {
+  margin: 0.4rem 0 0;
+  padding-left: 1rem;
+  color: #cbd5e1;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.experiencesSection {
+  background: rgba(10, 10, 54, 0.85);
+  border-radius: 1.2rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.experiencesGrid {
+  margin-top: 1.25rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.experienceCard {
+  background: rgba(15, 23, 42, 0.8);
+  border-radius: 1rem;
+  padding: 1.2rem;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.experienceBadge {
+  color: #fbbf24;
+  font-size: 0.7rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.experiencePrice {
+  font-weight: 700;
+  margin: 0;
+}
+
+.vipSection {
+  background: rgba(2, 6, 23, 0.85);
+  border-radius: 1.2rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.vipContentGrid {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.vipBenefitsGrid {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.vipBenefitCard {
+  background: rgba(15, 23, 42, 0.75);
+  border-radius: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.vipTestimonials {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.vipTestimonialCard {
+  background: rgba(15, 23, 42, 0.8);
+  border-radius: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.vipTestimonialText {
+  margin: 0;
+  color: #e2e8f0;
+}
+
+.vipTestimonialAuthor {
+  margin: 0.6rem 0 0;
+  color: #94a3b8;
+}
+
+.winnerSection {
+  background: rgba(2, 6, 23, 0.7);
+  border-radius: 1.2rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.winnerTimeline {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.winnerTimelineCard {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.8);
+  border-radius: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.winnerTimelinePrize,
+.winnerTimelineName,
+.winnerTimelineCity,
+.winnerTimelineDate {
+  margin: 0;
+}
+
+.winnerTimelinePrize {
+  font-weight: 700;
+}
+
+.winnerTimelineMedia {
+  width: 160px;
+  height: 110px;
+  position: relative;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.winnerTimelineImage {
+  object-fit: cover;
+}
+
+.supportSection {
+  background: rgba(5, 15, 32, 0.8);
+  border-radius: 1.2rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.supportGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.supportCard {
+  padding: 1.2rem;
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.supportChannels {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.supportChannelItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.supportChannelItem a {
+  color: #e2e8f0;
+  text-decoration: none;
+}
+
+.supportHours,
+.supportSafety {
+  margin: 0.5rem 0 0;
+  color: #cbd5e1;
+  font-size: 0.85rem;
+}
+
+.supportFaqGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.supportFaqCategory {
+  border-radius: 0.9rem;
+  padding: 0.8rem;
+  background: rgba(2, 6, 23, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.supportFaqTitle {
+  margin: 0 0 0.35rem;
+  font-weight: 600;
+}
+
+.supportFaqCategory ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  color: #cbd5e1;
+  font-size: 0.85rem;
+}
+
+.supportForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.supportForm label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  gap: 0.3rem;
+}
+
+.supportForm input,
+.supportForm textarea {
+  border-radius: 0.8rem;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: rgba(15, 23, 42, 0.6);
+  color: #f8fafc;
+  padding: 0.6rem 0.8rem;
+}
+
+.supportForm textarea {
+  resize: vertical;
+}
+
+
 @media (max-width: 1100px) {
   .heroGrid,
   .prizeGrid,
@@ -2099,6 +2832,34 @@
 
   .numbersGrid {
     grid-template-columns: repeat(auto-fill, minmax(142px, 1fr));
+  }
+
+  .highlightGrid,
+  .modalityGrid,
+  .campaignGrid,
+  .benefitsGrid,
+  .winnerCardsGrid,
+  .processPreviewGrid,
+  .vipCalloutGrid,
+  .vipContentGrid,
+  .vipLevelsGrid,
+  .rifaCardsGrid,
+  .supportGrid,
+  .experiencesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .auctionLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .ctaShell {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .winnerTimeline {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -2256,5 +3017,24 @@
   .footerGrid {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .auctionLayout,
+  .vipCalloutGrid,
+  .vipContentGrid,
+  .supportGrid,
+  .experiencesGrid,
+  .rifaCardsGrid,
+  .winnerCardsGrid,
+  .campaignGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .ctaShell {
+    padding: 1rem;
+  }
+
+  .supportForm {
+    gap: 0.6rem;
   }
 }

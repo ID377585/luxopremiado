@@ -5,21 +5,22 @@ import { useEffect, useRef, useState } from "react";
 import styles from "@/components/raffle/sections.module.css";
 
 const primaryItems: Array<{ label: string; href: string; icon?: "lock" }> = [
-  { label: "Início", href: "#inicio" },
-  { label: "Prêmio", href: "#premio" },
+  { label: "Home", href: "#inicio" },
+  { label: "Rifas", href: "#rifas" },
+  { label: "Leilões", href: "#leiloes" },
+  { label: "Experiências", href: "#experiencias" },
+  { label: "VIP", href: "#vip" },
+  { label: "Ganhadores", href: "#ganhadores" },
+  { label: "Como Funciona", href: "#como-funciona" },
+  { label: "Suporte", href: "#suporte" },
 ];
 
 const baseQuickMenuItems: Array<{ label: string; href: string; icon?: "lock" }> = [
-  { label: "Como Funciona", href: "#como-funciona" },
   { label: "Ranking", href: "#ranking-compradores" },
-  { label: "Vencedores", href: "#prova-social" },
   { label: "Transparência", href: "#transparencia" },
   { label: "Alertas", href: "#alertas" },
   { label: "FAQ", href: "#faq" },
   { label: "Escolher Números", href: "/app/comprar" },
-  { label: "Pacotes", href: "#pacotes" },
-  { label: "Pagamento", href: "/app/comprar#pagamento" },
-  { label: "Prova Social", href: "#prova-social" },
 ];
 
 interface TopMenuProps {
@@ -34,9 +35,8 @@ export function TopMenu({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLElement | null>(null);
   const quickMenuItems = [
-    ...baseQuickMenuItems.slice(0, 6),
     { label: userAreaLabel, href: userAreaHref, icon: "lock" as const },
-    ...baseQuickMenuItems.slice(6),
+    ...baseQuickMenuItems,
   ];
 
   useEffect(() => {
