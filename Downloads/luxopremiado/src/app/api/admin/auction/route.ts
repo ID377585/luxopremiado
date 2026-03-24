@@ -46,8 +46,34 @@ interface AuctionTimelineRow {
   created_at: string;
 }
 
+type WinnerStatus = "pending" | "contacted" | "paid" | "delivered" | "defaulted";
+
+const ALLOWED_TIMELINE_EVENT_TYPES = new Set<string>([
+  "bid",
+  "proxy_bid",
+  "auto_bid",
+  "opening",
+  "extended",
+  "paused",
+  "resumed",
+  "closed",
+  "settled",
+  "winner_contacted",
+  "winner_paid",
+  "winner_delivered",
+  "manual_update",
+]);
+
 function forbidden() {
   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+}
+
+function serverError(message: string) {
+  return NextResponse.json({ error: message }, { status: 500 });
+}
+
+function badRequest(message: string) {
+  return NextResponse.json({ error: message }, { status: 400 });
 }
 
 async function ensureAdmin() {
@@ -58,6 +84,37 @@ async function ensureAdmin() {
 
   const allowed = await isAdminUser(user.id, user.email);
   return allowed ? user : null;
+}
+
+function toStringOrNull(value: unknown): string | null {
+  return typeof value === "string" ? value : null;
+}
+
+function toTrimmedStringOrNull(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function toNumberOrNull(value: unknown): number | null {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function toNumber(value: unknown, fallback = 0): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function normalizeWinnerStatus(value: unknown): WinnerStatus {
+  return value === "contacted" ||
+    value === "paid" ||
+    value === "delivered" ||
+    value === "defaulted"
+    ? value
+    : "pending";
 }
 
 function averageBidIntervalSeconds(rows: AuctionBidRow[]): number | null {
@@ -86,6 +143,11 @@ function averageBidIntervalSeconds(rows: AuctionBidRow[]): number | null {
 function toAdminBidEntry(row: AuctionBidRow, currentBidCents: number): AuctionBidEntry {
   return {
     ...row,
+    bidder_user_id: row.bidder_user_id ?? null,
+    bidder_name: row.bidder_name ?? null,
+    bidder_contact: row.bidder_contact ?? null,
+    disqualified_at: row.disqualified_at ?? null,
+    disqualified_reason: row.disqualified_reason ?? null,
     is_leading: row.amount_cents === currentBidCents && !row.disqualified_at,
     is_viewer: false,
   };
@@ -93,7 +155,31 @@ function toAdminBidEntry(row: AuctionBidRow, currentBidCents: number): AuctionBi
 
 function normalizeTimelineEventType(value: unknown): AuctionTimelineEventType {
   const normalized = typeof value === "string" ? value.trim() : "";
-  return (normalized || "bid") as AuctionTimelineEventType;
+  const safeValue = normalized || "bid";
+  return (ALLOWED_TIMELINE_EVENT_TYPES.has(safeValue) ? safeValue : "bid") as AuctionTimelineEventType;
+}
+
+function mapAutoBidRow(row: AuctionAutoBidRow) {
+  return {
+    id: String(row.id),
+    bidder_user_id: row.bidder_user_id ?? null,
+    bidder_name: row.bidder_name ?? null,
+    bidder_contact: row.bidder_contact ?? null,
+    max_amount_cents: toNumber(row.max_amount_cents, 0),
+    is_active: Boolean(row.is_active),
+    created_at: String(row.created_at),
+  };
+}
+
+function mapTimelineRow(row: AuctionTimelineRow) {
+  return {
+    id: String(row.id),
+    type: normalizeTimelineEventType(row.event_type),
+    headline: typeof row.headline === "string" ? row.headline : "",
+    description: typeof row.description === "string" ? row.description : null,
+    amount_cents: toNumberOrNull(row.amount_cents),
+    created_at: String(row.created_at),
+  };
 }
 
 export async function GET(request: NextRequest) {
@@ -106,21 +192,22 @@ export async function GET(request: NextRequest) {
   const supabase = createSupabaseServiceClient();
 
   const auctionQuery = supabase.from("auctions").select("*").eq("raffle_slug", raffleSlug);
+
   let auctionRow: Record<string, unknown> | null = null;
-  let error: { message: string } | null = null;
+  let auctionError: { message: string } | null = null;
 
   if (slug) {
     const result = await auctionQuery.eq("slug", slug).maybeSingle();
     auctionRow = (result.data as Record<string, unknown> | null) ?? null;
-    error = result.error ? { message: result.error.message } : null;
+    auctionError = result.error ? { message: result.error.message } : null;
   } else {
     const result = await auctionQuery.order("updated_at", { ascending: false }).limit(1);
     auctionRow = (result.data?.[0] as Record<string, unknown> | undefined) ?? null;
-    error = result.error ? { message: result.error.message } : null;
+    auctionError = result.error ? { message: result.error.message } : null;
   }
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (auctionError) {
+    return serverError(auctionError.message);
   }
 
   const auction = mapAuctionRowToAdminConfig(auctionRow, raffleSlug);
@@ -182,79 +269,51 @@ export async function GET(request: NextRequest) {
   ]);
 
   if (bidsResult.error) {
-    return NextResponse.json({ error: bidsResult.error.message }, { status: 500 });
+    return serverError(bidsResult.error.message);
   }
   if (autoBidsResult.error) {
-    return NextResponse.json({ error: autoBidsResult.error.message }, { status: 500 });
+    return serverError(autoBidsResult.error.message);
   }
   if (timelineResult.error) {
-    return NextResponse.json({ error: timelineResult.error.message }, { status: 500 });
+    return serverError(timelineResult.error.message);
   }
 
   const bidRows = ((bidsResult.data ?? []) as AuctionBidRow[]).reverse();
   const autoBidRows = (autoBidsResult.data ?? []) as AuctionAutoBidRow[];
   const timelineRows = (timelineResult.data ?? []) as AuctionTimelineRow[];
   const visitors = visitCountResult.count ?? 0;
-  const currentBidCents = Number(auctionRow.current_bid_cents ?? 0);
+  const currentBidCents = toNumber(auctionRow.current_bid_cents, 0);
+  const uniqueBidders = toNumber(auctionRow.unique_bidder_count, 0);
 
   return NextResponse.json({
     auction,
     winner: {
-      winnerName: typeof auctionRow.winner_name === "string" ? auctionRow.winner_name : null,
-      winnerContact: typeof auctionRow.winner_contact === "string" ? auctionRow.winner_contact : null,
-      winnerBidCents:
-        auctionRow.winner_bid_cents === null || auctionRow.winner_bid_cents === undefined
-          ? null
-          : Number(auctionRow.winner_bid_cents),
-      winnerStatus:
-        auctionRow.winner_status === "contacted" ||
-        auctionRow.winner_status === "paid" ||
-        auctionRow.winner_status === "delivered" ||
-        auctionRow.winner_status === "defaulted"
-          ? auctionRow.winner_status
-          : "pending",
-      winnerContactedAt: typeof auctionRow.winner_contacted_at === "string" ? auctionRow.winner_contacted_at : null,
-      winnerPaidAt: typeof auctionRow.winner_paid_at === "string" ? auctionRow.winner_paid_at : null,
-      winnerDeliveredAt: typeof auctionRow.winner_delivered_at === "string" ? auctionRow.winner_delivered_at : null,
+      winnerName: toStringOrNull(auctionRow.winner_name),
+      winnerContact: toStringOrNull(auctionRow.winner_contact),
+      winnerBidCents: toNumberOrNull(auctionRow.winner_bid_cents),
+      winnerStatus: normalizeWinnerStatus(auctionRow.winner_status),
+      winnerContactedAt: toStringOrNull(auctionRow.winner_contacted_at),
+      winnerPaidAt: toStringOrNull(auctionRow.winner_paid_at),
+      winnerDeliveredAt: toStringOrNull(auctionRow.winner_delivered_at),
     },
     performance: {
       visitors,
-      participant_rate:
-        visitors > 0
-          ? Number(((Number(auctionRow.unique_bidder_count ?? 0) / visitors) * 100).toFixed(1))
-          : 0,
+      participant_rate: visitors > 0 ? Number(((uniqueBidders / visitors) * 100).toFixed(1)) : 0,
       total_raised_cents: currentBidCents,
-      average_bid_interval_seconds: averageBidIntervalSeconds(bidRows.filter((row) => !row.disqualified_at)),
+      average_bid_interval_seconds: averageBidIntervalSeconds(
+        bidRows.filter((row) => !row.disqualified_at),
+      ),
       auto_bid_count: autoBidRows.filter((row) => row.is_active).length,
-      total_bids: Number(auctionRow.total_bids ?? 0),
-      unique_bidders: Number(auctionRow.unique_bidder_count ?? 0),
+      total_bids: toNumber(auctionRow.total_bids, 0),
+      unique_bidders: uniqueBidders,
     },
     recentBids: bidRows
       .slice()
       .reverse()
       .map((row) => toAdminBidEntry(row, currentBidCents))
       .reverse(),
-    autoBids: autoBidRows.map((row) => ({
-      id: String(row.id),
-      bidder_user_id: row.bidder_user_id ?? null,
-      bidder_name: row.bidder_name ?? null,
-      bidder_contact: row.bidder_contact ?? null,
-      max_amount_cents:
-        row.max_amount_cents === null || row.max_amount_cents === undefined
-          ? 0
-          : Number(row.max_amount_cents),
-      is_active: Boolean(row.is_active),
-      created_at: String(row.created_at),
-    })),
-    timeline: timelineRows.map((row) => ({
-      id: String(row.id),
-      type: normalizeTimelineEventType(row.event_type),
-      headline: typeof row.headline === "string" ? row.headline : "",
-      description: typeof row.description === "string" ? row.description : null,
-      amount_cents:
-        row.amount_cents === null || row.amount_cents === undefined ? null : Number(row.amount_cents),
-      created_at: String(row.created_at),
-    })),
+    autoBids: autoBidRows.map(mapAutoBidRow),
+    timeline: timelineRows.map(mapTimelineRow),
   } satisfies AuctionAdminPayload);
 }
 
@@ -267,16 +326,16 @@ export async function POST(request: NextRequest) {
   const slug = body.slug?.trim();
 
   if (!slug) {
-    return NextResponse.json({ error: "Slug do leilão é obrigatório." }, { status: 400 });
+    return badRequest("Slug do leilão é obrigatório.");
   }
 
   if (!body.title?.trim()) {
-    return NextResponse.json({ error: "Título do leilão é obrigatório." }, { status: 400 });
+    return badRequest("Título do leilão é obrigatório.");
   }
 
   const endsAt = body.endsAt?.trim();
   if (!endsAt) {
-    return NextResponse.json({ error: "Data de encerramento obrigatória." }, { status: 400 });
+    return badRequest("Data de encerramento obrigatória.");
   }
 
   const status =
@@ -339,7 +398,7 @@ export async function POST(request: NextRequest) {
   });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return serverError(error.message);
   }
 
   return NextResponse.json({ ok: true, raffleSlug, slug });
