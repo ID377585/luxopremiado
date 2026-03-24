@@ -103,6 +103,15 @@ export default async function RifaSlugPage({ params }: PageProps) {
         />
       </section>
 
+<section>
+  <h2>Últimos ganhadores</h2>
+
+  <div>
+    <p>João - R$ 10.000 - 12/03</p>
+    <p>Maria - iPhone - 10/03</p>
+  </div>
+</section>
+
       <HowItWorks steps={raffle.howItWorks} />
 
       <FAQ
@@ -118,3 +127,29 @@ export default async function RifaSlugPage({ params }: PageProps) {
     </main>
   );
 }
+
+<div
+  style={{
+    position: "fixed",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 12,
+    background: "#0b0b0f",
+    borderTop: "1px solid rgba(255,255,255,0.1)",
+    zIndex: 999,
+  }}
+>
+  <button
+    style={{
+      width: "100%",
+      background: "#d4af37",
+      color: "#111",
+      padding: "16px",
+      borderRadius: 12,
+      fontWeight: 700,
+    }}
+  >
+    Participar agora
+  </button>
+</div>
