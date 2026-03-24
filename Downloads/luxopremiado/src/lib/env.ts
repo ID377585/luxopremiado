@@ -13,10 +13,16 @@ function getDefaultSiteUrl(): string {
     return "https://www.bigodedasrifas.com";
   }
 
-  const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL;
+  const vercelHost =
+    process.env.VERCEL_PROJECT_PRODUCTION_URL ??
+    process.env.VERCEL_URL;
 
   if (vercelHost) {
-    const host = vercelHost.replace(/^https?:\/\//i, "").trim().replace(/\/+$/, "");
+    const host = vercelHost
+      .replace(/^https?:\/\//i, "")
+      .trim()
+      .replace(/\/+$/, "");
+
     if (host) {
       return `https://${host}`;
     }
@@ -27,7 +33,9 @@ function getDefaultSiteUrl(): string {
 
 function normalizeSiteUrl(rawValue: string | undefined): string {
   const fallback = getDefaultSiteUrl();
-  const normalized = (rawValue ?? "").trim().replace(/\s+/g, "");
+  const normalized = (rawValue ?? "")
+    .trim()
+    .replace(/\s+/g, "");
 
   if (!normalized) {
     return fallback;
@@ -35,9 +43,14 @@ function normalizeSiteUrl(rawValue: string | undefined): string {
 
   try {
     const url = new URL(normalized);
-    if (process.env.NODE_ENV === "production" && url.hostname !== "www.bigodedasrifas.com") {
+
+    if (
+      process.env.NODE_ENV === "production" &&
+      url.hostname !== "www.bigodedasrifas.com"
+    ) {
       return fallback;
     }
+
     return url.toString().replace(/\/$/, "");
   } catch {
     return fallback;
@@ -45,7 +58,10 @@ function normalizeSiteUrl(rawValue: string | undefined): string {
 }
 
 export function hasSupabaseEnv(): boolean {
-  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
 }
 
 export function getSupabaseUrl(): string {

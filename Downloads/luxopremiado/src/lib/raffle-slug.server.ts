@@ -3,7 +3,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { hasSupabaseEnv } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
-import { buildLandingPathForSlug, getDefaultRaffleSlug, normalizeRaffleSlug } from "@/lib/raffle-slug";
+import {
+  buildLandingPathForSlug,
+  getDefaultRaffleSlug,
+  normalizeRaffleSlug,
+} from "@/lib/raffle-slug";
 
 const STATUS_PRIORITY = ["active", "closed", "drawn"] as const;
 
@@ -12,19 +16,29 @@ interface RaffleSlugRow {
   status: string | null;
 }
 
-function pickPreferredSlug(rows: RaffleSlugRow[] | null | undefined): string | null {
+function pickPreferredSlug(
+  rows: RaffleSlugRow[] | null | undefined,
+): string | null {
   if (!rows?.length) {
     return null;
   }
 
   for (const status of STATUS_PRIORITY) {
-    const match = rows.find((row) => row.status === status && normalizeRaffleSlug(row.slug));
+    const match = rows.find(
+      (row) =>
+        row.status === status &&
+        normalizeRaffleSlug(row.slug),
+    );
+
     if (match?.slug) {
       return match.slug;
     }
   }
 
-  const firstValid = rows.find((row) => normalizeRaffleSlug(row.slug));
+  const firstValid = rows.find((row) =>
+    normalizeRaffleSlug(row.slug),
+  );
+
   return firstValid?.slug ?? null;
 }
 
@@ -39,7 +53,10 @@ async function lookupSlug(
     .limit(1)
     .maybeSingle();
 
-  if (preferred?.slug && normalizeRaffleSlug(preferred.slug)) {
+  if (
+    preferred?.slug &&
+    normalizeRaffleSlug(preferred.slug)
+  ) {
     return preferred.slug;
   }
 
@@ -53,8 +70,12 @@ async function lookupSlug(
   return pickPreferredSlug(candidates);
 }
 
-export async function resolveAvailableRaffleSlug(preferredSlug?: string | null): Promise<string> {
-  const normalizedPreferred = normalizeRaffleSlug(preferredSlug) ?? getDefaultRaffleSlug();
+export async function resolveAvailableRaffleSlug(
+  preferredSlug?: string | null,
+): Promise<string> {
+  const normalizedPreferred =
+    normalizeRaffleSlug(preferredSlug) ??
+    getDefaultRaffleSlug();
 
   if (!hasSupabaseEnv()) {
     return normalizedPreferred;
@@ -62,19 +83,30 @@ export async function resolveAvailableRaffleSlug(preferredSlug?: string | null):
 
   try {
     const supabase = await createSupabaseServerClient();
-    const slugFromServer = await lookupSlug(supabase, normalizedPreferred);
+
+    const slugFromServer = await lookupSlug(
+      supabase,
+      normalizedPreferred,
+    );
+
     if (slugFromServer) {
       return slugFromServer;
     }
 
     try {
-      const serviceClient = createSupabaseServiceClient();
-      const slugFromService = await lookupSlug(serviceClient, normalizedPreferred);
+      const serviceClient =
+        createSupabaseServiceClient();
+
+      const slugFromService = await lookupSlug(
+        serviceClient,
+        normalizedPreferred,
+      );
+
       if (slugFromService) {
         return slugFromService;
       }
     } catch {
-      // noop: fallback handled below
+      // fallback silencioso
     }
 
     return normalizedPreferred;
@@ -83,7 +115,12 @@ export async function resolveAvailableRaffleSlug(preferredSlug?: string | null):
   }
 }
 
-export async function getDynamicLandingPath(anchor?: string, preferredSlug?: string | null): Promise<string> {
-  const resolvedSlug = await resolveAvailableRaffleSlug(preferredSlug);
+export async function getDynamicLandingPath(
+  anchor?: string,
+  preferredSlug?: string | null,
+): Promise<string> {
+  const resolvedSlug =
+    await resolveAvailableRaffleSlug(preferredSlug);
+
   return buildLandingPathForSlug(resolvedSlug, anchor);
 }

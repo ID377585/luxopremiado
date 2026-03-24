@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-
 import { NextRequest } from "next/server";
 
 import { hasSupabaseEnv } from "@/lib/env";
@@ -11,7 +10,11 @@ export function getRequestId(request: NextRequest): string {
   return request.headers.get("x-request-id") ?? randomUUID();
 }
 
-export function logStructured(level: LogLevel, event: string, context: Record<string, unknown>) {
+export function logStructured(
+  level: LogLevel,
+  event: string,
+  context: Record<string, unknown>,
+) {
   const log = {
     level,
     event,
@@ -50,6 +53,7 @@ export async function persistPlatformEvent(input: {
 
   try {
     const serviceClient = createSupabaseServiceClient();
+
     await serviceClient.from("platform_events").insert({
       event_type: input.event_type,
       level: input.level ?? "info",
@@ -62,14 +66,19 @@ export async function persistPlatformEvent(input: {
     });
   } catch (error) {
     logStructured("warn", "observability.persist_failed", {
-      reason: error instanceof Error ? error.message : "unknown",
+      reason:
+        error instanceof Error ? error.message : "unknown",
       event_type: input.event_type,
     });
   }
 }
 
-export async function emitAlert(title: string, detail: Record<string, unknown>) {
+export async function emitAlert(
+  title: string,
+  detail: Record<string, unknown>,
+) {
   const webhook = process.env.ALERT_WEBHOOK_URL;
+
   if (!webhook) {
     return;
   }
@@ -91,7 +100,8 @@ export async function emitAlert(title: string, detail: Record<string, unknown>) 
   } catch (error) {
     logStructured("warn", "observability.alert_failed", {
       title,
-      reason: error instanceof Error ? error.message : "unknown",
+      reason:
+        error instanceof Error ? error.message : "unknown",
     });
   }
 }

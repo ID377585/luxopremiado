@@ -15,6 +15,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   }
 
   const supabase = await createSupabaseServerClient();
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -23,9 +24,11 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     return null;
   }
 
-  const {
-    data: profile,
-  } = await supabase.from("profiles").select("name").eq("id", user.id).maybeSingle();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("name")
+    .eq("id", user.id)
+    .maybeSingle();
 
   return {
     id: user.id,
@@ -48,7 +51,12 @@ export async function isAdminUser(userId: string, email?: string | null): Promis
   }
 
   const supabase = await createSupabaseServerClient();
-  const { data } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
+
+  const { data } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
+    .maybeSingle();
 
   return data?.role === "admin";
 }
