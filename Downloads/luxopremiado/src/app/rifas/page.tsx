@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Rifas | Bigode das Rifas",
   description:
-    "Participe das rifas do Bigode das Rifas com compra rápida, transparência e campanhas em destaque.",
+    "Participe das rifas do Bigode das Rifas com campanhas premium, transparência em tempo real e compra rápida.",
 };
 
 const rifas = [
@@ -12,52 +12,93 @@ const rifas = [
     slug: "bigode-das-rifas",
     titulo: "Shineray Free 150",
     descricao:
-      "Campanha principal com números acessíveis, atualização em tempo real e forte apelo de conversão.",
+      "Campanha principal da plataforma, com forte apelo comercial, ritmo de vendas acelerado e excelente percepção de valor.",
     preco: "A partir de R$ 0,10",
-    status: "Números acabando",
-    destaque: "Campanha principal",
+    status: "Campanha principal",
+    destaque: "Mais procurada",
   },
   {
     slug: "iphone-17-pro-max",
     titulo: "iPhone 17 Pro Max 256 GB – Laranja cósmico – eSIM",
     descricao:
-      "Prêmio premium com alta procura, ótima percepção de valor e excelente potencial de giro.",
+      "Produto premium com altíssima procura, ideal para reforçar desejo, urgência e retenção do usuário na página.",
     preco: "A partir de R$ 0,20",
-    status: "Em destaque",
-    destaque: "Alta demanda",
+    status: "Alta demanda",
+    destaque: "Prêmio premium",
   },
   {
     slug: "500-reais",
     titulo: "500,00 Reais",
     descricao:
-      "Campanha de entrada rápida com forte atratividade e excelente conversão para novos participantes.",
+      "Rifa de entrada rápida, excelente para novos usuários e para campanhas com forte taxa de conversão.",
     preco: "A partir de R$ 0,05",
-    status: "Últimas vagas",
-    destaque: "Acesso rápido",
+    status: "Participação rápida",
+    destaque: "Conversão alta",
   },
 ];
 
-const beneficios = [
+const benefits = [
   {
-    titulo: "Compra rápida",
-    descricao:
-      "Fluxo simples para o usuário escolher números e avançar sem fricção.",
+    title: "Compra rápida",
+    description:
+      "Fluxo enxuto para o usuário escolher números e avançar sem distrações desnecessárias.",
   },
   {
-    titulo: "Transparência em tempo real",
-    descricao:
-      "Atualização contínua de números disponíveis, reservados e vendidos.",
+    title: "Atualização em tempo real",
+    description:
+      "Disponíveis, reservados e vendidos aparecem com mais clareza para gerar urgência real.",
   },
   {
-    titulo: "Campanhas de alto apelo",
-    descricao:
-      "Prêmios com forte percepção de valor e capacidade de engajamento.",
+    title: "Campanhas premium",
+    description:
+      "Prêmios com forte apelo comercial e excelente potencial de engajamento e recompra.",
+  },
+];
+
+const faqs = [
+  {
+    question: "Como escolho meus números?",
+    answer:
+      "Ao entrar na campanha, você visualiza os números disponíveis e pode selecionar rapidamente os que deseja reservar ou comprar.",
+  },
+  {
+    question: "Os dados da campanha são atualizados?",
+    answer:
+      "Sim. A proposta da plataforma é exibir progresso, disponibilidade e movimentação de forma muito mais transparente.",
+  },
+  {
+    question: "Posso acompanhar mais de uma campanha ao mesmo tempo?",
+    answer:
+      "Sim. A navegação por modalidade facilita visualizar diferentes rifas e escolher a campanha com melhor apelo para você.",
+  },
+];
+
+const testimonials = [
+  {
+    name: "Carlos M.",
+    text: "A experiência ficou muito mais clara. Entrei, escolhi meus números e finalizei rápido.",
+  },
+  {
+    name: "Juliana R.",
+    text: "Gostei da transparência da página e do visual premium das campanhas.",
+  },
+  {
+    name: "Fernando S.",
+    text: "A divisão por modalidade ajuda demais. Fica muito mais fácil encontrar o que quero.",
   },
 ];
 
 export default function RifasPage() {
   return (
-    <main style={{ background: "#082c8c", color: "#fff", minHeight: "100vh" }}>
+    <main
+      style={{
+        background:
+          "radial-gradient(circle at top, #123ea8 0%, #082c8c 36%, #051d63 100%)",
+        color: "#fff",
+        minHeight: "100vh",
+        paddingBottom: 110,
+      }}
+    >
       <section
         style={{
           maxWidth: 1240,
@@ -78,26 +119,26 @@ export default function RifasPage() {
 
         <h1
           style={{
-            fontSize: "clamp(2.2rem, 5vw, 4.2rem)",
-            lineHeight: 1.05,
+            fontSize: "clamp(2.3rem, 5vw, 4.4rem)",
+            lineHeight: 1.02,
             margin: "12px 0 16px",
           }}
         >
-          Rifas com compra rápida, transparência e campanhas em destaque
+          Rifas com visual premium, urgência real e experiência pensada para conversão
         </h1>
 
         <p
           style={{
-            maxWidth: 820,
-            color: "rgba(255,255,255,0.82)",
+            maxWidth: 860,
+            color: "rgba(255,255,255,0.84)",
             fontSize: 18,
             lineHeight: 1.7,
             margin: 0,
           }}
         >
-          Escolha sua campanha, acompanhe os números em tempo real e participe
-          com segurança. Esta página foi criada para concentrar as rifas em um
-          ambiente mais claro, direto e focado em conversão.
+          Explore campanhas com forte apelo comercial, acompanhe a disponibilidade
+          em tempo real e escolha seus números em um ambiente mais elegante, confiável
+          e preparado para acelerar a decisão de compra.
         </p>
 
         <div
@@ -111,12 +152,13 @@ export default function RifasPage() {
           <Link
             href="/rifas/bigode-das-rifas"
             style={{
-              background: "#f2d067",
+              background: "linear-gradient(135deg, #f7d978 0%, #d4a63a 100%)",
               color: "#111",
               textDecoration: "none",
-              padding: "14px 20px",
-              borderRadius: 14,
+              padding: "15px 22px",
+              borderRadius: 16,
               fontWeight: 800,
+              boxShadow: "0 14px 28px rgba(0,0,0,0.22)",
             }}
           >
             Entrar na campanha principal
@@ -128,9 +170,10 @@ export default function RifasPage() {
               border: "1px solid rgba(255,255,255,0.18)",
               color: "#fff",
               textDecoration: "none",
-              padding: "14px 20px",
-              borderRadius: 14,
+              padding: "15px 22px",
+              borderRadius: 16,
               fontWeight: 700,
+              background: "rgba(255,255,255,0.04)",
             }}
           >
             Ver todas as rifas
@@ -148,20 +191,21 @@ export default function RifasPage() {
           gap: 18,
         }}
       >
-        {beneficios.map((item) => (
+        {benefits.map((item) => (
           <article
-            key={item.titulo}
+            key={item.title}
             style={{
-              background: "rgba(0,0,0,0.16)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              borderRadius: 22,
+              background:
+                "linear-gradient(180deg, rgba(13,25,74,0.92), rgba(6,18,58,0.92))",
+              border: "1px solid rgba(242,208,103,0.20)",
+              borderRadius: 24,
               padding: 24,
-              boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
+              boxShadow: "0 16px 40px rgba(0,0,0,0.24)",
             }}
           >
-            <h2 style={{ marginTop: 0, fontSize: 26 }}>{item.titulo}</h2>
-            <p style={{ color: "rgba(255,255,255,0.78)", lineHeight: 1.65 }}>
-              {item.descricao}
+            <h2 style={{ marginTop: 0, fontSize: 26 }}>{item.title}</h2>
+            <p style={{ color: "rgba(255,255,255,0.78)", lineHeight: 1.7 }}>
+              {item.description}
             </p>
           </article>
         ))}
@@ -172,7 +216,7 @@ export default function RifasPage() {
         style={{
           maxWidth: 1240,
           margin: "0 auto",
-          padding: "8px 24px 72px",
+          padding: "8px 24px 28px",
         }}
       >
         <div
@@ -190,12 +234,12 @@ export default function RifasPage() {
               RIFAS DISPONÍVEIS
             </p>
             <h2 style={{ fontSize: 34, margin: 0 }}>
-              Campanhas prontas para participação
+              Campanhas com forte apelo visual e comercial
             </h2>
           </div>
 
           <p style={{ margin: 0, color: "rgba(255,255,255,0.72)" }}>
-            Páginas separadas para melhorar a experiência de navegação.
+            Estrutura criada para vender melhor e reter mais atenção.
           </p>
         </div>
 
@@ -210,20 +254,22 @@ export default function RifasPage() {
             <article
               key={rifa.slug}
               style={{
-                background: "rgba(0,0,0,0.16)",
-                border: "1px solid rgba(255,255,255,0.12)",
-                borderRadius: 24,
+                background:
+                  "linear-gradient(180deg, rgba(10,20,64,0.95), rgba(5,16,52,0.95))",
+                border: "1px solid rgba(242,208,103,0.22)",
+                borderRadius: 26,
                 padding: 24,
-                boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
+                boxShadow: "0 18px 42px rgba(0,0,0,0.24)",
               }}
             >
               <div
                 style={{
                   display: "inline-block",
-                  padding: "6px 10px",
+                  padding: "7px 11px",
                   borderRadius: 999,
-                  background: "rgba(242,208,103,0.14)",
-                  border: "1px solid rgba(242,208,103,0.28)",
+                  background:
+                    "linear-gradient(135deg, rgba(247,217,120,0.18), rgba(212,166,58,0.18))",
+                  border: "1px solid rgba(242,208,103,0.30)",
                   color: "#f2d067",
                   fontSize: 13,
                   fontWeight: 800,
@@ -255,9 +301,10 @@ export default function RifasPage() {
               >
                 <div
                   style={{
-                    background: "rgba(0,0,0,0.18)",
-                    borderRadius: 16,
+                    background: "rgba(255,255,255,0.03)",
+                    borderRadius: 18,
                     padding: 14,
+                    border: "1px solid rgba(255,255,255,0.06)",
                   }}
                 >
                   <p style={{ margin: 0, color: "rgba(255,255,255,0.64)" }}>
@@ -270,9 +317,10 @@ export default function RifasPage() {
 
                 <div
                   style={{
-                    background: "rgba(0,0,0,0.18)",
-                    borderRadius: 16,
+                    background: "rgba(255,255,255,0.03)",
+                    borderRadius: 18,
                     padding: 14,
+                    border: "1px solid rgba(255,255,255,0.06)",
                   }}
                 >
                   <p style={{ margin: 0, color: "rgba(255,255,255,0.64)" }}>
@@ -293,7 +341,7 @@ export default function RifasPage() {
                   color: "#111",
                   textDecoration: "none",
                   padding: "12px 18px",
-                  borderRadius: 12,
+                  borderRadius: 14,
                   fontWeight: 800,
                 }}
               >
@@ -303,6 +351,138 @@ export default function RifasPage() {
           ))}
         </div>
       </section>
+
+      <section
+        style={{
+          maxWidth: 1240,
+          margin: "0 auto",
+          padding: "0 24px 28px",
+        }}
+      >
+        <article
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(247,217,120,0.18), rgba(10,20,64,0.94))",
+            border: "1px solid rgba(242,208,103,0.28)",
+            borderRadius: 28,
+            padding: 28,
+            boxShadow: "0 20px 44px rgba(0,0,0,0.24)",
+          }}
+        >
+          <p style={{ color: "#f2d067", fontWeight: 800, marginTop: 0 }}>
+            PROVA SOCIAL
+          </p>
+          <h2 style={{ fontSize: 32, marginTop: 0 }}>
+            O que os participantes estão dizendo
+          </h2>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+              gap: 16,
+            }}
+          >
+            {testimonials.map((item) => (
+              <div
+                key={item.name}
+                style={{
+                  background: "rgba(255,255,255,0.05)",
+                  borderRadius: 20,
+                  padding: 18,
+                  border: "1px solid rgba(255,255,255,0.08)",
+                }}
+              >
+                <strong style={{ display: "block", marginBottom: 8 }}>
+                  {item.name}
+                </strong>
+                <p style={{ margin: 0, color: "rgba(255,255,255,0.8)", lineHeight: 1.7 }}>
+                  {item.text}
+                </p>
+              </div>
+            ))}
+          </div>
+        </article>
+      </section>
+
+      <section
+        style={{
+          maxWidth: 1240,
+          margin: "0 auto",
+          padding: "0 24px 72px",
+        }}
+      >
+        <article
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(10,20,64,0.95), rgba(5,16,52,0.95))",
+            border: "1px solid rgba(242,208,103,0.22)",
+            borderRadius: 28,
+            padding: 28,
+            boxShadow: "0 18px 42px rgba(0,0,0,0.24)",
+          }}
+        >
+          <p style={{ color: "#f2d067", fontWeight: 800, marginTop: 0 }}>FAQ</p>
+          <h2 style={{ fontSize: 32, marginTop: 0 }}>
+            Dúvidas frequentes sobre as rifas
+          </h2>
+
+          <div style={{ display: "grid", gap: 14 }}>
+            {faqs.map((item) => (
+              <div
+                key={item.question}
+                style={{
+                  background: "rgba(255,255,255,0.03)",
+                  borderRadius: 18,
+                  padding: 18,
+                  border: "1px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                <strong style={{ display: "block", marginBottom: 8 }}>
+                  {item.question}
+                </strong>
+                <span style={{ color: "rgba(255,255,255,0.76)", lineHeight: 1.7 }}>
+                  {item.answer}
+                </span>
+              </div>
+            ))}
+          </div>
+        </article>
+      </section>
+
+      <div
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          padding: "12px 16px",
+          background: "rgba(4,13,44,0.96)",
+          backdropFilter: "blur(10px)",
+          borderTop: "1px solid rgba(242,208,103,0.18)",
+          zIndex: 999,
+        }}
+      >
+        <div style={{ maxWidth: 1240, margin: "0 auto" }}>
+          <Link
+            href="/rifas/bigode-das-rifas"
+            style={{
+              display: "block",
+              width: "100%",
+              textAlign: "center",
+              background: "linear-gradient(135deg, #f7d978 0%, #d4a63a 100%)",
+              color: "#111",
+              textDecoration: "none",
+              padding: "16px 18px",
+              borderRadius: 16,
+              fontWeight: 900,
+              boxShadow: "0 12px 26px rgba(0,0,0,0.25)",
+            }}
+          >
+            QUERO ESCOLHER MEUS NÚMEROS AGORA
+          </Link>
+        </div>
+      </div>
     </main>
   );
 }
