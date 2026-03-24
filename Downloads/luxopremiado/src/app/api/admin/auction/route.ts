@@ -119,9 +119,11 @@ export async function GET(request: NextRequest) {
     error = result.error ? { message: result.error.message } : null;
   }
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
-  const auction = mapAuctionRowToAdminConfig((auctionRow as Record<string, unknown> | null) ?? null, raffleSlug);
+  const auction = mapAuctionRowToAdminConfig(auctionRow, raffleSlug);
 
   if (!auctionRow) {
     return NextResponse.json({
@@ -150,7 +152,7 @@ export async function GET(request: NextRequest) {
     } satisfies AuctionAdminPayload);
   }
 
-  const auctionId = String((auctionRow as Record<string, unknown>).id);
+  const auctionId = String(auctionRow.id);
 
   const [bidsResult, autoBidsResult, timelineResult, visitCountResult] = await Promise.all([
     supabase
@@ -179,74 +181,53 @@ export async function GET(request: NextRequest) {
       .eq("auction_id", auctionId),
   ]);
 
-  if (bidsResult.error) return NextResponse.json({ error: bidsResult.error.message }, { status: 500 });
-  if (autoBidsResult.error) return NextResponse.json({ error: autoBidsResult.error.message }, { status: 500 });
-  if (timelineResult.error) return NextResponse.json({ error: timelineResult.error.message }, { status: 500 });
+  if (bidsResult.error) {
+    return NextResponse.json({ error: bidsResult.error.message }, { status: 500 });
+  }
+  if (autoBidsResult.error) {
+    return NextResponse.json({ error: autoBidsResult.error.message }, { status: 500 });
+  }
+  if (timelineResult.error) {
+    return NextResponse.json({ error: timelineResult.error.message }, { status: 500 });
+  }
 
   const bidRows = ((bidsResult.data ?? []) as AuctionBidRow[]).reverse();
   const autoBidRows = (autoBidsResult.data ?? []) as AuctionAutoBidRow[];
   const timelineRows = (timelineResult.data ?? []) as AuctionTimelineRow[];
   const visitors = visitCountResult.count ?? 0;
-  const currentBidCents = Number((auctionRow as Record<string, unknown>).current_bid_cents ?? 0);
+  const currentBidCents = Number(auctionRow.current_bid_cents ?? 0);
 
   return NextResponse.json({
     auction,
     winner: {
-      winnerName:
-        typeof (auctionRow as Record<string, unknown>).winner_name === "string"
-          ? ((auctionRow as Record<string, unknown>).winner_name as string)
-          : null,
-      winnerContact:
-        typeof (auctionRow as Record<string, unknown>).winner_contact === "string"
-          ? ((auctionRow as Record<string, unknown>).winner_contact as string)
-          : null,
+      winnerName: typeof auctionRow.winner_name === "string" ? auctionRow.winner_name : null,
+      winnerContact: typeof auctionRow.winner_contact === "string" ? auctionRow.winner_contact : null,
       winnerBidCents:
-        (auctionRow as Record<string, unknown>).winner_bid_cents === null ||
-        (auctionRow as Record<string, unknown>).winner_bid_cents === undefined
+        auctionRow.winner_bid_cents === null || auctionRow.winner_bid_cents === undefined
           ? null
-          : Number((auctionRow as Record<string, unknown>).winner_bid_cents),
+          : Number(auctionRow.winner_bid_cents),
       winnerStatus:
-        (auctionRow as Record<string, unknown>).winner_status === "contacted" ||
-        (auctionRow as Record<string, unknown>).winner_status === "paid" ||
-        (auctionRow as Record<string, unknown>).winner_status === "delivered" ||
-        (auctionRow as Record<string, unknown>).winner_status === "defaulted"
-          ? ((auctionRow as Record<string, unknown>).winner_status as
-              | "contacted"
-              | "paid"
-              | "delivered"
-              | "defaulted")
+        auctionRow.winner_status === "contacted" ||
+        auctionRow.winner_status === "paid" ||
+        auctionRow.winner_status === "delivered" ||
+        auctionRow.winner_status === "defaulted"
+          ? auctionRow.winner_status
           : "pending",
-      winnerContactedAt:
-        typeof (auctionRow as Record<string, unknown>).winner_contacted_at === "string"
-          ? ((auctionRow as Record<string, unknown>).winner_contacted_at as string)
-          : null,
-      winnerPaidAt:
-        typeof (auctionRow as Record<string, unknown>).winner_paid_at === "string"
-          ? ((auctionRow as Record<string, unknown>).winner_paid_at as string)
-          : null,
-      winnerDeliveredAt:
-        typeof (auctionRow as Record<string, unknown>).winner_delivered_at === "string"
-          ? ((auctionRow as Record<string, unknown>).winner_delivered_at as string)
-          : null,
+      winnerContactedAt: typeof auctionRow.winner_contacted_at === "string" ? auctionRow.winner_contacted_at : null,
+      winnerPaidAt: typeof auctionRow.winner_paid_at === "string" ? auctionRow.winner_paid_at : null,
+      winnerDeliveredAt: typeof auctionRow.winner_delivered_at === "string" ? auctionRow.winner_delivered_at : null,
     },
     performance: {
       visitors,
       participant_rate:
         visitors > 0
-          ? Number(
-              (
-                (Number((auctionRow as Record<string, unknown>).unique_bidder_count ?? 0) / visitors) *
-                100
-              ).toFixed(1),
-            )
+          ? Number(((Number(auctionRow.unique_bidder_count ?? 0) / visitors) * 100).toFixed(1))
           : 0,
       total_raised_cents: currentBidCents,
-      average_bid_interval_seconds: averageBidIntervalSeconds(
-        bidRows.filter((row) => !row.disqualified_at),
-      ),
+      average_bid_interval_seconds: averageBidIntervalSeconds(bidRows.filter((row) => !row.disqualified_at)),
       auto_bid_count: autoBidRows.filter((row) => row.is_active).length,
-      total_bids: Number((auctionRow as Record<string, unknown>).total_bids ?? 0),
-      unique_bidders: Number((auctionRow as Record<string, unknown>).unique_bidder_count ?? 0),
+      total_bids: Number(auctionRow.total_bids ?? 0),
+      unique_bidders: Number(auctionRow.unique_bidder_count ?? 0),
     },
     recentBids: bidRows
       .slice()
@@ -357,7 +338,9 @@ export async function POST(request: NextRequest) {
     onConflict: "raffle_slug,slug",
   });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
   return NextResponse.json({ ok: true, raffleSlug, slug });
 }
