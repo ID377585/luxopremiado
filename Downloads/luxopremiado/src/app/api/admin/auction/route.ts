@@ -8,7 +8,12 @@ import {
 } from "@/lib/auction";
 import { getSessionUser, isAdminUser } from "@/lib/session";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
-import { AuctionAdminConfig, AuctionAdminPayload, AuctionBidEntry } from "@/types/auction";
+import {
+  AuctionAdminConfig,
+  AuctionAdminPayload,
+  AuctionBidEntry,
+  type AuctionTimelineEventType,
+} from "@/types/auction";
 
 interface AuctionBidRow {
   id: number;
@@ -20,6 +25,25 @@ interface AuctionBidRow {
   source?: "manual" | "proxy" | "admin";
   disqualified_at?: string | null;
   disqualified_reason?: string | null;
+}
+
+interface AuctionAutoBidRow {
+  id: number | string;
+  bidder_user_id?: string | null;
+  bidder_name?: string | null;
+  bidder_contact?: string | null;
+  max_amount_cents?: number | null;
+  is_active?: boolean | null;
+  created_at: string;
+}
+
+interface AuctionTimelineRow {
+  id: number | string;
+  event_type?: string | null;
+  headline?: string | null;
+  description?: string | null;
+  amount_cents?: number | null;
+  created_at: string;
 }
 
 function forbidden() {
@@ -43,12 +67,15 @@ function averageBidIntervalSeconds(rows: AuctionBidRow[]): number | null {
 
   let total = 0;
   let count = 0;
+
   for (let index = 1; index < rows.length; index += 1) {
     const previous = Date.parse(rows[index - 1].created_at);
     const current = Date.parse(rows[index].created_at);
+
     if (!Number.isFinite(previous) || !Number.isFinite(current) || current <= previous) {
       continue;
     }
+
     total += current - previous;
     count += 1;
   }
@@ -62,6 +89,11 @@ function toAdminBidEntry(row: AuctionBidRow, currentBidCents: number): AuctionBi
     is_leading: row.amount_cents === currentBidCents && !row.disqualified_at,
     is_viewer: false,
   };
+}
+
+function normalizeTimelineEventType(value: unknown): AuctionTimelineEventType {
+  const normalized = typeof value === "string" ? value.trim() : "";
+  return (normalized || "bid") as AuctionTimelineEventType;
 }
 
 export async function GET(request: NextRequest) {
@@ -83,13 +115,14 @@ export async function GET(request: NextRequest) {
     error = result.error ? { message: result.error.message } : null;
   } else {
     const result = await auctionQuery.order("updated_at", { ascending: false }).limit(1);
-    auctionRow = ((result.data?.[0] as Record<string, unknown> | undefined) ?? null);
+    auctionRow = (result.data?.[0] as Record<string, unknown> | undefined) ?? null;
     error = result.error ? { message: result.error.message } : null;
   }
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   const auction = mapAuctionRowToAdminConfig((auctionRow as Record<string, unknown> | null) ?? null, raffleSlug);
+
   if (!auctionRow) {
     return NextResponse.json({
       auction,
@@ -118,10 +151,13 @@ export async function GET(request: NextRequest) {
   }
 
   const auctionId = String((auctionRow as Record<string, unknown>).id);
+
   const [bidsResult, autoBidsResult, timelineResult, visitCountResult] = await Promise.all([
     supabase
       .from("auction_bids")
-      .select("id, amount_cents, bidder_user_id, bidder_name, bidder_contact, created_at, source, disqualified_at, disqualified_reason")
+      .select(
+        "id, amount_cents, bidder_user_id, bidder_name, bidder_contact, created_at, source, disqualified_at, disqualified_reason",
+      )
       .eq("auction_id", auctionId)
       .order("created_at", { ascending: false })
       .limit(25),
@@ -148,19 +184,25 @@ export async function GET(request: NextRequest) {
   if (timelineResult.error) return NextResponse.json({ error: timelineResult.error.message }, { status: 500 });
 
   const bidRows = ((bidsResult.data ?? []) as AuctionBidRow[]).reverse();
+  const autoBidRows = (autoBidsResult.data ?? []) as AuctionAutoBidRow[];
+  const timelineRows = (timelineResult.data ?? []) as AuctionTimelineRow[];
   const visitors = visitCountResult.count ?? 0;
   const currentBidCents = Number((auctionRow as Record<string, unknown>).current_bid_cents ?? 0);
 
   return NextResponse.json({
     auction,
     winner: {
-      winnerName: typeof (auctionRow as Record<string, unknown>).winner_name === "string" ? ((auctionRow as Record<string, unknown>).winner_name as string) : null,
+      winnerName:
+        typeof (auctionRow as Record<string, unknown>).winner_name === "string"
+          ? ((auctionRow as Record<string, unknown>).winner_name as string)
+          : null,
       winnerContact:
         typeof (auctionRow as Record<string, unknown>).winner_contact === "string"
           ? ((auctionRow as Record<string, unknown>).winner_contact as string)
           : null,
       winnerBidCents:
-        (auctionRow as Record<string, unknown>).winner_bid_cents === null || (auctionRow as Record<string, unknown>).winner_bid_cents === undefined
+        (auctionRow as Record<string, unknown>).winner_bid_cents === null ||
+        (auctionRow as Record<string, unknown>).winner_bid_cents === undefined
           ? null
           : Number((auctionRow as Record<string, unknown>).winner_bid_cents),
       winnerStatus:
@@ -168,7 +210,11 @@ export async function GET(request: NextRequest) {
         (auctionRow as Record<string, unknown>).winner_status === "paid" ||
         (auctionRow as Record<string, unknown>).winner_status === "delivered" ||
         (auctionRow as Record<string, unknown>).winner_status === "defaulted"
-          ? ((auctionRow as Record<string, unknown>).winner_status as "contacted" | "paid" | "delivered" | "defaulted")
+          ? ((auctionRow as Record<string, unknown>).winner_status as
+              | "contacted"
+              | "paid"
+              | "delivered"
+              | "defaulted")
           : "pending",
       winnerContactedAt:
         typeof (auctionRow as Record<string, unknown>).winner_contacted_at === "string"
@@ -187,11 +233,18 @@ export async function GET(request: NextRequest) {
       visitors,
       participant_rate:
         visitors > 0
-          ? Number(((Number((auctionRow as Record<string, unknown>).unique_bidder_count ?? 0) / visitors) * 100).toFixed(1))
+          ? Number(
+              (
+                (Number((auctionRow as Record<string, unknown>).unique_bidder_count ?? 0) / visitors) *
+                100
+              ).toFixed(1),
+            )
           : 0,
       total_raised_cents: currentBidCents,
-      average_bid_interval_seconds: averageBidIntervalSeconds(bidRows.filter((row) => !row.disqualified_at)),
-      auto_bid_count: (autoBidsResult.data ?? []).filter((row) => row.is_active).length,
+      average_bid_interval_seconds: averageBidIntervalSeconds(
+        bidRows.filter((row) => !row.disqualified_at),
+      ),
+      auto_bid_count: autoBidRows.filter((row) => row.is_active).length,
       total_bids: Number((auctionRow as Record<string, unknown>).total_bids ?? 0),
       unique_bidders: Number((auctionRow as Record<string, unknown>).unique_bidder_count ?? 0),
     },
@@ -200,8 +253,27 @@ export async function GET(request: NextRequest) {
       .reverse()
       .map((row) => toAdminBidEntry(row, currentBidCents))
       .reverse(),
-    autoBids: autoBidsResult.data ?? [],
-    timeline: timelineResult.data ?? [],
+    autoBids: autoBidRows.map((row) => ({
+      id: String(row.id),
+      bidder_user_id: row.bidder_user_id ?? null,
+      bidder_name: row.bidder_name ?? null,
+      bidder_contact: row.bidder_contact ?? null,
+      max_amount_cents:
+        row.max_amount_cents === null || row.max_amount_cents === undefined
+          ? 0
+          : Number(row.max_amount_cents),
+      is_active: Boolean(row.is_active),
+      created_at: String(row.created_at),
+    })),
+    timeline: timelineRows.map((row) => ({
+      id: String(row.id),
+      type: normalizeTimelineEventType(row.event_type),
+      headline: typeof row.headline === "string" ? row.headline : "",
+      description: typeof row.description === "string" ? row.description : null,
+      amount_cents:
+        row.amount_cents === null || row.amount_cents === undefined ? null : Number(row.amount_cents),
+      created_at: String(row.created_at),
+    })),
   } satisfies AuctionAdminPayload);
 }
 
@@ -230,18 +302,22 @@ export async function POST(request: NextRequest) {
     body.status === "scheduled" || body.status === "closed" || body.status === "settled"
       ? body.status
       : "open";
+
   const minIncrementCents = Math.max(1, Math.round(body.minIncrementCents));
   const openingBidCents = Math.max(0, Math.round(body.openingBidCents));
+
   const reservePriceCents =
     body.reservePriceCents === null || body.reservePriceCents === undefined
       ? null
       : Math.max(openingBidCents, Math.round(body.reservePriceCents));
+
   const marketValueCents =
     body.marketValueCents === null || body.marketValueCents === undefined
       ? null
       : Math.max(0, Math.round(body.marketValueCents));
 
   const supabase = createSupabaseServiceClient();
+
   const upsertPayload = {
     raffle_slug: raffleSlug,
     slug,
@@ -263,7 +339,8 @@ export async function POST(request: NextRequest) {
     condition_report: coerceOptionalText(body.conditionReport),
     authenticity_assets: coerceStringArray(body.authenticityAssets),
     appraisal_notes: coerceOptionalText(body.appraisalNotes),
-    tie_break_rule: coerceOptionalText(body.tieBreakRule) ?? "Em empate de valor, vence o lance registrado primeiro.",
+    tie_break_rule:
+      coerceOptionalText(body.tieBreakRule) ?? "Em empate de valor, vence o lance registrado primeiro.",
     settlement_deadline_hours: Math.max(1, Math.round(body.settlementDeadlineHours ?? 24)),
     opening_bid_cents: openingBidCents,
     min_increment_cents: minIncrementCents,
