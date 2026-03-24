@@ -12,26 +12,18 @@ const globalStore = globalThis as typeof globalThis & {
 
 function getCacheStore(): Map<string, CachedRaffleStats> {
   if (!globalStore.__lpRaffleStatsCache) {
-    globalStore.__lpRaffleStatsCache = new Map<
-      string,
-      CachedRaffleStats
-    >();
+    globalStore.__lpRaffleStatsCache = new Map<string, CachedRaffleStats>();
   }
 
   return globalStore.__lpRaffleStatsCache;
 }
 
 function getTtlMs(): number {
-  const raw = Number(
-    process.env.RAFFLE_STATS_CACHE_TTL_MS ?? 5000,
-  );
-
+  const raw = Number(process.env.RAFFLE_STATS_CACHE_TTL_MS ?? 5000);
   return Number.isFinite(raw) && raw > 0 ? raw : 5000;
 }
 
-export function getCachedRaffleStats(
-  raffleId: string,
-): CachedRaffleStats | null {
+export function getCachedRaffleStats(raffleId: string): CachedRaffleStats | null {
   const cache = getCacheStore();
   const cached = cache.get(raffleId);
 
@@ -56,11 +48,7 @@ export function setCachedRaffleStats(input: {
   const sold = Math.max(0, Number(input.sold));
   const reserved = Math.max(0, Number(input.reserved));
   const total = Math.max(0, Number(input.total));
-
-  const available = Math.max(
-    0,
-    total - sold - reserved,
-  );
+  const available = Math.max(0, total - sold - reserved);
 
   const next: CachedRaffleStats = {
     sold,
@@ -71,6 +59,5 @@ export function setCachedRaffleStats(input: {
   };
 
   getCacheStore().set(input.raffleId, next);
-
   return next;
 }
