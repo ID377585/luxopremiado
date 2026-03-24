@@ -1,24 +1,72 @@
+:root {
+  --font-heading: sans-serif;
+  --font-body: sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 html,
 body {
-  min-height: 100%;
   margin: 0;
   padding: 0;
-  background: transparent !important;
+  min-height: 100%;
+}
+
+html {
+  background: #041544;
 }
 
 body {
-  background-image: url("/bg.png");
-  background-size: cover;
-  background-position: center top;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
+  min-height: 100vh;
+  color: #ffffff;
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
+  position: relative;
+  overflow-x: hidden;
+  background: transparent;
 }
 
-.site-background-overlay {
-  min-height: 100vh;
+/* CAMADA FIXA COM A IMAGEM GLOBAL */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url("/bg.png");
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  z-index: -2;
+  pointer-events: none;
+}
+
+/* OVERLAY ESCURO PARA DAR CONTRASTE */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
   background: linear-gradient(
     180deg,
     rgba(3, 10, 40, 0.18) 0%,
-    rgba(3, 10, 40, 0.38) 100%
+    rgba(3, 10, 40, 0.34) 45%,
+    rgba(3, 10, 40, 0.46) 100%
   );
+  z-index: -1;
+  pointer-events: none;
+}
+
+.site-shell {
+  position: relative;
+  min-height: 100vh;
+  z-index: 1;
+}
+
+a {
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
 }

@@ -51,7 +51,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={`${headingFont.variable} ${bodyFont.variable}`}>
-        <div className="site-background-overlay">{children}</div>
+        <div className="site-shell">{children}</div>
       </body>
     </html>
   );
