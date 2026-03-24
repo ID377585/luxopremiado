@@ -5,6 +5,9 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
 
@@ -16,17 +19,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function SorteioSlugPage({ params }: PageProps) {
   const { slug } = await params;
+  const readableTitle = slug.replace(/-/g, " ");
 
   return (
     <main style={{ background: "#0b0b0f", color: "#fff", minHeight: "100vh" }}>
       <section style={{ maxWidth: 1100, margin: "0 auto", padding: "56px 24px" }}>
         <p style={{ color: "#d4af37", fontWeight: 700 }}>MODALIDADE • SORTEIO</p>
+
         <h1 style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)", margin: "10px 0 14px" }}>
-          {slug.replace(/-/g, " ")}
+          {readableTitle}
         </h1>
+
         <p style={{ maxWidth: 760, color: "rgba(255,255,255,0.78)", lineHeight: 1.7 }}>
-          Esta é a página individual do sorteio. Aqui você pode futuramente exibir
-          regulamento, prêmio, regras de participação, data de apuração e CTA principal.
+          Esta é a página individual do sorteio. Aqui você pode exibir regulamento,
+          prêmio, regras de participação, data de apuração e CTA principal.
         </p>
 
         <div
@@ -39,6 +45,7 @@ export default async function SorteioSlugPage({ params }: PageProps) {
           }}
         >
           <h2 style={{ marginTop: 0 }}>Estrutura sugerida</h2>
+
           <ul style={{ lineHeight: 1.9, color: "rgba(255,255,255,0.8)" }}>
             <li>Hero do sorteio</li>
             <li>Descrição do prêmio</li>

@@ -36,9 +36,11 @@ export default async function LeilaoSlugPage({ params, searchParams }: PageProps
         <p style={{ color: "#d4af37", fontWeight: 700, marginBottom: 8 }}>
           MODALIDADE • LEILÃO
         </p>
+
         <h1 style={{ color: "#fff", fontSize: "clamp(2rem, 4vw, 3.4rem)", margin: 0 }}>
           Página individual do lote
         </h1>
+
         <p style={{ color: "rgba(255,255,255,0.75)", maxWidth: 760, lineHeight: 1.7 }}>
           Nesta rota o foco é total no leilão. Sem blocos de rifa e sem mistura com
           outras modalidades. O usuário entra aqui para acompanhar a disputa.
