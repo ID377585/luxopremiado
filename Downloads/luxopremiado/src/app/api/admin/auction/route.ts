@@ -48,32 +48,29 @@ interface AuctionTimelineRow {
 
 type WinnerStatus = "pending" | "contacted" | "paid" | "delivered" | "defaulted";
 
-const ALLOWED_TIMELINE_EVENT_TYPES = new Set<string>([
+const ALLOWED_TIMELINE_EVENT_TYPES: readonly AuctionTimelineEventType[] = [
   "bid",
   "proxy_bid",
-  "auto_bid",
-  "opening",
-  "extended",
-  "paused",
-  "resumed",
-  "closed",
-  "settled",
-  "winner_contacted",
-  "winner_paid",
-  "winner_delivered",
-  "manual_update",
-]);
+  "extension",
+  "pause",
+  "resume",
+  "manual_close",
+  "reopen",
+  "disqualification",
+  "winner_update",
+  "trust",
+];
 
 function forbidden() {
   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 }
 
-function serverError(message: string) {
-  return NextResponse.json({ error: message }, { status: 500 });
-}
-
 function badRequest(message: string) {
   return NextResponse.json({ error: message }, { status: 400 });
+}
+
+function serverError(message: string) {
+  return NextResponse.json({ error: message }, { status: 500 });
 }
 
 async function ensureAdmin() {
@@ -90,8 +87,9 @@ function toStringOrNull(value: unknown): string | null {
   return typeof value === "string" ? value : null;
 }
 
-function toTrimmedStringOrNull(value: unknown): string | null {
-  return typeof value === "string" && value.trim() ? value.trim() : null;
+function toNumber(value: unknown, fallback = 0): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
 }
 
 function toNumberOrNull(value: unknown): number | null {
@@ -103,11 +101,6 @@ function toNumberOrNull(value: unknown): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function toNumber(value: unknown, fallback = 0): number {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : fallback;
-}
-
 function normalizeWinnerStatus(value: unknown): WinnerStatus {
   return value === "contacted" ||
     value === "paid" ||
@@ -115,6 +108,13 @@ function normalizeWinnerStatus(value: unknown): WinnerStatus {
     value === "defaulted"
     ? value
     : "pending";
+}
+
+function normalizeTimelineEventType(value: unknown): AuctionTimelineEventType {
+  const normalized = typeof value === "string" ? value.trim() : "";
+  return ALLOWED_TIMELINE_EVENT_TYPES.includes(normalized as AuctionTimelineEventType)
+    ? (normalized as AuctionTimelineEventType)
+    : "bid";
 }
 
 function averageBidIntervalSeconds(rows: AuctionBidRow[]): number | null {
@@ -151,12 +151,6 @@ function toAdminBidEntry(row: AuctionBidRow, currentBidCents: number): AuctionBi
     is_leading: row.amount_cents === currentBidCents && !row.disqualified_at,
     is_viewer: false,
   };
-}
-
-function normalizeTimelineEventType(value: unknown): AuctionTimelineEventType {
-  const normalized = typeof value === "string" ? value.trim() : "";
-  const safeValue = normalized || "bid";
-  return (ALLOWED_TIMELINE_EVENT_TYPES.has(safeValue) ? safeValue : "bid") as AuctionTimelineEventType;
 }
 
 function mapAutoBidRow(row: AuctionAutoBidRow) {
