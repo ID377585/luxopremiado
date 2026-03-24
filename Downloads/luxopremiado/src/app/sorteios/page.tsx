@@ -4,86 +4,66 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Sorteios | Bigode das Rifas",
   description:
-    "Campanhas promocionais separadas, com foco em regulamento, prêmio e participação.",
+    "Campanhas promocionais separadas com foco em regulamento, prêmio e participação.",
 };
 
-const draws = [
+const sorteios = [
   {
     slug: "sorteio-1000-no-pix",
-    title: "R$ 1.000 no Pix",
-    prize: "Prêmio instantâneo em dinheiro via Pix",
-    regulation: "Regulamento simplificado com período, critérios e validade.",
-    participation: "1 participação por cadastro elegível",
-    endDate: "Participações até 31/03 às 18h",
-    badge: "Alta adesão",
-  },
-  {
-    slug: "sorteio-smart-tv-55",
-    title: 'Smart TV 55" 4K',
-    prize: "Eletrônico premium para campanhas de alto engajamento.",
-    regulation: "Regras, prazo, anúncio do vencedor e critérios de elegibilidade.",
-    participation: "Participação vinculada à ação promocional",
-    endDate: "Participações até 04/04 às 20h",
-    badge: "Campanha especial",
+    titulo: "R$ 1.000 no Pix",
+    premio: "Prêmio instantâneo em dinheiro",
+    descricao:
+      "Campanha promocional simples e de forte adesão, com comunicação direta e foco no regulamento.",
+    participacao: "Participação rápida",
+    status: "Aberto",
   },
   {
     slug: "sorteio-viagem-nordeste",
-    title: "Viagem para o Nordeste",
-    prize: "Experiência de alto valor percebido para ações promocionais.",
-    regulation: "Página focada em transparência de prêmio e mecânica promocional.",
-    participation: "Cadastro + cumprimento das condições da campanha",
-    endDate: "Participações até 08/04 às 21h",
-    badge: "Prêmio premium",
+    titulo: "Viagem para o Nordeste",
+    premio: "Experiência premium",
+    descricao:
+      "Sorteio aspiracional com alto valor percebido e excelente potencial de engajamento.",
+    participacao: "Cadastro + elegibilidade",
+    status: "Em destaque",
   },
 ];
 
-const pillars = [
+const destaques = [
   {
-    title: "Regulamento claro",
-    description:
-      "Toda campanha promocional precisa explicar regras, período, elegibilidade e forma de apuração.",
+    titulo: "Regulamento visível",
+    descricao:
+      "Cada campanha precisa explicar regras, prazo, critérios e forma de apuração.",
   },
   {
-    title: "Prêmio bem apresentado",
-    description:
-      "A promessa central do sorteio deve ser visível, compreensível e valorizada logo no topo da página.",
+    titulo: "Prêmio valorizado",
+    descricao:
+      "O usuário precisa entender rapidamente o valor do que está sendo sorteado.",
   },
   {
-    title: "Participação simples",
-    description:
-      "O usuário precisa entender rapidamente como participar, sem ruído com outras modalidades.",
-  },
-];
-
-const faq = [
-  {
-    question: "Como participar?",
-    answer:
-      "Cada sorteio define uma mecânica própria, sempre apresentada com clareza na página da campanha.",
-  },
-  {
-    question: "Onde vejo o regulamento?",
-    answer:
-      "O regulamento deve ficar destacado no card da campanha e reforçado na página individual.",
-  },
-  {
-    question: "Quando sai o resultado?",
-    answer:
-      "A data de encerramento e o critério de divulgação do vencedor aparecem junto ao prêmio.",
+    titulo: "Participação simples",
+    descricao:
+      "Fluxo claro para reduzir atrito e facilitar o engajamento com a campanha.",
   },
 ];
 
 export default function SorteiosPage() {
   return (
-    <main style={{ background: "#0b0b0f", color: "#fff", minHeight: "100vh" }}>
+    <main style={{ background: "#082c8c", color: "#fff", minHeight: "100vh" }}>
       <section
         style={{
-          maxWidth: 1200,
+          maxWidth: 1240,
           margin: "0 auto",
           padding: "56px 24px 28px",
         }}
       >
-        <p style={{ color: "#d4af37", fontWeight: 700, letterSpacing: 1.2 }}>
+        <p
+          style={{
+            color: "#f2d067",
+            fontWeight: 800,
+            letterSpacing: 1.2,
+            margin: 0,
+          }}
+        >
           MODALIDADE
         </p>
 
@@ -94,21 +74,21 @@ export default function SorteiosPage() {
             margin: "12px 0 16px",
           }}
         >
-          Sorteios promocionais com foco no regulamento, no prêmio e na participação.
+          Sorteios promocionais com foco em prêmio, regulamento e participação
         </h1>
 
         <p
           style={{
-            maxWidth: 780,
-            color: "rgba(255,255,255,0.78)",
+            maxWidth: 820,
+            color: "rgba(255,255,255,0.82)",
             fontSize: 18,
             lineHeight: 1.7,
             margin: 0,
           }}
         >
-          Esta área separa os sorteios das rifas e dos leilões para deixar a
-          comunicação mais precisa. Aqui a prioridade é explicar a campanha
-          promocional, valorizar o prêmio e reduzir dúvidas sobre a participação.
+          Esta página reúne os sorteios promocionais da plataforma em um espaço
+          separado das rifas e leilões, deixando a comunicação mais clara e a
+          experiência muito mais objetiva para o usuário.
         </p>
 
         <div
@@ -120,92 +100,93 @@ export default function SorteiosPage() {
           }}
         >
           <Link
-            href={`/sorteios/${draws[0].slug}`}
+            href="/sorteios/sorteio-1000-no-pix"
             style={{
-              background: "#d4af37",
+              background: "#f2d067",
               color: "#111",
               textDecoration: "none",
               padding: "14px 20px",
-              borderRadius: 12,
-              fontWeight: 700,
+              borderRadius: 14,
+              fontWeight: 800,
             }}
           >
             Ver sorteio em destaque
           </Link>
 
           <a
-            href="#campanhas-sorteio"
+            href="#lista-sorteios"
             style={{
               border: "1px solid rgba(255,255,255,0.18)",
               color: "#fff",
               textDecoration: "none",
               padding: "14px 20px",
-              borderRadius: 12,
+              borderRadius: 14,
               fontWeight: 700,
             }}
           >
-            Explorar campanhas
+            Ver campanhas
           </a>
         </div>
       </section>
 
       <section
         style={{
-          maxWidth: 1200,
+          maxWidth: 1240,
           margin: "0 auto",
           padding: "0 24px 28px",
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-          gap: 20,
+          gap: 18,
         }}
       >
-        {pillars.map((pillar) => (
+        {destaques.map((item) => (
           <article
-            key={pillar.title}
+            key={item.titulo}
             style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: 20,
+              background: "rgba(0,0,0,0.16)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              borderRadius: 22,
               padding: 24,
+              boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
             }}
           >
-            <h2 style={{ marginTop: 0, fontSize: 26 }}>{pillar.title}</h2>
-            <p style={{ color: "rgba(255,255,255,0.75)", lineHeight: 1.65 }}>
-              {pillar.description}
+            <h2 style={{ marginTop: 0, fontSize: 26 }}>{item.titulo}</h2>
+            <p style={{ color: "rgba(255,255,255,0.78)", lineHeight: 1.65 }}>
+              {item.descricao}
             </p>
           </article>
         ))}
       </section>
 
       <section
-        id="campanhas-sorteio"
+        id="lista-sorteios"
         style={{
-          maxWidth: 1200,
+          maxWidth: 1240,
           margin: "0 auto",
-          padding: "8px 24px 28px",
+          padding: "8px 24px 72px",
         }}
       >
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
-            alignItems: "end",
             gap: 16,
+            alignItems: "end",
             flexWrap: "wrap",
             marginBottom: 18,
           }}
         >
           <div>
-            <p style={{ color: "#d4af37", fontWeight: 700, marginBottom: 8 }}>
-              CAMPANHAS PROMOCIONAIS
+            <p style={{ color: "#f2d067", fontWeight: 800, marginBottom: 8 }}>
+              SORTEIOS DISPONÍVEIS
             </p>
-            <h2 style={{ fontSize: 32, margin: 0 }}>
-              Páginas com leitura rápida e sem confusão entre modalidades
+            <h2 style={{ fontSize: 34, margin: 0 }}>
+              Campanhas promocionais separadas por modalidade
             </h2>
           </div>
 
-          <p style={{ margin: 0, color: "rgba(255,255,255,0.7)" }}>
-            Mais clareza para o usuário, mais foco para a campanha.
+          <p style={{ margin: 0, color: "rgba(255,255,255,0.72)" }}>
+            Mais clareza para o usuário e melhor leitura da oferta.
           </p>
         </div>
 
@@ -216,180 +197,101 @@ export default function SorteiosPage() {
             gap: 20,
           }}
         >
-          {draws.map((draw) => (
+          {sorteios.map((sorteio) => (
             <article
-              key={draw.slug}
+              key={sorteio.slug}
               style={{
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
+                background: "rgba(0,0,0,0.16)",
+                border: "1px solid rgba(255,255,255,0.12)",
                 borderRadius: 24,
                 padding: 24,
+                boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
               }}
             >
-              <div
+              <h3 style={{ margin: "0 0 10px", fontSize: 28 }}>
+                {sorteio.titulo}
+              </h3>
+
+              <p
                 style={{
-                  display: "inline-block",
-                  padding: "6px 10px",
-                  borderRadius: 999,
-                  background: "rgba(212,175,55,0.16)",
-                  border: "1px solid rgba(212,175,55,0.22)",
-                  color: "#f2d67a",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  marginBottom: 14,
+                  margin: "0 0 18px",
+                  color: "rgba(255,255,255,0.78)",
+                  lineHeight: 1.65,
                 }}
               >
-                {draw.badge}
-              </div>
-
-              <h3 style={{ margin: "0 0 10px", fontSize: 28 }}>{draw.title}</h3>
+                {sorteio.descricao}
+              </p>
 
               <div
                 style={{
                   display: "grid",
                   gap: 12,
-                  marginBottom: 18,
+                  marginBottom: 16,
                 }}
               >
                 <div
                   style={{
-                    background: "rgba(255,255,255,0.03)",
+                    background: "rgba(0,0,0,0.18)",
                     borderRadius: 16,
                     padding: 14,
                   }}
                 >
-                  <p style={{ margin: "0 0 6px", color: "rgba(255,255,255,0.66)" }}>
+                  <p style={{ margin: 0, color: "rgba(255,255,255,0.64)" }}>
                     Prêmio
                   </p>
-                  <strong>{draw.prize}</strong>
+                  <strong style={{ display: "block", marginTop: 6 }}>
+                    {sorteio.premio}
+                  </strong>
                 </div>
 
                 <div
                   style={{
-                    background: "rgba(255,255,255,0.03)",
+                    background: "rgba(0,0,0,0.18)",
                     borderRadius: 16,
                     padding: 14,
                   }}
                 >
-                  <p style={{ margin: "0 0 6px", color: "rgba(255,255,255,0.66)" }}>
-                    Regulamento
-                  </p>
-                  <span style={{ color: "rgba(255,255,255,0.84)" }}>
-                    {draw.regulation}
-                  </span>
-                </div>
-
-                <div
-                  style={{
-                    background: "rgba(255,255,255,0.03)",
-                    borderRadius: 16,
-                    padding: 14,
-                  }}
-                >
-                  <p style={{ margin: "0 0 6px", color: "rgba(255,255,255,0.66)" }}>
+                  <p style={{ margin: 0, color: "rgba(255,255,255,0.64)" }}>
                     Participação
                   </p>
-                  <span style={{ color: "rgba(255,255,255,0.84)" }}>
-                    {draw.participation}
-                  </span>
+                  <strong style={{ display: "block", marginTop: 6 }}>
+                    {sorteio.participacao}
+                  </strong>
+                </div>
+
+                <div
+                  style={{
+                    background: "rgba(0,0,0,0.18)",
+                    borderRadius: 16,
+                    padding: 14,
+                  }}
+                >
+                  <p style={{ margin: 0, color: "rgba(255,255,255,0.64)" }}>
+                    Status
+                  </p>
+                  <strong style={{ display: "block", marginTop: 6 }}>
+                    {sorteio.status}
+                  </strong>
                 </div>
               </div>
 
-              <p style={{ marginTop: 0, color: "#fff" }}>{draw.endDate}</p>
-
               <Link
-                href={`/sorteios/${draw.slug}`}
+                href={`/sorteios/${sorteio.slug}`}
                 style={{
                   display: "inline-block",
-                  marginTop: 6,
+                  marginTop: 8,
                   background: "#fff",
                   color: "#111",
                   textDecoration: "none",
                   padding: "12px 18px",
                   borderRadius: 12,
-                  fontWeight: 700,
+                  fontWeight: 800,
                 }}
               >
                 Abrir campanha
               </Link>
             </article>
           ))}
-        </div>
-      </section>
-
-      <section
-        style={{
-          maxWidth: 1200,
-          margin: "0 auto",
-          padding: "0 24px 72px",
-        }}
-      >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 20,
-          }}
-        >
-          <article
-            style={{
-              background:
-                "linear-gradient(135deg, rgba(212,175,55,0.18), rgba(255,255,255,0.04))",
-              border: "1px solid rgba(212,175,55,0.24)",
-              borderRadius: 24,
-              padding: 24,
-            }}
-          >
-            <p style={{ color: "#d4af37", fontWeight: 700, marginTop: 0 }}>
-              ESTRUTURA IDEAL
-            </p>
-            <h2 style={{ marginTop: 0, fontSize: 28 }}>
-              O que não pode faltar numa boa página de sorteio
-            </h2>
-            <ul
-              style={{
-                paddingLeft: 18,
-                lineHeight: 1.9,
-                color: "rgba(255,255,255,0.82)",
-                marginBottom: 0,
-              }}
-            >
-              <li>Prêmio em destaque</li>
-              <li>Regulamento visível</li>
-              <li>Critério de participação objetivo</li>
-              <li>Prazo e resultado bem explicados</li>
-            </ul>
-          </article>
-
-          <article
-            style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: 24,
-              padding: 24,
-            }}
-          >
-            <p style={{ color: "#d4af37", fontWeight: 700, marginTop: 0 }}>FAQ</p>
-            <div style={{ display: "grid", gap: 14 }}>
-              {faq.map((item) => (
-                <div
-                  key={item.question}
-                  style={{
-                    background: "rgba(255,255,255,0.03)",
-                    borderRadius: 16,
-                    padding: 16,
-                  }}
-                >
-                  <strong style={{ display: "block", marginBottom: 8 }}>
-                    {item.question}
-                  </strong>
-                  <span style={{ color: "rgba(255,255,255,0.75)", lineHeight: 1.6 }}>
-                    {item.answer}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </article>
         </div>
       </section>
     </main>
