@@ -85,8 +85,7 @@ export default function LeiloesPage() {
   return (
     <main
       style={{
-        background:
-          "radial-gradient(circle at top, #123ea8 0%, #082c8c 36%, #051d63 100%)",
+        background: "transparent",
         color: "#fff",
         minHeight: "100vh",
         paddingBottom: 110,
