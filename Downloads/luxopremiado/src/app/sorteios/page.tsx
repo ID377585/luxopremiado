@@ -113,11 +113,7 @@ export default function SorteiosPage() {
         paddingBottom: 110,
       }}
     >
-      <QuickAccessBar
-        chooseHref="/r/bigode-das-rifas#premio"
-        userHref="/r/bigode-das-rifas#painel"
-        vipHref="/vip"
-      />
+      <QuickAccessBar />
 
       <section
         style={{
@@ -171,7 +167,7 @@ export default function SorteiosPage() {
           }}
         >
           <Link
-            href="/r/bigode-das-rifas#premio"
+            href="/app/comprar"
             style={{
               background: "linear-gradient(135deg, #f7d978 0%, #d4a63a 100%)",
               color: "#111",
@@ -186,7 +182,7 @@ export default function SorteiosPage() {
           </Link>
 
           <Link
-            href="/r/bigode-das-rifas#painel"
+            href="/area-do-usuario"
             style={{
               border: "1px solid rgba(255,255,255,0.18)",
               color: "#fff",
@@ -388,7 +384,7 @@ export default function SorteiosPage() {
                 </Link>
 
                 <Link
-                  href="/r/bigode-das-rifas#premio"
+                  href="/app/comprar"
                   style={{
                     display: "inline-block",
                     background: "rgba(255,255,255,0.05)",
@@ -534,7 +530,7 @@ export default function SorteiosPage() {
       >
         <div style={{ maxWidth: 1240, margin: "0 auto" }}>
           <Link
-            href="/r/bigode-das-rifas#premio"
+            href="/app/comprar"
             style={{
               display: "block",
               width: "100%",

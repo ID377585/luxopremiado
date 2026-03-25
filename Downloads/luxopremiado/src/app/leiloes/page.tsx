@@ -113,11 +113,7 @@ export default function LeiloesPage() {
         paddingBottom: 110,
       }}
     >
-      <QuickAccessBar
-        chooseHref="/r/bigode-das-rifas#premio"
-        userHref="/r/bigode-das-rifas#painel"
-        vipHref="/vip"
-      />
+      <QuickAccessBar />
 
       <section
         style={{
@@ -186,7 +182,7 @@ export default function LeiloesPage() {
           </Link>
 
           <Link
-            href="/r/bigode-das-rifas#painel"
+            href="/area-do-usuario"
             style={{
               border: "1px solid rgba(255,255,255,0.18)",
               color: "#fff",
@@ -361,7 +357,7 @@ export default function LeiloesPage() {
                 </Link>
 
                 <Link
-                  href="/r/bigode-das-rifas#painel"
+                  href="/area-do-usuario"
                   style={{
                     display: "inline-block",
                     background: "rgba(255,255,255,0.05)",
