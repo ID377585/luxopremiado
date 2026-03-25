@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Leilões | Bigode das Rifas",
   description:
-    "Lotes premium com disputa ao vivo, visual sofisticado e páginas criadas para elevar desejo e retenção.",
+    "Leilões com lotes premium, disputa intensa, percepção de valor elevada e experiência pensada para retenção.",
 };
 
 const leiloes = [
@@ -12,7 +12,7 @@ const leiloes = [
     slug: "carro-0km",
     titulo: "Carro 0km",
     descricao:
-      "Lote premium com forte apelo emocional, alto valor percebido e grande capacidade de retenção.",
+      "Lote premium com grande apelo visual, excelente percepção de valor e forte potencial de disputa.",
     lanceAtual: "R$ 48.500",
     status: "Ao vivo",
     observadores: "312 pessoas acompanhando",
@@ -22,7 +22,7 @@ const leiloes = [
     slug: "moto-esportiva",
     titulo: "Moto esportiva",
     descricao:
-      "Oferta com dinâmica intensa de disputa e ótima leitura visual para acompanhar a competição.",
+      "Leilão com forte apelo emocional, ótima retenção e excelente desempenho em páginas de alto impacto.",
     lanceAtual: "R$ 19.800",
     status: "Disputa quente",
     observadores: "187 pessoas acompanhando",
@@ -32,11 +32,21 @@ const leiloes = [
     slug: "jet-ski",
     titulo: "Jet Ski",
     descricao:
-      "Item premium com grande força de atração para público que busca lotes mais exclusivos.",
+      "Item aspiracional com grande apelo para público que busca experiências premium e lotes exclusivos.",
     lanceAtual: "R$ 32.900",
     status: "Subindo",
     observadores: "141 pessoas acompanhando",
     destaque: "Exclusivo",
+  },
+  {
+    slug: "hilux-blindada",
+    titulo: "Hilux blindada",
+    descricao:
+      "Lote de altíssimo impacto para chamar atenção, elevar desejo e aumentar acompanhamento da disputa.",
+    lanceAtual: "R$ 118.000",
+    status: "Em destaque",
+    observadores: "426 pessoas acompanhando",
+    destaque: "Super lote",
   },
 ];
 
@@ -44,17 +54,32 @@ const recursos = [
   {
     title: "Disputa ao vivo",
     description:
-      "Sensação real de urgência e competição para manter o usuário acompanhando mais tempo.",
+      "A página valoriza o movimento do lote e reforça a sensação de competição em tempo real.",
   },
   {
     title: "Lotes premium",
     description:
-      "Itens com maior desejo e maior valor percebido para elevar atenção e retenção.",
+      "Itens mais fortes pedem uma experiência própria para elevar valor percebido e retenção.",
   },
   {
     title: "Leitura clara",
     description:
-      "Informação fácil de ver para reduzir dúvida e aumentar entrada na disputa.",
+      "Informações rápidas de entender para o usuário entrar na disputa sem travar.",
+  },
+];
+
+const depoimentos = [
+  {
+    name: "Marcelo T.",
+    text: "A página de leilão ficou muito mais forte. Dá vontade de acompanhar o lote até o fim.",
+  },
+  {
+    name: "Bruno A.",
+    text: "A disputa fica mais envolvente quando o lote ganha uma apresentação própria.",
+  },
+  {
+    name: "Vanessa C.",
+    text: "O visual ajuda a perceber valor e deixa a experiência bem mais premium.",
   },
 ];
 
@@ -62,32 +87,17 @@ const faqs = [
   {
     question: "Como entro em um leilão?",
     answer:
-      "Você acessa o lote, acompanha o cenário atual da disputa e entra conforme a proposta daquela campanha.",
+      "Você acessa o lote, acompanha o momento da disputa e entra conforme a dinâmica disponível naquela campanha.",
   },
   {
-    question: "Como vejo se o lote está quente?",
+    question: "Como sei se o lote está disputado?",
     answer:
-      "A página mostra status, interesse e movimento para comunicar melhor a força da disputa.",
+      "A página destaca status, interesse e movimento do lote para comunicar melhor a intensidade da disputa.",
   },
   {
-    question: "Por que separar os leilões das rifas e sorteios?",
+    question: "Por que separar leilões das outras modalidades?",
     answer:
-      "Porque leilão pede outra experiência: mais tensão, mais acompanhamento e mais percepção de valor.",
-  },
-];
-
-const depoimentos = [
-  {
-    name: "Marcelo T.",
-    text: "O lote passa muito mais valor quando entra numa página própria. Dá vontade de acompanhar.",
-  },
-  {
-    name: "Bruno A.",
-    text: "A disputa fica mais envolvente. Não parece uma campanha comum, parece algo especial.",
-  },
-  {
-    name: "Vanessa C.",
-    text: "O visual ajuda a entender rápido o andamento e deixa a experiência mais premium.",
+      "Porque leilão exige mais tensão, mais acompanhamento e mais percepção de valor do item.",
   },
 ];
 
@@ -109,7 +119,14 @@ export default function LeiloesPage() {
           padding: "56px 24px 28px",
         }}
       >
-        <p style={{ margin: 0, color: "#f2d067", fontWeight: 900, letterSpacing: 1.2 }}>
+        <p
+          style={{
+            margin: 0,
+            color: "#f2d067",
+            fontWeight: 900,
+            letterSpacing: 1.2,
+          }}
+        >
           LEILÕES
         </p>
 
@@ -118,26 +135,35 @@ export default function LeiloesPage() {
             fontSize: "clamp(2.3rem, 5vw, 4.4rem)",
             lineHeight: 1.04,
             margin: "12px 0 16px",
-            maxWidth: 860,
+            maxWidth: 900,
           }}
         >
-          Entre na disputa agora e tente levar lotes premium antes que outro usuário avance.
+          Entre na disputa agora e tente levar lotes premium antes que outro
+          participante avance.
         </h1>
 
         <p
           style={{
             margin: 0,
-            maxWidth: 820,
+            maxWidth: 860,
             color: "rgba(255,255,255,0.82)",
             fontSize: 18,
             lineHeight: 1.75,
           }}
         >
-          Leilões funcionam melhor quando geram desejo, urgência e acompanhamento constante.
-          Aqui a página foi pensada para valorizar o lote e intensificar a sensação de competição.
+          Leilões funcionam melhor quando geram desejo, competição e retenção.
+          Aqui a estrutura foi pensada para valorizar o lote, aumentar atenção e
+          manter o usuário acompanhando por mais tempo.
         </p>
 
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 24 }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 12,
+            flexWrap: "wrap",
+            marginTop: 24,
+          }}
+        >
           <Link
             href="/leiloes/carro-0km"
             style={{
@@ -208,25 +234,26 @@ export default function LeiloesPage() {
       >
         <div
           style={{
+            marginBottom: 18,
             display: "flex",
             justifyContent: "space-between",
             gap: 16,
             alignItems: "end",
             flexWrap: "wrap",
-            marginBottom: 18,
           }}
         >
           <div>
-            <p style={{ color: "#f2d067", fontWeight: 800, marginBottom: 8 }}>
+            <p style={{ margin: 0, color: "#f2d067", fontWeight: 900 }}>
               LOTES DISPONÍVEIS
             </p>
-            <h2 style={{ fontSize: 34, margin: 0 }}>
-              Itens que prendem atenção e elevam o desejo de disputa
+            <h2 style={{ margin: "8px 0 0", fontSize: 34 }}>
+              Itens que elevam desejo e fazem o usuário acompanhar mais
             </h2>
           </div>
 
-          <p style={{ margin: 0, color: "rgba(255,255,255,0.72)" }}>
-            Quanto mais valioso o lote parece, maior a tendência do usuário continuar acompanhando.
+          <p style={{ margin: 0, color: "rgba(255,255,255,0.72)", maxWidth: 420 }}>
+            Quanto maior o valor percebido do lote, maior a tendência de
+            permanência e disputa.
           </p>
         </div>
 
@@ -264,7 +291,9 @@ export default function LeiloesPage() {
                 {leilao.destaque}
               </div>
 
-              <h3 style={{ margin: "0 0 10px", fontSize: 28 }}>{leilao.titulo}</h3>
+              <h3 style={{ margin: "0 0 10px", fontSize: 28 }}>
+                {leilao.titulo}
+              </h3>
 
               <p
                 style={{
@@ -291,8 +320,12 @@ export default function LeiloesPage() {
                       border: "1px solid rgba(255,255,255,0.06)",
                     }}
                   >
-                    <p style={{ margin: 0, color: "rgba(255,255,255,0.64)" }}>{label}</p>
-                    <strong style={{ display: "block", marginTop: 6 }}>{value}</strong>
+                    <p style={{ margin: 0, color: "rgba(255,255,255,0.64)" }}>
+                      {label}
+                    </p>
+                    <strong style={{ display: "block", marginTop: 6 }}>
+                      {value}
+                    </strong>
                   </div>
                 ))}
               </div>
@@ -333,7 +366,9 @@ export default function LeiloesPage() {
             padding: 28,
           }}
         >
-          <p style={{ color: "#f2d067", fontWeight: 800, marginTop: 0 }}>PROVA SOCIAL</p>
+          <p style={{ color: "#f2d067", fontWeight: 800, marginTop: 0 }}>
+            PROVA SOCIAL
+          </p>
           <h2 style={{ fontSize: 32, marginTop: 0 }}>
             Como os usuários percebem a experiência dos leilões
           </h2>
@@ -355,7 +390,9 @@ export default function LeiloesPage() {
                   border: "1px solid rgba(255,255,255,0.08)",
                 }}
               >
-                <strong style={{ display: "block", marginBottom: 8 }}>{item.name}</strong>
+                <strong style={{ display: "block", marginBottom: 8 }}>
+                  {item.name}
+                </strong>
                 <p style={{ margin: 0, color: "rgba(255,255,255,0.8)", lineHeight: 1.7 }}>
                   {item.text}
                 </p>
@@ -381,8 +418,12 @@ export default function LeiloesPage() {
             padding: 28,
           }}
         >
-          <p style={{ color: "#f2d067", fontWeight: 800, marginTop: 0 }}>FAQ</p>
-          <h2 style={{ fontSize: 32, marginTop: 0 }}>Dúvidas frequentes sobre os leilões</h2>
+          <p style={{ color: "#f2d067", fontWeight: 800, marginTop: 0 }}>
+            FAQ
+          </p>
+          <h2 style={{ fontSize: 32, marginTop: 0 }}>
+            Dúvidas frequentes sobre os leilões
+          </h2>
 
           <div style={{ display: "grid", gap: 14 }}>
             {faqs.map((item) => (
@@ -395,7 +436,9 @@ export default function LeiloesPage() {
                   border: "1px solid rgba(255,255,255,0.06)",
                 }}
               >
-                <strong style={{ display: "block", marginBottom: 8 }}>{item.question}</strong>
+                <strong style={{ display: "block", marginBottom: 8 }}>
+                  {item.question}
+                </strong>
                 <span style={{ color: "rgba(255,255,255,0.76)", lineHeight: 1.7 }}>
                   {item.answer}
                 </span>
