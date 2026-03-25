@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import QuickAccessBar from "@/components/QuickAccessBar";
 
 export const metadata: Metadata = {
   title: "Sorteios | Bigode das Rifas",
@@ -68,6 +69,21 @@ const benefits = [
   },
 ];
 
+const testimonials = [
+  {
+    name: "Amanda P.",
+    text: "A comunicação ficou muito mais clara. Agora entendo exatamente como participar.",
+  },
+  {
+    name: "Ricardo L.",
+    text: "Gostei do foco no prêmio e das regras resumidas de forma objetiva.",
+  },
+  {
+    name: "Priscila N.",
+    text: "Separar sorteios das rifas deixou tudo mais organizado e profissional.",
+  },
+];
+
 const faqs = [
   {
     question: "Como participo do sorteio?",
@@ -86,21 +102,6 @@ const faqs = [
   },
 ];
 
-const testimonials = [
-  {
-    name: "Amanda P.",
-    text: "A comunicação ficou muito mais clara. Agora entendo exatamente como participar.",
-  },
-  {
-    name: "Ricardo L.",
-    text: "Gostei do foco no prêmio e das regras resumidas de forma objetiva.",
-  },
-  {
-    name: "Priscila N.",
-    text: "Separar sorteios das rifas deixou tudo mais organizado e profissional.",
-  },
-];
-
 export default function SorteiosPage() {
   return (
     <main
@@ -112,11 +113,17 @@ export default function SorteiosPage() {
         paddingBottom: 110,
       }}
     >
+      <QuickAccessBar
+        chooseHref="/r/bigode-das-rifas#premio"
+        userHref="/r/bigode-das-rifas#painel"
+        vipHref="/vip"
+      />
+
       <section
         style={{
           maxWidth: 1240,
           margin: "0 auto",
-          padding: "56px 24px 28px",
+          padding: "40px 24px 28px",
         }}
       >
         <p
@@ -137,8 +144,8 @@ export default function SorteiosPage() {
             margin: "12px 0 16px",
           }}
         >
-          Participe agora de sorteios confiáveis, com regras claras e prêmios
-          que realmente chamam atenção.
+          Participe agora de sorteios confiáveis, com regras claras e acesso rápido
+          ao fluxo real de participação.
         </h1>
 
         <p
@@ -150,9 +157,9 @@ export default function SorteiosPage() {
             margin: 0,
           }}
         >
-          Tudo transparente, fácil de entender e pronto para você participar em
-          poucos segundos. Menos dúvida, mais clareza e mais vontade de entrar
-          na campanha agora.
+          Esta página não pode ser só apresentação. Ela precisa ajudar o usuário
+          a entender, confiar e chegar rápido à participação, à área do usuário e
+          às campanhas principais.
         </p>
 
         <div
@@ -164,7 +171,7 @@ export default function SorteiosPage() {
           }}
         >
           <Link
-            href="/sorteios/sorteio-1000-no-pix"
+            href="/r/bigode-das-rifas#premio"
             style={{
               background: "linear-gradient(135deg, #f7d978 0%, #d4a63a 100%)",
               color: "#111",
@@ -175,11 +182,11 @@ export default function SorteiosPage() {
               boxShadow: "0 14px 28px rgba(0,0,0,0.22)",
             }}
           >
-            Ver sorteio em destaque
+            PARTICIPAR AGORA
           </Link>
 
-          <a
-            href="#lista-sorteios"
+          <Link
+            href="/r/bigode-das-rifas#painel"
             style={{
               border: "1px solid rgba(255,255,255,0.18)",
               color: "#fff",
@@ -190,8 +197,8 @@ export default function SorteiosPage() {
               background: "rgba(255,255,255,0.04)",
             }}
           >
-            Ver campanhas
-          </a>
+            ABRIR ÁREA DO USUÁRIO
+          </Link>
         </div>
       </section>
 
@@ -253,7 +260,7 @@ export default function SorteiosPage() {
           </div>
 
           <p style={{ margin: 0, color: "rgba(255,255,255,0.72)" }}>
-            Entre agora antes que outras campanhas roubem sua atenção.
+            Entre rápido no fluxo real e não deixe a página virar só vitrine.
           </p>
         </div>
 
@@ -357,21 +364,45 @@ export default function SorteiosPage() {
                 </div>
               </div>
 
-              <Link
-                href={`/sorteios/${sorteio.slug}`}
+              <div
                 style={{
-                  display: "inline-block",
+                  display: "flex",
+                  gap: 10,
+                  flexWrap: "wrap",
                   marginTop: 8,
-                  background: "#fff",
-                  color: "#111",
-                  textDecoration: "none",
-                  padding: "12px 18px",
-                  borderRadius: 14,
-                  fontWeight: 800,
                 }}
               >
-                Abrir campanha
-              </Link>
+                <Link
+                  href={`/sorteios/${sorteio.slug}`}
+                  style={{
+                    display: "inline-block",
+                    background: "#fff",
+                    color: "#111",
+                    textDecoration: "none",
+                    padding: "12px 18px",
+                    borderRadius: 14,
+                    fontWeight: 800,
+                  }}
+                >
+                  Abrir campanha
+                </Link>
+
+                <Link
+                  href="/r/bigode-das-rifas#premio"
+                  style={{
+                    display: "inline-block",
+                    background: "rgba(255,255,255,0.05)",
+                    color: "#fff",
+                    textDecoration: "none",
+                    padding: "12px 18px",
+                    borderRadius: 14,
+                    fontWeight: 800,
+                    border: "1px solid rgba(255,255,255,0.1)",
+                  }}
+                >
+                  Participar
+                </Link>
+              </div>
             </article>
           ))}
         </div>
@@ -503,7 +534,7 @@ export default function SorteiosPage() {
       >
         <div style={{ maxWidth: 1240, margin: "0 auto" }}>
           <Link
-            href="/sorteios/sorteio-1000-no-pix"
+            href="/r/bigode-das-rifas#premio"
             style={{
               display: "block",
               width: "100%",
@@ -517,7 +548,7 @@ export default function SorteiosPage() {
               boxShadow: "0 12px 26px rgba(0,0,0,0.25)",
             }}
           >
-            QUERO PARTICIPAR DO SORTEIO AGORA
+            QUERO PARTICIPAR AGORA
           </Link>
         </div>
       </div>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import CountdownCard from "@/components/CountdownCard";
 import TrustStrip from "@/components/TrustStrip";
+import QuickAccessBar from "@/components/QuickAccessBar";
 
 export const metadata: Metadata = {
   title: "Bigode das Rifas | Rifas, sorteios e leilões com PIX imediato",
@@ -60,71 +61,6 @@ const premios = [
   },
 ];
 
-const campanhas = [
-  {
-    title: "Rifa Relâmpago da Semana",
-    description:
-      "Poucos números, urgência maior e mais chance de estimular compra por impulso.",
-  },
-  {
-    title: "Sorteio Premium do Mês",
-    description:
-      "Campanha de maior valor para reforçar percepção de prêmio forte e participação relevante.",
-  },
-  {
-    title: "Leilão de Lote Especial",
-    description:
-      "Formato ideal para aumentar retorno ao site e fazer o usuário acompanhar a disputa mais vezes.",
-  },
-  {
-    title: "Ranking de Compradores",
-    description:
-      "Estratégia para incentivar recorrência, volume de compra e competição entre participantes.",
-  },
-];
-
-const beneficios = [
-  "Pagamento rápido no PIX",
-  "Mais campanhas para manter atenção",
-  "Visual premium para aumentar confiança",
-  "Prêmios com forte apelo popular",
-  "Navegação simples no celular",
-  "CTAs fortes em toda a jornada",
-];
-
-const depoimentos = [
-  {
-    name: "Carlos, Campinas/SP",
-    text: "A página ficou muito mais clara. Entrei em uma campanha e acabei vendo outras também.",
-  },
-  {
-    name: "Juliana, São Paulo/SP",
-    text: "Gostei porque ficou fácil entender as modalidades e escolher onde participar primeiro.",
-  },
-  {
-    name: "Rafael, Goiânia/GO",
-    text: "O visual passa confiança e dá vontade de agir rápido antes de perder a oportunidade.",
-  },
-];
-
-const faqs = [
-  {
-    question: "Como participo?",
-    answer:
-      "Você escolhe a modalidade, entra na campanha desejada e segue o fluxo disponível na oferta para confirmar sua participação.",
-  },
-  {
-    question: "Qual modalidade costuma chamar mais atenção?",
-    answer:
-      "Rifas atraem entrada rápida, sorteios funcionam muito bem para campanhas simples e leilões aumentam retenção por disputa.",
-  },
-  {
-    question: "Posso participar de mais de uma campanha?",
-    answer:
-      "Sim. A estrutura foi pensada exatamente para fazer o usuário navegar entre modalidades diferentes e encontrar mais oportunidades.",
-  },
-];
-
 export default function HomePage() {
   return (
     <main
@@ -136,11 +72,17 @@ export default function HomePage() {
         paddingBottom: 110,
       }}
     >
+      <QuickAccessBar
+        chooseHref="/r/bigode-das-rifas#premio"
+        userHref="/r/bigode-das-rifas#painel"
+        vipHref="/vip"
+      />
+
       <section
         style={{
           maxWidth: 1240,
           margin: "0 auto",
-          padding: "56px 24px 34px",
+          padding: "40px 24px 34px",
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
           gap: 28,
@@ -167,8 +109,7 @@ export default function HomePage() {
               maxWidth: 780,
             }}
           >
-            Escolha sua campanha agora e aumente suas chances antes que as
-            melhores oportunidades acabem.
+            Escolha sua campanha agora e entre no fluxo certo sem perder tempo.
           </h1>
 
           <p
@@ -180,10 +121,9 @@ export default function HomePage() {
               lineHeight: 1.75,
             }}
           >
-            Rifas, sorteios e leilões em um ambiente mais forte, mais direto e
-            mais preparado para fazer o visitante agir rápido. Aqui o objetivo é
-            simples: chamar atenção, manter o usuário navegando e transformar
-            interesse em participação.
+            A home precisa vender, mas também precisa levar o usuário para o que
+            realmente importa: escolher números, entrar na área do usuário,
+            acompanhar campanhas e comprar sem atrito.
           </p>
 
           <div
@@ -195,7 +135,7 @@ export default function HomePage() {
             }}
           >
             <Link
-              href="/rifas"
+              href="/r/bigode-das-rifas#premio"
               style={{
                 background: "linear-gradient(135deg, #f7d978 0%, #d4a63a 100%)",
                 color: "#111",
@@ -206,11 +146,11 @@ export default function HomePage() {
                 boxShadow: "0 14px 30px rgba(0,0,0,0.24)",
               }}
             >
-              QUERO ENTRAR AGORA
+              ESCOLHER NÚMEROS AGORA
             </Link>
 
             <Link
-              href="/leiloes"
+              href="/r/bigode-das-rifas#painel"
               style={{
                 border: "1px solid rgba(255,255,255,0.18)",
                 color: "#fff",
@@ -221,39 +161,8 @@ export default function HomePage() {
                 background: "rgba(255,255,255,0.04)",
               }}
             >
-              Ver leilões premium
+              ABRIR ÁREA DO USUÁRIO
             </Link>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              gap: 12,
-              flexWrap: "wrap",
-              marginTop: 18,
-            }}
-          >
-            {[
-              "PIX imediato",
-              "Campanhas fortes",
-              "Mais retenção",
-              "Compra rápida",
-            ].map((item) => (
-              <span
-                key={item}
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: 999,
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  color: "rgba(255,255,255,0.9)",
-                  fontWeight: 700,
-                  fontSize: 14,
-                }}
-              >
-                {item}
-              </span>
-            ))}
           </div>
         </div>
 
@@ -281,8 +190,8 @@ export default function HomePage() {
                 lineHeight: 1.7,
               }}
             >
-              Oferta com forte apelo visual, ótima percepção de valor e excelente
-              potencial para puxar o primeiro clique da home.
+              Oferta forte para puxar clique, mas agora com acesso direto ao
+              fluxo real de compra.
             </p>
 
             <div style={{ display: "grid", gap: 12 }}>
@@ -312,7 +221,7 @@ export default function HomePage() {
             </div>
 
             <Link
-              href="/rifas/moto-0km"
+              href="/r/bigode-das-rifas#premio"
               style={{
                 display: "block",
                 marginTop: 18,
@@ -332,7 +241,7 @@ export default function HomePage() {
           <CountdownCard
             title="Oferta quente da semana"
             timeLeft="02h 14m 39s"
-            subtitle="Quanto mais tempo passa, maior a chance dos melhores números e campanhas chamarem a atenção de outros usuários."
+            subtitle="Não deixe a home virar um beco sem saída: leve o usuário para compra e painel com 1 clique."
           />
         </div>
       </section>
@@ -358,7 +267,6 @@ export default function HomePage() {
               border: "1px solid rgba(255,255,255,0.08)",
               borderRadius: 24,
               padding: 24,
-              boxShadow: "0 14px 34px rgba(0,0,0,0.18)",
             }}
           >
             <h2 style={{ marginTop: 0, fontSize: 28 }}>{item.title}</h2>
@@ -385,7 +293,7 @@ export default function HomePage() {
         style={{
           maxWidth: 1240,
           margin: "0 auto",
-          padding: "0 24px 28px",
+          padding: "0 24px 72px",
         }}
       >
         <div
@@ -406,17 +314,6 @@ export default function HomePage() {
               Campanhas com valor percebido mais forte
             </h2>
           </div>
-
-          <p
-            style={{
-              margin: 0,
-              color: "rgba(255,255,255,0.72)",
-              maxWidth: 420,
-            }}
-          >
-            Quanto mais desejo o prêmio gera, maior a chance do visitante
-            continuar navegando e entrar em mais de uma campanha.
-          </p>
         </div>
 
         <div
@@ -466,224 +363,6 @@ export default function HomePage() {
           ))}
         </div>
       </section>
-
-      <section
-        style={{
-          maxWidth: 1240,
-          margin: "0 auto",
-          padding: "0 24px 28px",
-        }}
-      >
-        <article
-          style={{
-            background:
-              "linear-gradient(135deg, rgba(247,217,120,0.15), rgba(8,22,66,0.95))",
-            border: "1px solid rgba(242,208,103,0.25)",
-            borderRadius: 28,
-            padding: 28,
-          }}
-        >
-          <p style={{ marginTop: 0, color: "#f2d067", fontWeight: 900 }}>
-            O QUE MAIS RETÉM O USUÁRIO
-          </p>
-          <h2 style={{ fontSize: 34, margin: "0 0 16px" }}>
-            Mais campanhas, mais formatos e mais motivos para continuar no site
-          </h2>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-              gap: 16,
-            }}
-          >
-            {campanhas.map((item) => (
-              <div
-                key={item.title}
-                style={{
-                  background: "rgba(255,255,255,0.05)",
-                  borderRadius: 20,
-                  padding: 18,
-                  border: "1px solid rgba(255,255,255,0.08)",
-                }}
-              >
-                <strong style={{ display: "block", marginBottom: 8 }}>
-                  {item.title}
-                </strong>
-                <p
-                  style={{
-                    margin: 0,
-                    color: "rgba(255,255,255,0.8)",
-                    lineHeight: 1.7,
-                  }}
-                >
-                  {item.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </article>
-      </section>
-
-      <section
-        style={{
-          maxWidth: 1240,
-          margin: "0 auto",
-          padding: "0 24px 28px",
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-          gap: 20,
-        }}
-      >
-        <article
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(10,20,64,0.95), rgba(5,16,52,0.95))",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: 24,
-            padding: 24,
-          }}
-        >
-          <h2 style={{ marginTop: 0 }}>Por que essa estrutura vende mais</h2>
-          <div style={{ display: "grid", gap: 12 }}>
-            {beneficios.map((item) => (
-              <div
-                key={item}
-                style={{
-                  background: "rgba(255,255,255,0.04)",
-                  borderRadius: 16,
-                  padding: 14,
-                  border: "1px solid rgba(255,255,255,0.06)",
-                  fontWeight: 700,
-                }}
-              >
-                {item}
-              </div>
-            ))}
-          </div>
-        </article>
-
-        <article
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(10,20,64,0.95), rgba(5,16,52,0.95))",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: 24,
-            padding: 24,
-          }}
-        >
-          <h2 style={{ marginTop: 0 }}>Quem entra, tende a continuar</h2>
-          <div style={{ display: "grid", gap: 14 }}>
-            {depoimentos.map((item) => (
-              <div
-                key={item.name}
-                style={{
-                  background: "rgba(255,255,255,0.04)",
-                  borderRadius: 18,
-                  padding: 16,
-                  border: "1px solid rgba(255,255,255,0.06)",
-                }}
-              >
-                <strong style={{ display: "block", marginBottom: 8 }}>
-                  {item.name}
-                </strong>
-                <p
-                  style={{
-                    margin: 0,
-                    color: "rgba(255,255,255,0.8)",
-                    lineHeight: 1.7,
-                  }}
-                >
-                  {item.text}
-                </p>
-              </div>
-            ))}
-          </div>
-        </article>
-      </section>
-
-      <section
-        style={{
-          maxWidth: 1240,
-          margin: "0 auto",
-          padding: "0 24px 72px",
-        }}
-      >
-        <article
-          style={{
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: 28,
-            padding: 28,
-          }}
-        >
-          <p style={{ marginTop: 0, color: "#f2d067", fontWeight: 900 }}>
-            FAQ
-          </p>
-          <h2 style={{ marginTop: 0, fontSize: 34 }}>
-            Dúvidas frequentes sobre a plataforma
-          </h2>
-          <div style={{ display: "grid", gap: 14 }}>
-            {faqs.map((item) => (
-              <div
-                key={item.question}
-                style={{
-                  background: "rgba(255,255,255,0.03)",
-                  borderRadius: 18,
-                  padding: 18,
-                  border: "1px solid rgba(255,255,255,0.06)",
-                }}
-              >
-                <strong style={{ display: "block", marginBottom: 8 }}>
-                  {item.question}
-                </strong>
-                <span
-                  style={{
-                    color: "rgba(255,255,255,0.76)",
-                    lineHeight: 1.7,
-                  }}
-                >
-                  {item.answer}
-                </span>
-              </div>
-            ))}
-          </div>
-        </article>
-      </section>
-
-      <div
-        style={{
-          position: "fixed",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          padding: "12px 16px",
-          background: "rgba(4,13,44,0.96)",
-          borderTop: "1px solid rgba(242,208,103,0.18)",
-          backdropFilter: "blur(10px)",
-          zIndex: 999,
-        }}
-      >
-        <div style={{ maxWidth: 1240, margin: "0 auto" }}>
-          <Link
-            href="/rifas"
-            style={{
-              display: "block",
-              width: "100%",
-              textAlign: "center",
-              textDecoration: "none",
-              background: "linear-gradient(135deg, #f7d978 0%, #d4a63a 100%)",
-              color: "#111",
-              padding: "16px 18px",
-              borderRadius: 16,
-              fontWeight: 900,
-              boxShadow: "0 12px 26px rgba(0,0,0,0.25)",
-            }}
-          >
-            QUERO ESCOLHER MINHA CAMPANHA AGORA
-          </Link>
-        </div>
-      </div>
     </main>
   );
 }

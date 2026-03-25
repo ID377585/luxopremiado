@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import QuickAccessBar from "@/components/QuickAccessBar";
 
 export const metadata: Metadata = {
   title: "Leilões | Bigode das Rifas",
@@ -112,11 +113,17 @@ export default function LeiloesPage() {
         paddingBottom: 110,
       }}
     >
+      <QuickAccessBar
+        chooseHref="/r/bigode-das-rifas#premio"
+        userHref="/r/bigode-das-rifas#painel"
+        vipHref="/vip"
+      />
+
       <section
         style={{
           maxWidth: 1240,
           margin: "0 auto",
-          padding: "56px 24px 28px",
+          padding: "40px 24px 28px",
         }}
       >
         <p
@@ -138,8 +145,8 @@ export default function LeiloesPage() {
             maxWidth: 900,
           }}
         >
-          Entre na disputa agora e tente levar lotes premium antes que outro
-          participante avance.
+          Entre na disputa agora e mantenha acesso fácil ao lote, ao painel e às
+          outras campanhas.
         </h1>
 
         <p
@@ -151,9 +158,9 @@ export default function LeiloesPage() {
             lineHeight: 1.75,
           }}
         >
-          Leilões funcionam melhor quando geram desejo, competição e retenção.
-          Aqui a estrutura foi pensada para valorizar o lote, aumentar atenção e
-          manter o usuário acompanhando por mais tempo.
+          A área de leilões precisa ser premium, mas não pode esconder o fluxo
+          real. O usuário precisa encontrar rápido o lote, a disputa e a área
+          do usuário sem ficar perdido.
         </p>
 
         <div
@@ -178,8 +185,8 @@ export default function LeiloesPage() {
             Ver lote em destaque
           </Link>
 
-          <a
-            href="#lista-leiloes"
+          <Link
+            href="/r/bigode-das-rifas#painel"
             style={{
               border: "1px solid rgba(255,255,255,0.18)",
               color: "#fff",
@@ -190,8 +197,8 @@ export default function LeiloesPage() {
               background: "rgba(255,255,255,0.04)",
             }}
           >
-            Explorar lotes
-          </a>
+            Abrir área do usuário
+          </Link>
         </div>
       </section>
 
@@ -330,21 +337,45 @@ export default function LeiloesPage() {
                 ))}
               </div>
 
-              <Link
-                href={`/leiloes/${leilao.slug}`}
+              <div
                 style={{
-                  display: "inline-block",
+                  display: "flex",
+                  gap: 10,
+                  flexWrap: "wrap",
                   marginTop: 8,
-                  background: "#fff",
-                  color: "#111",
-                  textDecoration: "none",
-                  padding: "12px 18px",
-                  borderRadius: 14,
-                  fontWeight: 900,
                 }}
               >
-                Abrir lote
-              </Link>
+                <Link
+                  href={`/leiloes/${leilao.slug}`}
+                  style={{
+                    display: "inline-block",
+                    background: "#fff",
+                    color: "#111",
+                    textDecoration: "none",
+                    padding: "12px 18px",
+                    borderRadius: 14,
+                    fontWeight: 900,
+                  }}
+                >
+                  Abrir lote
+                </Link>
+
+                <Link
+                  href="/r/bigode-das-rifas#painel"
+                  style={{
+                    display: "inline-block",
+                    background: "rgba(255,255,255,0.05)",
+                    color: "#fff",
+                    textDecoration: "none",
+                    padding: "12px 18px",
+                    borderRadius: 14,
+                    fontWeight: 800,
+                    border: "1px solid rgba(255,255,255,0.1)",
+                  }}
+                >
+                  Área do usuário
+                </Link>
+              </div>
             </article>
           ))}
         </div>
