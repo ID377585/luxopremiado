@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import CountdownCard from "@/components/CountdownCard";
+import TrustStrip from "@/components/TrustStrip";
 
 export const metadata: Metadata = {
   title: "Bigode das Rifas | Rifas, sorteios e leilões com PIX imediato",
@@ -51,7 +53,7 @@ const premios = [
       "Oferta direta, simples de entender e muito forte para quem quer entrar sem enrolação.",
   },
   {
-    title: "PlayStation 5 + TV 55”",
+    title: 'PlayStation 5 + TV 55"',
     badge: "Combo premium",
     description:
       "Campanha com alto valor percebido e ótimo potencial para aumentar permanência na página.",
@@ -255,77 +257,87 @@ export default function HomePage() {
           </div>
         </div>
 
-        <aside
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(12,24,70,0.96), rgba(5,15,45,0.96))",
-            border: "1px solid rgba(242,208,103,0.22)",
-            borderRadius: 28,
-            padding: 24,
-            boxShadow: "0 20px 40px rgba(0,0,0,0.24)",
-          }}
-        >
-          <p style={{ marginTop: 0, color: "#f2d067", fontWeight: 800 }}>
-            CAMPANHA EM DESTAQUE
-          </p>
-          <h2 style={{ fontSize: 32, margin: "0 0 14px" }}>
-            Moto 0km + bônus em PIX
-          </h2>
-          <p
+        <div style={{ display: "grid", gap: 18 }}>
+          <aside
             style={{
-              margin: "0 0 18px",
-              color: "rgba(255,255,255,0.8)",
-              lineHeight: 1.7,
+              background:
+                "linear-gradient(180deg, rgba(12,24,70,0.96), rgba(5,15,45,0.96))",
+              border: "1px solid rgba(242,208,103,0.22)",
+              borderRadius: 28,
+              padding: 24,
+              boxShadow: "0 20px 40px rgba(0,0,0,0.24)",
             }}
           >
-            Oferta com forte apelo visual, ótima percepção de valor e excelente
-            potencial para puxar o primeiro clique da home.
-          </p>
+            <p style={{ marginTop: 0, color: "#f2d067", fontWeight: 800 }}>
+              CAMPANHA EM DESTAQUE
+            </p>
+            <h2 style={{ fontSize: 32, margin: "0 0 14px" }}>
+              Moto 0km + bônus em PIX
+            </h2>
+            <p
+              style={{
+                margin: "0 0 18px",
+                color: "rgba(255,255,255,0.8)",
+                lineHeight: 1.7,
+              }}
+            >
+              Oferta com forte apelo visual, ótima percepção de valor e excelente
+              potencial para puxar o primeiro clique da home.
+            </p>
 
-          <div style={{ display: "grid", gap: 12 }}>
-            {[
-              ["Valor por número", "R$ 1,99"],
-              ["Prêmio bônus", "PIX de R$ 5.000"],
-              ["Modalidade", "Rifa em alta"],
-              ["Status", "Entrada acelerada"],
-            ].map(([label, value]) => (
-              <div
-                key={label}
-                style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.07)",
-                  borderRadius: 18,
-                  padding: 14,
-                }}
-              >
-                <p style={{ margin: 0, color: "rgba(255,255,255,0.62)" }}>
-                  {label}
-                </p>
-                <strong style={{ display: "block", marginTop: 6 }}>
-                  {value}
-                </strong>
-              </div>
-            ))}
-          </div>
+            <div style={{ display: "grid", gap: 12 }}>
+              {[
+                ["Valor por número", "R$ 1,99"],
+                ["Prêmio bônus", "PIX de R$ 5.000"],
+                ["Modalidade", "Rifa em alta"],
+                ["Status", "Entrada acelerada"],
+              ].map(([label, value]) => (
+                <div
+                  key={label}
+                  style={{
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.07)",
+                    borderRadius: 18,
+                    padding: 14,
+                  }}
+                >
+                  <p style={{ margin: 0, color: "rgba(255,255,255,0.62)" }}>
+                    {label}
+                  </p>
+                  <strong style={{ display: "block", marginTop: 6 }}>
+                    {value}
+                  </strong>
+                </div>
+              ))}
+            </div>
 
-          <Link
-            href="/rifas/moto-0km"
-            style={{
-              display: "block",
-              marginTop: 18,
-              textAlign: "center",
-              textDecoration: "none",
-              background: "#fff",
-              color: "#111",
-              borderRadius: 16,
-              padding: "14px 18px",
-              fontWeight: 900,
-            }}
-          >
-            ESCOLHER NÚMEROS
-          </Link>
-        </aside>
+            <Link
+              href="/rifas/moto-0km"
+              style={{
+                display: "block",
+                marginTop: 18,
+                textAlign: "center",
+                textDecoration: "none",
+                background: "#fff",
+                color: "#111",
+                borderRadius: 16,
+                padding: "14px 18px",
+                fontWeight: 900,
+              }}
+            >
+              ESCOLHER NÚMEROS
+            </Link>
+          </aside>
+
+          <CountdownCard
+            title="Oferta quente da semana"
+            timeLeft="02h 14m 39s"
+            subtitle="Quanto mais tempo passa, maior a chance dos melhores números e campanhas chamarem a atenção de outros usuários."
+          />
+        </div>
       </section>
+
+      <TrustStrip />
 
       <section
         style={{
@@ -395,7 +407,13 @@ export default function HomePage() {
             </h2>
           </div>
 
-          <p style={{ margin: 0, color: "rgba(255,255,255,0.72)", maxWidth: 420 }}>
+          <p
+            style={{
+              margin: 0,
+              color: "rgba(255,255,255,0.72)",
+              maxWidth: 420,
+            }}
+          >
             Quanto mais desejo o prêmio gera, maior a chance do visitante
             continuar navegando e entrar em mais de uma campanha.
           </p>

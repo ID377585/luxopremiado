@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import UrgencyBar from "@/components/UrgencyBar";
 import RankingCard from "@/components/RankingCard";
 import SocialProof from "@/components/SocialProof";
+import CountdownCard from "@/components/CountdownCard";
 
 const leiloes = {
   "carro-0km": {
@@ -13,6 +14,7 @@ const leiloes = {
     lanceAtual: "R$ 48.500",
     lanceMinimo: "R$ 500",
     encerramento: "Hoje às 22:30",
+    tempoRestante: "01h 42m 18s",
     status: "Ao vivo",
     observadores: "312 pessoas acompanhando",
     destaque: "Lote principal",
@@ -32,6 +34,7 @@ const leiloes = {
     lanceAtual: "R$ 19.800",
     lanceMinimo: "R$ 250",
     encerramento: "Hoje às 21:10",
+    tempoRestante: "00h 58m 42s",
     status: "Disputa quente",
     observadores: "187 pessoas acompanhando",
     destaque: "Alta atenção",
@@ -51,6 +54,7 @@ const leiloes = {
     lanceAtual: "R$ 32.900",
     lanceMinimo: "R$ 350",
     encerramento: "Amanhã às 20:40",
+    tempoRestante: "18h 11m 25s",
     status: "Subindo",
     observadores: "141 pessoas acompanhando",
     destaque: "Exclusivo",
@@ -70,6 +74,7 @@ const leiloes = {
     lanceAtual: "R$ 118.000",
     lanceMinimo: "R$ 1.000",
     encerramento: "Hoje às 23:15",
+    tempoRestante: "02h 27m 09s",
     status: "Em destaque",
     observadores: "426 pessoas acompanhando",
     destaque: "Super lote",
@@ -120,6 +125,12 @@ export default async function LeilaoDetalhePage({ params }: PageProps) {
     { name: "Carlos M.", value: "R$ 117.000" },
     { name: "Amanda R.", value: "R$ 117.500" },
     { name: "Bruno A.", value: item.lanceAtual },
+  ];
+
+  const sugestoes = [
+    { label: "Lance mínimo", value: item.lanceMinimo },
+    { label: "Lance competitivo", value: "R$ 1.500" },
+    { label: "Lance agressivo", value: "R$ 3.000" },
   ];
 
   const motivos = [
@@ -255,6 +266,64 @@ export default async function LeilaoDetalhePage({ params }: PageProps) {
           maxWidth: 1240,
           margin: "0 auto",
           padding: "0 24px 28px",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+          gap: 20,
+        }}
+      >
+        <CountdownCard
+          title="Este lote está quase virando"
+          timeLeft={item.tempoRestante}
+          subtitle="Em leilão, tempo e atenção trabalham juntos. Quanto mais o cronômetro avança, maior a chance de outro participante subir o lance antes de você."
+        />
+
+        <article
+          id="dar-lance"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(10,20,64,0.95), rgba(5,16,52,0.95))",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: 24,
+            padding: 24,
+          }}
+        >
+          <p style={{ marginTop: 0, color: "#f2d067", fontWeight: 900 }}>
+            SUGESTÕES DE LANCE
+          </p>
+          <h2 style={{ margin: "0 0 16px", fontSize: 30 }}>
+            Entre com estratégia e aumente sua presença na disputa
+          </h2>
+
+          <div style={{ display: "grid", gap: 12 }}>
+            {sugestoes.map((item) => (
+              <div
+                key={item.label}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 12,
+                  alignItems: "center",
+                  background: "rgba(255,255,255,0.04)",
+                  borderRadius: 16,
+                  padding: "14px 16px",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                <strong>{item.label}</strong>
+                <span style={{ color: "#f2d067", fontWeight: 900 }}>
+                  {item.value}
+                </span>
+              </div>
+            ))}
+          </div>
+        </article>
+      </section>
+
+      <section
+        style={{
+          maxWidth: 1240,
+          margin: "0 auto",
+          padding: "0 24px 28px",
         }}
       >
         <article
@@ -312,7 +381,6 @@ export default async function LeilaoDetalhePage({ params }: PageProps) {
       </section>
 
       <section
-        id="dar-lance"
         style={{
           maxWidth: 1240,
           margin: "0 auto",
@@ -333,7 +401,13 @@ export default async function LeilaoDetalhePage({ params }: PageProps) {
             }}
           >
             <h3 style={{ marginTop: 0 }}>{item.title}</h3>
-            <p style={{ color: "rgba(255,255,255,0.78)", lineHeight: 1.7, margin: 0 }}>
+            <p
+              style={{
+                color: "rgba(255,255,255,0.78)",
+                lineHeight: 1.7,
+                margin: 0,
+              }}
+            >
               {item.text}
             </p>
           </article>
