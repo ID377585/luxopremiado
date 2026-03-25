@@ -28,6 +28,26 @@ const sorteios = [
     status: "Em destaque",
     destaque: "Prêmio premium",
   },
+  {
+    slug: "sorteio-iphone-15-pro",
+    titulo: "iPhone 15 Pro",
+    premio: "Prêmio desejado e popular",
+    descricao:
+      "Oferta de alto apelo para tráfego mobile e campanhas com forte decisão por impulso.",
+    participacao: "Entrada simples",
+    status: "Aquecendo",
+    destaque: "Conversão forte",
+  },
+  {
+    slug: "sorteio-ps5-tv",
+    titulo: 'PlayStation 5 + TV 55"',
+    premio: "Combo de alto valor percebido",
+    descricao:
+      "Campanha muito eficiente para segurar atenção e estimular participação rápida.",
+    participacao: "Participação imediata",
+    status: "Em alta",
+    destaque: "Combo premium",
+  },
 ];
 
 const benefits = [
@@ -85,7 +105,8 @@ export default function SorteiosPage() {
   return (
     <main
       style={{
-        background: "transparent",
+        background:
+          "radial-gradient(circle at top, rgba(28,42,120,0.28), transparent 30%), linear-gradient(180deg, #04112f 0%, #071632 100%)",
         color: "#fff",
         minHeight: "100vh",
         paddingBottom: 110,
@@ -98,7 +119,14 @@ export default function SorteiosPage() {
           padding: "56px 24px 28px",
         }}
       >
-        <p style={{ color: "#f2d067", fontWeight: 800, letterSpacing: 1.2, margin: 0 }}>
+        <p
+          style={{
+            color: "#f2d067",
+            fontWeight: 800,
+            letterSpacing: 1.2,
+            margin: 0,
+          }}
+        >
           MODALIDADE
         </p>
 
@@ -109,7 +137,8 @@ export default function SorteiosPage() {
             margin: "12px 0 16px",
           }}
         >
-          Participe agora de sorteios confiáveis, com regras claras e prêmios que valem a pena.
+          Participe agora de sorteios confiáveis, com regras claras e prêmios
+          que realmente chamam atenção.
         </h1>
 
         <p
@@ -121,11 +150,19 @@ export default function SorteiosPage() {
             margin: 0,
           }}
         >
-          Tudo transparente, fácil de entender e pronto para você participar em poucos segundos.
-          Escolha, participe e acompanhe tudo com total transparência — rápido e direto ao ponto.
+          Tudo transparente, fácil de entender e pronto para você participar em
+          poucos segundos. Menos dúvida, mais clareza e mais vontade de entrar
+          na campanha agora.
         </p>
 
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 24 }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 12,
+            flexWrap: "wrap",
+            marginTop: 24,
+          }}
+        >
           <Link
             href="/sorteios/sorteio-1000-no-pix"
             style={{
@@ -211,12 +248,12 @@ export default function SorteiosPage() {
               SORTEIOS DISPONÍVEIS
             </p>
             <h2 style={{ fontSize: 34, margin: 0 }}>
-              Campanhas promocionais que acabam rápido.
+              Campanhas promocionais que chamam clique e participação
             </h2>
           </div>
 
           <p style={{ margin: 0, color: "rgba(255,255,255,0.72)" }}>
-            Participe agora mesmo!
+            Entre agora antes que outras campanhas roubem sua atenção.
           </p>
         </div>
 
@@ -256,7 +293,9 @@ export default function SorteiosPage() {
                 {sorteio.destaque}
               </div>
 
-              <h3 style={{ margin: "0 0 10px", fontSize: 28 }}>{sorteio.titulo}</h3>
+              <h3 style={{ margin: "0 0 10px", fontSize: 28 }}>
+                {sorteio.titulo}
+              </h3>
 
               <p
                 style={{
@@ -382,7 +421,13 @@ export default function SorteiosPage() {
                 <strong style={{ display: "block", marginBottom: 8 }}>
                   {item.name}
                 </strong>
-                <p style={{ margin: 0, color: "rgba(255,255,255,0.8)", lineHeight: 1.7 }}>
+                <p
+                  style={{
+                    margin: 0,
+                    color: "rgba(255,255,255,0.8)",
+                    lineHeight: 1.7,
+                  }}
+                >
                   {item.text}
                 </p>
               </div>
@@ -408,7 +453,9 @@ export default function SorteiosPage() {
             boxShadow: "0 18px 42px rgba(0,0,0,0.24)",
           }}
         >
-          <p style={{ color: "#f2d067", fontWeight: 800, marginTop: 0 }}>FAQ</p>
+          <p style={{ color: "#f2d067", fontWeight: 800, marginTop: 0 }}>
+            FAQ
+          </p>
           <h2 style={{ fontSize: 32, marginTop: 0 }}>
             Dúvidas frequentes sobre os sorteios
           </h2>
@@ -427,7 +474,12 @@ export default function SorteiosPage() {
                 <strong style={{ display: "block", marginBottom: 8 }}>
                   {item.question}
                 </strong>
-                <span style={{ color: "rgba(255,255,255,0.76)", lineHeight: 1.7 }}>
+                <span
+                  style={{
+                    color: "rgba(255,255,255,0.76)",
+                    lineHeight: 1.7,
+                  }}
+                >
                   {item.answer}
                 </span>
               </div>
