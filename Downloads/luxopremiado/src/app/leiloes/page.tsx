@@ -217,7 +217,7 @@ export default function LeiloesPage() {
 
           <p style={{ margin: 0, color: "rgba(255,255,255,0.72)" }}>
             Não perca a chance de participar dos leilões mais disputados da plataforma.
-        </div>
+        </p>
 
         <div
           style={{
