@@ -1,630 +1,383 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import UrgencyBar from "@/components/UrgencyBar";
+import RankingCard from "@/components/RankingCard";
+import SocialProof from "@/components/SocialProof";
 
-type Bid = {
-  user: string;
-  amount: string;
-  time: string;
-};
-
-type Leilao = {
-  slug: string;
-  title: string;
-  subtitle: string;
-  lotDescription: string;
-  currentBid: string;
-  minimumNextBid: string;
-  reserveStatus: string;
-  closingTime: string;
-  watchers: number;
-  totalBids: number;
-  proxyBidEnabled: boolean;
-  badge: string;
-  status: string;
-  history: Bid[];
-  highlights: string[];
-  faq: { question: string; answer: string }[];
-};
-
-const leiloes: Leilao[] = [
-  {
-    slug: "leilao-honda-civic-touring",
-    title: "Honda Civic Touring",
-    subtitle:
-      "Lote premium com disputa ao vivo, histórico de lances e forte apelo competitivo.",
-    lotDescription:
-      "Este lote foi estruturado para uma experiência de leilão mais intensa, com leitura rápida do lance atual, encerramento visível e incentivo claro à disputa.",
-    currentBid: "R$ 92.500",
-    minimumNextBid: "R$ 93.000",
-    reserveStatus: "Lance de reserva atingido",
-    closingTime: "Encerra hoje às 22h",
-    watchers: 328,
-    totalBids: 47,
-    proxyBidEnabled: true,
-    badge: "Ao vivo",
-    status: "Recebendo lances",
-    history: [
-      { user: "Usuário #4812", amount: "R$ 92.500", time: "21:42" },
-      { user: "Usuário #1048", amount: "R$ 92.000", time: "21:39" },
-      { user: "Usuário #7701", amount: "R$ 91.500", time: "21:33" },
-      { user: "Usuário #2254", amount: "R$ 91.000", time: "21:29" },
-      { user: "Usuário #9981", amount: "R$ 90.500", time: "21:20" },
-    ],
-    highlights: [
-      "Disputa em tempo real",
-      "Histórico de lances visível",
-      "Lote premium com alto valor percebido",
-      "Proxy bid disponível",
-    ],
-    faq: [
-      {
-        question: "Como faço um lance?",
-        answer:
-          "Basta acessar a área do lote e ofertar um valor igual ou superior ao próximo lance mínimo.",
-      },
-      {
-        question: "O que é proxy bid?",
-        answer:
-          "É a função que permite definir um valor máximo para que o sistema lance automaticamente dentro do seu limite.",
-      },
-      {
-        question: "Como sei se o lote encerrou?",
-        answer:
-          "O status do lote e o horário de encerramento ficam destacados na própria página.",
-      },
+const leiloes = {
+  "carro-0km": {
+    titulo: "Carro 0km",
+    subtitulo:
+      "Lote premium com grande apelo visual, excelente percepção de valor e forte potencial de disputa.",
+    lanceAtual: "R$ 48.500",
+    lanceMinimo: "R$ 500",
+    encerramento: "Hoje às 22:30",
+    status: "Ao vivo",
+    observadores: "312 pessoas acompanhando",
+    destaque: "Lote principal",
+    descricaoLonga:
+      "Este é um dos lotes mais fortes da plataforma para gerar retenção, desejo e acompanhamento constante. A combinação entre alto valor percebido, disputa em tempo real e apelo aspiracional faz com que o usuário permaneça mais tempo na página e volte várias vezes para acompanhar a evolução dos lances.",
+    especificacoes: [
+      "Lote com forte apelo visual e alta percepção de valor",
+      "Excelente potencial de retenção em páginas premium",
+      "Disputa ao vivo com foco em urgência e competição",
+      "Ideal para chamar atenção logo no primeiro acesso",
     ],
   },
-  {
-    slug: "leilao-bmw-g-310",
-    title: "BMW G 310",
-    subtitle:
-      "Lote competitivo com acompanhamento de disputa, urgência e interesse qualificado.",
-    lotDescription:
-      "Página preparada para reforçar urgência, credibilidade do lote e leitura clara da dinâmica de lances.",
-    currentBid: "R$ 24.800",
-    minimumNextBid: "R$ 25.200",
-    reserveStatus: "Próxima do valor de reserva",
-    closingTime: "Encerra amanhã às 21h",
-    watchers: 190,
-    totalBids: 31,
-    proxyBidEnabled: true,
-    badge: "Disputa quente",
-    status: "Recebendo lances",
-    history: [
-      { user: "Usuário #3380", amount: "R$ 24.800", time: "18:10" },
-      { user: "Usuário #4401", amount: "R$ 24.400", time: "18:04" },
-      { user: "Usuário #1172", amount: "R$ 24.000", time: "17:58" },
-      { user: "Usuário #9250", amount: "R$ 23.600", time: "17:49" },
-      { user: "Usuário #6315", amount: "R$ 23.200", time: "17:35" },
-    ],
-    highlights: [
-      "Encerramento próximo",
-      "Bom ritmo de lances",
-      "Mais pessoas acompanhando o lote",
-      "Proxy bid ativo",
-    ],
-    faq: [
-      {
-        question: "Posso acompanhar sem dar lance?",
-        answer:
-          "Sim. O número de observadores ajuda a indicar o interesse no lote, mesmo antes da disputa ativa.",
-      },
-      {
-        question: "Existe incremento mínimo?",
-        answer:
-          "Sim. O próximo valor mínimo aparece com destaque para orientar o participante.",
-      },
-      {
-        question: "Quando meu lance é confirmado?",
-        answer:
-          "A confirmação acontece quando o sistema registra o valor como o lance líder dentro das regras do lote.",
-      },
+  "moto-esportiva": {
+    titulo: "Moto esportiva",
+    subtitulo:
+      "Leilão com forte apelo emocional, ótima retenção e excelente desempenho em páginas de alto impacto.",
+    lanceAtual: "R$ 19.800",
+    lanceMinimo: "R$ 250",
+    encerramento: "Hoje às 21:10",
+    status: "Disputa quente",
+    observadores: "187 pessoas acompanhando",
+    destaque: "Alta atenção",
+    descricaoLonga:
+      "A moto esportiva funciona muito bem como lote premium porque ativa desejo imediato, competitividade e sensação de conquista. É uma campanha ideal para manter a atenção do visitante por mais tempo e aumentar a frequência de retorno à página.",
+    especificacoes: [
+      "Alto apelo emocional e excelente potencial de clique",
+      "Leitura visual clara para acompanhar a disputa",
+      "Formato ideal para competição mais intensa",
+      "Ótimo lote para valorizar a área de leilões",
     ],
   },
-  {
-    slug: "leilao-iphone-15-ultra",
-    title: "iPhone 15 Pro Max",
-    subtitle:
-      "Lote premium de alta atratividade, ideal para disputa rápida e retenção visual.",
-    lotDescription:
-      "Uma estrutura de leilão pensada para elevar a percepção de valor e facilitar o entendimento dos próximos passos do usuário.",
-    currentBid: "R$ 6.200",
-    minimumNextBid: "R$ 6.350",
-    reserveStatus: "Lote premium ativo",
-    closingTime: "Encerra em 2 dias às 20h",
-    watchers: 412,
-    totalBids: 19,
-    proxyBidEnabled: true,
-    badge: "Lote premium",
-    status: "Recebendo lances",
-    history: [
-      { user: "Usuário #8821", amount: "R$ 6.200", time: "16:32" },
-      { user: "Usuário #6004", amount: "R$ 6.050", time: "16:26" },
-      { user: "Usuário #9130", amount: "R$ 5.900", time: "16:14" },
-      { user: "Usuário #7012", amount: "R$ 5.750", time: "16:05" },
-      { user: "Usuário #4438", amount: "R$ 5.600", time: "15:57" },
-    ],
-    highlights: [
-      "Produto premium",
-      "Grande volume de observadores",
-      "Disputa com alto potencial",
-      "Proxy bid habilitado",
-    ],
-    faq: [
-      {
-        question: "Como funciona o encerramento?",
-        answer:
-          "O lote encerra no horário informado, respeitando as regras da plataforma para fechamento da disputa.",
-      },
-      {
-        question: "O histórico de lances é atualizado?",
-        answer:
-          "Sim. A proposta da página é justamente exibir a evolução da disputa com clareza.",
-      },
-      {
-        question: "Vale a pena usar proxy bid?",
-        answer:
-          "Sim, principalmente para quem não quer acompanhar cada minuto da disputa manualmente.",
-      },
+  "jet-ski": {
+    titulo: "Jet Ski",
+    subtitulo:
+      "Item aspiracional com grande apelo para público que busca experiências premium e lotes exclusivos.",
+    lanceAtual: "R$ 32.900",
+    lanceMinimo: "R$ 350",
+    encerramento: "Amanhã às 20:40",
+    status: "Subindo",
+    observadores: "141 pessoas acompanhando",
+    destaque: "Exclusivo",
+    descricaoLonga:
+      "O Jet Ski é um lote pensado para reforçar exclusividade, desejo e valor percebido. Ele ajuda a diferenciar a área de leilões das demais modalidades e cria uma experiência mais premium para quem busca algo fora do comum.",
+    especificacoes: [
+      "Lote aspiracional com proposta premium",
+      "Excelente para elevar percepção da categoria leilões",
+      "Boa capacidade de retenção em campanhas exclusivas",
+      "Disputa com foco em desejo e diferenciação",
     ],
   },
-];
+  "hilux-blindada": {
+    titulo: "Hilux blindada",
+    subtitulo:
+      "Lote de altíssimo impacto para chamar atenção, elevar desejo e aumentar acompanhamento da disputa.",
+    lanceAtual: "R$ 118.000",
+    lanceMinimo: "R$ 1.000",
+    encerramento: "Hoje às 23:15",
+    status: "Em destaque",
+    observadores: "426 pessoas acompanhando",
+    destaque: "Super lote",
+    descricaoLonga:
+      "A Hilux blindada é um lote de altíssimo impacto visual e comercial. Ela serve para ancorar valor no site, gerar desejo imediato e aumentar muito a percepção de que a área de leilões possui itens realmente relevantes. É um lote ideal para picos de atenção, retorno e permanência.",
+    especificacoes: [
+      "Super lote com forte ancoragem de valor",
+      "Grande capacidade de retenção e retorno do usuário",
+      "Perfeito para páginas com proposta premium",
+      "Disputa intensa e alto interesse visual",
+    ],
+  },
+} as const;
+
+type Slug = keyof typeof leiloes;
 
 type PageProps = {
   params: Promise<{ slug: string }>;
 };
 
-function getLeilao(slug: string) {
-  return leiloes.find((item) => item.slug === slug);
-}
-
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const leilao = getLeilao(slug);
+  const item = leiloes[slug as Slug];
 
-  if (!leilao) {
+  if (!item) {
     return {
-      title: "Leilão | Bigode das Rifas",
-      description: "Página individual de lote em leilão.",
+      title: "Lote não encontrado | Bigode das Rifas",
     };
   }
 
   return {
-    title: `${leilao.title} | Leilões | Bigode das Rifas`,
-    description: leilao.subtitle,
+    title: `${item.titulo} | Leilões | Bigode das Rifas`,
+    description: item.subtitulo,
   };
 }
 
-export default async function LeilaoSlugPage({ params }: PageProps) {
+export default async function LeilaoDetalhePage({ params }: PageProps) {
   const { slug } = await params;
-  const leilao = getLeilao(slug);
+  const item = leiloes[slug as Slug];
 
-  if (!leilao) {
+  if (!item) {
     notFound();
   }
 
+  const historicoLances = [
+    { name: "Carlos M.", value: "R$ 117.000" },
+    { name: "Amanda R.", value: "R$ 117.500" },
+    { name: "Bruno A.", value: item.lanceAtual },
+  ];
+
+  const motivos = [
+    {
+      title: "Mais desejo",
+      text: "Lotes premium elevam a percepção de valor e fazem o usuário acompanhar a disputa com mais atenção.",
+    },
+    {
+      title: "Mais retenção",
+      text: "Quando a disputa parece real e visualmente forte, a chance do usuário voltar mais vezes aumenta.",
+    },
+    {
+      title: "Mais competição",
+      text: "O formato de leilão funciona melhor quando comunica urgência, movimento e oportunidade.",
+    },
+  ];
+
   return (
-    <main style={{ background: "#0b0b0f", color: "#fff", minHeight: "100vh" }}>
+    <main
+      style={{
+        minHeight: "100vh",
+        background:
+          "radial-gradient(circle at top, rgba(28,42,120,0.28), transparent 30%), linear-gradient(180deg, #04112f 0%, #071632 100%)",
+        color: "#fff",
+        paddingBottom: 110,
+      }}
+    >
       <section
         style={{
-          maxWidth: 1200,
+          maxWidth: 1240,
           margin: "0 auto",
-          padding: "56px 24px 28px",
+          padding: "56px 24px 24px",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+          gap: 24,
+          alignItems: "start",
         }}
       >
-        <Link
-          href="/leiloes"
-          style={{
-            display: "inline-block",
-            marginBottom: 18,
-            color: "#d4af37",
-            textDecoration: "none",
-            fontWeight: 700,
-          }}
-        >
-          ← Voltar para leilões
-        </Link>
+        <div>
+          <p style={{ margin: 0, color: "#f2d067", fontWeight: 900 }}>
+            {item.destaque}
+          </p>
 
-        <div
-          style={{
-            display: "inline-block",
-            padding: "6px 10px",
-            borderRadius: 999,
-            background: "rgba(212,175,55,0.16)",
-            border: "1px solid rgba(212,175,55,0.22)",
-            color: "#f2d67a",
-            fontSize: 13,
-            fontWeight: 700,
-            marginBottom: 14,
-          }}
-        >
-          {leilao.badge}
+          <h1
+            style={{
+              fontSize: "clamp(2.2rem, 5vw, 4rem)",
+              lineHeight: 1.05,
+              margin: "10px 0 14px",
+            }}
+          >
+            {item.titulo}
+          </h1>
+
+          <p
+            style={{
+              margin: 0,
+              maxWidth: 760,
+              color: "rgba(255,255,255,0.82)",
+              fontSize: 18,
+              lineHeight: 1.75,
+            }}
+          >
+            {item.subtitulo}
+          </p>
+
+          <div style={{ marginTop: 18 }}>
+            <UrgencyBar
+              soldText={item.status}
+              reservedText={item.observadores}
+              watchersText={`encerra ${item.encerramento.toLowerCase()}`}
+            />
+          </div>
         </div>
 
-        <h1
+        <aside
           style={{
-            fontSize: "clamp(2.2rem, 5vw, 4rem)",
-            lineHeight: 1.05,
-            margin: "0 0 16px",
+            background:
+              "linear-gradient(180deg, rgba(12,24,70,0.96), rgba(5,15,45,0.96))",
+            border: "1px solid rgba(242,208,103,0.22)",
+            borderRadius: 28,
+            padding: 24,
           }}
         >
-          {leilao.title}
-        </h1>
+          <h2 style={{ marginTop: 0, fontSize: 28 }}>Resumo do lote</h2>
 
-        <p
-          style={{
-            maxWidth: 780,
-            color: "rgba(255,255,255,0.78)",
-            fontSize: 18,
-            lineHeight: 1.7,
-            margin: 0,
-          }}
-        >
-          {leilao.subtitle}
-        </p>
+          <div style={{ display: "grid", gap: 12 }}>
+            {[
+              ["Lance atual", item.lanceAtual],
+              ["Lance mínimo", item.lanceMinimo],
+              ["Encerramento", item.encerramento],
+              ["Status", item.status],
+            ].map(([label, value]) => (
+              <div
+                key={label}
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  borderRadius: 18,
+                  padding: 14,
+                  border: "1px solid rgba(255,255,255,0.07)",
+                }}
+              >
+                <p style={{ margin: 0, color: "rgba(255,255,255,0.62)" }}>
+                  {label}
+                </p>
+                <strong style={{ display: "block", marginTop: 6 }}>
+                  {value}
+                </strong>
+              </div>
+            ))}
+          </div>
 
-        <div
-          style={{
-            display: "flex",
-            gap: 12,
-            flexWrap: "wrap",
-            marginTop: 24,
-          }}
-        >
-          <a
+          <Link
             href="#dar-lance"
             style={{
-              background: "#d4af37",
+              display: "block",
+              marginTop: 18,
+              textAlign: "center",
+              textDecoration: "none",
+              background: "linear-gradient(135deg, #f7d978 0%, #d4a63a 100%)",
               color: "#111",
-              textDecoration: "none",
-              padding: "14px 20px",
-              borderRadius: 12,
-              fontWeight: 700,
+              borderRadius: 16,
+              padding: "14px 18px",
+              fontWeight: 900,
             }}
           >
-            Dar lance agora
-          </a>
-
-          <a
-            href="#historico"
-            style={{
-              border: "1px solid rgba(255,255,255,0.18)",
-              color: "#fff",
-              textDecoration: "none",
-              padding: "14px 20px",
-              borderRadius: 12,
-              fontWeight: 700,
-            }}
-          >
-            Ver histórico
-          </a>
-        </div>
+            QUERO ENTRAR NA DISPUTA
+          </Link>
+        </aside>
       </section>
 
       <section
         style={{
-          maxWidth: 1200,
+          maxWidth: 1240,
           margin: "0 auto",
           padding: "0 24px 28px",
         }}
       >
-        <div
+        <article
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-            gap: 16,
+            background:
+              "linear-gradient(180deg, rgba(10,20,64,0.95), rgba(5,16,52,0.95))",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: 28,
+            padding: 28,
           }}
         >
-          <article
-            style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: 18,
-              padding: 20,
-            }}
-          >
-            <p style={{ margin: 0, color: "rgba(255,255,255,0.7)" }}>
-              Lance atual
-            </p>
-            <strong style={{ display: "block", fontSize: 24, marginTop: 8 }}>
-              {leilao.currentBid}
-            </strong>
-          </article>
+          <p style={{ marginTop: 0, color: "#f2d067", fontWeight: 900 }}>
+            SOBRE O LOTE
+          </p>
+          <h2 style={{ marginTop: 0, fontSize: 34 }}>
+            Um lote feito para gerar desejo e acompanhar cada lance com atenção
+          </h2>
 
-          <article
+          <p
             style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: 18,
-              padding: 20,
+              margin: 0,
+              color: "rgba(255,255,255,0.8)",
+              lineHeight: 1.8,
+              maxWidth: 980,
             }}
           >
-            <p style={{ margin: 0, color: "rgba(255,255,255,0.7)" }}>
-              Próximo mínimo
-            </p>
-            <strong style={{ display: "block", fontSize: 24, marginTop: 8 }}>
-              {leilao.minimumNextBid}
-            </strong>
-          </article>
+            {item.descricaoLonga}
+          </p>
 
-          <article
+          <div
             style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: 18,
-              padding: 20,
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: 16,
+              marginTop: 22,
             }}
           >
-            <p style={{ margin: 0, color: "rgba(255,255,255,0.7)" }}>Status</p>
-            <strong style={{ display: "block", fontSize: 24, marginTop: 8 }}>
-              {leilao.status}
-            </strong>
-          </article>
-
-          <article
-            style={{
-              background:
-                "linear-gradient(135deg, rgba(212,175,55,0.18), rgba(255,255,255,0.04))",
-              border: "1px solid rgba(212,175,55,0.24)",
-              borderRadius: 18,
-              padding: 20,
-            }}
-          >
-            <p style={{ margin: 0, color: "rgba(255,255,255,0.75)" }}>
-              Encerramento
-            </p>
-            <strong style={{ display: "block", fontSize: 24, marginTop: 8 }}>
-              {leilao.closingTime}
-            </strong>
-          </article>
-        </div>
+            {item.especificacoes.map((spec) => (
+              <div
+                key={spec}
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  borderRadius: 18,
+                  padding: 16,
+                  border: "1px solid rgba(255,255,255,0.06)",
+                  fontWeight: 700,
+                  color: "rgba(255,255,255,0.9)",
+                }}
+              >
+                {spec}
+              </div>
+            ))}
+          </div>
+        </article>
       </section>
 
       <section
+        id="dar-lance"
         style={{
-          maxWidth: 1200,
+          maxWidth: 1240,
           margin: "0 auto",
-          padding: "8px 24px 24px",
+          padding: "0 24px 28px",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+          gap: 18,
         }}
       >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1.08fr 0.92fr",
-            gap: 20,
-          }}
-        >
+        {motivos.map((item) => (
           <article
+            key={item.title}
             style={{
-              background: "rgba(255,255,255,0.04)",
+              background: "rgba(255,255,255,0.05)",
+              borderRadius: 22,
+              padding: 22,
               border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: 24,
-              padding: 24,
             }}
           >
-            <p style={{ color: "#d4af37", fontWeight: 700, marginTop: 0 }}>
-              SOBRE O LOTE
+            <h3 style={{ marginTop: 0 }}>{item.title}</h3>
+            <p style={{ color: "rgba(255,255,255,0.78)", lineHeight: 1.7, margin: 0 }}>
+              {item.text}
             </p>
-            <h2 style={{ fontSize: 30, marginTop: 0 }}>{leilao.title}</h2>
-            <p style={{ color: "rgba(255,255,255,0.78)", lineHeight: 1.7 }}>
-              {leilao.lotDescription}
-            </p>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                gap: 14,
-                marginTop: 20,
-              }}
-            >
-              <div
-                style={{
-                  background: "rgba(255,255,255,0.03)",
-                  borderRadius: 18,
-                  padding: 16,
-                }}
-              >
-                <p style={{ margin: "0 0 6px", color: "rgba(255,255,255,0.66)" }}>
-                  Observadores
-                </p>
-                <strong>{leilao.watchers}</strong>
-              </div>
-
-              <div
-                style={{
-                  background: "rgba(255,255,255,0.03)",
-                  borderRadius: 18,
-                  padding: 16,
-                }}
-              >
-                <p style={{ margin: "0 0 6px", color: "rgba(255,255,255,0.66)" }}>
-                  Total de lances
-                </p>
-                <strong>{leilao.totalBids}</strong>
-              </div>
-
-              <div
-                style={{
-                  background: "rgba(255,255,255,0.03)",
-                  borderRadius: 18,
-                  padding: 16,
-                }}
-              >
-                <p style={{ margin: "0 0 6px", color: "rgba(255,255,255,0.66)" }}>
-                  Reserva
-                </p>
-                <strong>{leilao.reserveStatus}</strong>
-              </div>
-            </div>
           </article>
-
-          <article
-            id="dar-lance"
-            style={{
-              background:
-                "linear-gradient(135deg, rgba(212,175,55,0.16), rgba(255,255,255,0.04))",
-              border: "1px solid rgba(212,175,55,0.24)",
-              borderRadius: 24,
-              padding: 24,
-            }}
-          >
-            <p style={{ color: "#d4af37", fontWeight: 700, marginTop: 0 }}>
-              ÁREA DE LANCE
-            </p>
-            <h2 style={{ marginTop: 0, fontSize: 28 }}>Pronto para disputar?</h2>
-
-            <div
-              style={{
-                background: "rgba(255,255,255,0.04)",
-                borderRadius: 18,
-                padding: 18,
-                marginBottom: 14,
-              }}
-            >
-              <p style={{ margin: "0 0 6px", color: "rgba(255,255,255,0.66)" }}>
-                Lance atual
-              </p>
-              <strong style={{ fontSize: 26 }}>{leilao.currentBid}</strong>
-            </div>
-
-            <div
-              style={{
-                background: "rgba(255,255,255,0.04)",
-                borderRadius: 18,
-                padding: 18,
-                marginBottom: 18,
-              }}
-            >
-              <p style={{ margin: "0 0 6px", color: "rgba(255,255,255,0.66)" }}>
-                Próximo lance mínimo
-              </p>
-              <strong style={{ fontSize: 26 }}>{leilao.minimumNextBid}</strong>
-            </div>
-
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-              <button
-                type="button"
-                style={{
-                  background: "#111",
-                  color: "#fff",
-                  border: "1px solid rgba(255,255,255,0.16)",
-                  padding: "12px 18px",
-                  borderRadius: 12,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                Dar lance manual
-              </button>
-
-              <button
-                type="button"
-                style={{
-                  background: "#fff",
-                  color: "#111",
-                  border: "none",
-                  padding: "12px 18px",
-                  borderRadius: 12,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                {leilao.proxyBidEnabled ? "Ativar proxy bid" : "Proxy bid indisponível"}
-              </button>
-            </div>
-          </article>
-        </div>
+        ))}
       </section>
 
       <section
-        id="historico"
         style={{
-          maxWidth: 1200,
+          maxWidth: 1240,
           margin: "0 auto",
-          padding: "0 24px 24px",
+          padding: "0 24px 28px",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+          gap: 20,
         }}
       >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 20,
-          }}
-        >
-          <article
-            style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: 24,
-              padding: 24,
-            }}
-          >
-            <p style={{ color: "#d4af37", fontWeight: 700, marginTop: 0 }}>
-              HISTÓRICO DE LANCES
-            </p>
-            <h2 style={{ marginTop: 0, fontSize: 28 }}>
-              Evolução recente da disputa
-            </h2>
+        <RankingCard
+          title="Últimos lances"
+          subtitle="O histórico ajuda a comunicar movimento, aquecer a disputa e aumentar a sensação de urgência."
+          items={historicoLances}
+        />
 
-            <div style={{ display: "grid", gap: 12 }}>
-              {leilao.history.map((item) => (
-                <div
-                  key={`${item.user}-${item.time}-${item.amount}`}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr auto auto",
-                    gap: 12,
-                    alignItems: "center",
-                    background: "rgba(255,255,255,0.03)",
-                    borderRadius: 18,
-                    padding: "14px 16px",
-                  }}
-                >
-                  <span style={{ color: "rgba(255,255,255,0.82)" }}>{item.user}</span>
-                  <strong>{item.amount}</strong>
-                  <span style={{ color: "rgba(255,255,255,0.62)" }}>{item.time}</span>
-                </div>
-              ))}
-            </div>
-          </article>
-
-          <article
-            style={{
-              background:
-                "linear-gradient(135deg, rgba(255,255,255,0.04), rgba(212,175,55,0.12))",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: 24,
-              padding: 24,
-            }}
-          >
-            <p style={{ color: "#d4af37", fontWeight: 700, marginTop: 0 }}>
-              DESTAQUES DO LEILÃO
-            </p>
-            <h2 style={{ marginTop: 0, fontSize: 28 }}>
-              Elementos que reforçam a competitividade
-            </h2>
-
-            <ul
-              style={{
-                paddingLeft: 18,
-                lineHeight: 1.9,
-                color: "rgba(255,255,255,0.82)",
-                marginBottom: 0,
-              }}
-            >
-              {leilao.highlights.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </article>
-        </div>
+        <SocialProof
+          title="A disputa parece real e valiosa"
+          items={[
+            {
+              name: "Marcelo T.",
+              text: "O lote ficou muito mais forte visualmente e dá vontade de acompanhar até o final.",
+            },
+            {
+              name: "Bruno A.",
+              text: "A leitura dos lances ficou clara e a disputa parece muito mais envolvente.",
+            },
+            {
+              name: "Vanessa C.",
+              text: "A página transmite valor e deixa o leilão com cara de oportunidade premium.",
+            },
+          ]}
+        />
       </section>
 
       <section
         style={{
-          maxWidth: 1200,
+          maxWidth: 1240,
           margin: "0 auto",
           padding: "0 24px 72px",
         }}
@@ -632,38 +385,98 @@ export default async function LeilaoSlugPage({ params }: PageProps) {
         <article
           style={{
             background:
-              "linear-gradient(135deg, rgba(212,175,55,0.18), rgba(255,255,255,0.04))",
-            border: "1px solid rgba(212,175,55,0.24)",
-            borderRadius: 24,
-            padding: 24,
+              "linear-gradient(135deg, rgba(247,217,120,0.18), rgba(10,20,64,0.94))",
+            border: "1px solid rgba(242,208,103,0.28)",
+            borderRadius: 28,
+            padding: 28,
           }}
         >
-          <p style={{ color: "#d4af37", fontWeight: 700, marginTop: 0 }}>FAQ</p>
-          <h2 style={{ marginTop: 0, fontSize: 28 }}>
-            Dúvidas frequentes do leilão
+          <p style={{ color: "#f2d067", fontWeight: 900, marginTop: 0 }}>
+            PRÓXIMO PASSO
+          </p>
+          <h2 style={{ marginTop: 0, fontSize: 34 }}>
+            Entre agora antes que outro participante avance no lote
           </h2>
 
-          <div style={{ display: "grid", gap: 14 }}>
-            {leilao.faq.map((item) => (
-              <div
-                key={item.question}
-                style={{
-                  background: "rgba(255,255,255,0.03)",
-                  borderRadius: 18,
-                  padding: 18,
-                }}
-              >
-                <strong style={{ display: "block", marginBottom: 8 }}>
-                  {item.question}
-                </strong>
-                <span style={{ color: "rgba(255,255,255,0.75)", lineHeight: 1.6 }}>
-                  {item.answer}
-                </span>
-              </div>
-            ))}
+          <p
+            style={{
+              margin: "0 0 18px",
+              color: "rgba(255,255,255,0.82)",
+              lineHeight: 1.8,
+              maxWidth: 900,
+            }}
+          >
+            Em leilão, decisão lenta custa caro. Quanto mais o lote chama
+            atenção, maior a chance de outro usuário agir primeiro. Se esse item
+            faz sentido para você, o melhor momento para entrar na disputa é
+            agora.
+          </p>
+
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <Link
+              href="#dar-lance"
+              style={{
+                textDecoration: "none",
+                background: "#fff",
+                color: "#111",
+                padding: "14px 20px",
+                borderRadius: 14,
+                fontWeight: 900,
+              }}
+            >
+              DAR LANCE AGORA
+            </Link>
+
+            <Link
+              href="/leiloes"
+              style={{
+                textDecoration: "none",
+                background: "rgba(255,255,255,0.05)",
+                color: "#fff",
+                padding: "14px 20px",
+                borderRadius: 14,
+                fontWeight: 800,
+                border: "1px solid rgba(255,255,255,0.1)",
+              }}
+            >
+              VER OUTROS LOTES
+            </Link>
           </div>
         </article>
       </section>
+
+      <div
+        style={{
+          position: "fixed",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          padding: "12px 16px",
+          background: "rgba(4,13,44,0.96)",
+          borderTop: "1px solid rgba(242,208,103,0.18)",
+          backdropFilter: "blur(10px)",
+          zIndex: 999,
+        }}
+      >
+        <div style={{ maxWidth: 1240, margin: "0 auto" }}>
+          <Link
+            href="#dar-lance"
+            style={{
+              display: "block",
+              width: "100%",
+              textAlign: "center",
+              textDecoration: "none",
+              background: "linear-gradient(135deg, #f7d978 0%, #d4a63a 100%)",
+              color: "#111",
+              padding: "16px 18px",
+              borderRadius: 16,
+              fontWeight: 900,
+            }}
+          >
+            QUERO ENTRAR NA DISPUTA AGORA
+          </Link>
+        </div>
+      </div>
     </main>
   );
 }
