@@ -6,13 +6,77 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { formatBrlFromCents } from "@/lib/format";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { AuctionBidEntry, AuctionLeaderboardEntry, AuctionPublicResponse } from "@/types/auction";
+import {
+  AuctionBidEntry,
+  AuctionLeaderboardEntry,
+  AuctionPublicResponse,
+} from "@/types/auction";
 
 import styles from "./auction.module.css";
 
 interface Props {
   raffleSlug: string;
   auctionSlug?: string;
+}
+
+type PressureCardProps = {
+  isLeading?: boolean;
+  gap?: string | null;
+  rival?: string | null;
+};
+
+function PressureCard({ isLeading, gap, rival }: PressureCardProps) {
+  const tone = isLeading
+    ? {
+        background: "rgba(62, 194, 107, 0.12)",
+        border: "1px solid rgba(62, 194, 107, 0.35)",
+        title: "Você está na frente",
+        description:
+          "Mantenha a liderança. Nos minutos finais, um único lance pode mudar tudo.",
+      }
+    : {
+        background: "rgba(255, 80, 80, 0.12)",
+        border: "1px solid rgba(255, 80, 80, 0.35)",
+        title: "Você pode perder esse lote",
+        description: gap
+          ? `Faltam apenas ${gap} para você assumir a liderança.`
+          : "Outro participante já está liderando neste momento.",
+      };
+
+  return (
+    <div
+      style={{
+        background: tone.background,
+        border: tone.border,
+        borderRadius: 20,
+        padding: 18,
+        marginBottom: 14,
+      }}
+    >
+      <strong style={{ display: "block", marginBottom: 8 }}>{tone.title}</strong>
+      <p
+        style={{
+          margin: 0,
+          color: "rgba(255,255,255,0.88)",
+          lineHeight: 1.6,
+        }}
+      >
+        {tone.description}
+      </p>
+      {rival ? (
+        <span
+          style={{
+            display: "block",
+            marginTop: 8,
+            fontSize: 13,
+            color: "rgba(255,255,255,0.7)",
+          }}
+        >
+          Disputando com: {rival}
+        </span>
+      ) : null}
+    </div>
+  );
 }
 
 function formatCountdown(targetIso: string): string {
@@ -49,7 +113,7 @@ function formatRelativeTime(value: string | null | undefined): string {
   if (hours < 24) return `há ${hours}h`;
 
   const days = Math.floor(hours / 24);
-  return `há ${days}d`;
+  return `${days}d atrás`;
 }
 
 function formatBidderName(
@@ -63,7 +127,8 @@ function formatBidderName(
   if (email) {
     const [user, domain] = email.split("@");
     if (user && domain) {
-      const masked = user.length > 2 ? `${user.slice(0, 2)}***` : `${user[0] ?? "*"}***`;
+      const masked =
+        user.length > 2 ? `${user.slice(0, 2)}***` : `${user[0] ?? "*"}***`;
       return `${masked}@${domain}`;
     }
   }
@@ -84,11 +149,17 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [statusTone, setStatusTone] = useState<"default" | "success" | "error">("default");
+  const [statusTone, setStatusTone] = useState<"default" | "success" | "error">(
+    "default",
+  );
   const [amount, setAmount] = useState<string>("");
   const [proxyMaxAmount, setProxyMaxAmount] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState(0);
-  const previousViewerStateRef = useRef<{ isLeading: boolean; hasBid: boolean } | null>(null);
+  const previousViewerStateRef = useRef<{
+    isLeading: boolean;
+    hasBid: boolean;
+  } | null>(null);
+
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
   const fetchAuction = useCallback(
@@ -103,11 +174,17 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
           query.set("slug", auctionSlug.trim());
         }
 
-        const res = await fetch(`/api/auction?${query.toString()}`, { cache: "no-store" });
-        const json = (await res.json()) as AuctionPublicResponse | { error?: string };
+        const res = await fetch(`/api/auction?${query.toString()}`, {
+          cache: "no-store",
+        });
+        const json = (await res.json()) as
+          | AuctionPublicResponse
+          | { error?: string };
 
         if (!res.ok || !("auction" in json)) {
-          throw new Error(("error" in json && json.error) || "Falha ao carregar leilão.");
+          throw new Error(
+            ("error" in json && json.error) || "Falha ao carregar leilão.",
+          );
         }
 
         const nextViewerState = {
@@ -117,8 +194,14 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
 
         const previousViewerState = previousViewerStateRef.current;
         if (silent && previousViewerState && json.viewer.authenticated && !submitting) {
-          if (previousViewerState.isLeading && !nextViewerState.isLeading && nextViewerState.hasBid) {
-            setStatusMessage("Seu lance foi ultrapassado. O lote segue em disputa ao vivo.");
+          if (
+            previousViewerState.isLeading &&
+            !nextViewerState.isLeading &&
+            nextViewerState.hasBid
+          ) {
+            setStatusMessage(
+              "Seu lance foi ultrapassado. O lote segue em disputa ao vivo.",
+            );
             setStatusTone("error");
           } else if (!previousViewerState.isLeading && nextViewerState.isLeading) {
             setStatusMessage("Você assumiu a liderança do leilão.");
@@ -128,12 +211,14 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
 
         previousViewerStateRef.current = nextViewerState;
         setData(json);
+
         if (!silent) {
           setStatusMessage(null);
           setStatusTone("default");
         }
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Falha ao carregar leilão.";
+        const message =
+          error instanceof Error ? error.message : "Falha ao carregar leilão.";
         setStatusMessage(message);
         setStatusTone("error");
       } finally {
@@ -224,27 +309,54 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
   const nextMinBidCents = stats?.next_min_bid_cents ?? null;
   const countdown = auction ? formatCountdown(auction.ends_at) : "--";
   const auctionAcceptingBids =
-    auction ? auction.status === "open" && !auction.paused_at && Date.parse(auction.ends_at) > Date.now() : false;
+    auction
+      ? auction.status === "open" &&
+        !auction.paused_at &&
+        Date.parse(auction.ends_at) > Date.now()
+      : false;
   const auctionEnded = !auctionAcceptingBids;
-  const endsSoon = auction ? Date.parse(auction.ends_at) - Date.now() <= 5 * 60 * 1000 : false;
+  const endsSoon = auction
+    ? Date.parse(auction.ends_at) - Date.now() <= 5 * 60 * 1000
+    : false;
 
   const quickBidOptions = useMemo(() => {
     if (!auction || nextMinBidCents == null) return [];
     const increment = Math.max(auction.min_increment_cents, 1);
-    return [...new Set([nextMinBidCents, nextMinBidCents + increment, nextMinBidCents + increment * 3])];
+    return [
+      ...new Set([
+        nextMinBidCents,
+        nextMinBidCents + increment,
+        nextMinBidCents + increment * 3,
+      ]),
+    ];
   }, [auction, nextMinBidCents]);
 
   const winnerLabel = useMemo(() => {
     if (!auction || auction.status !== "settled") return null;
     return formatBidderName(
-      { bidder_name: auction.winner_name, bidder_contact: auction.winner_contact },
+      {
+        bidder_name: auction.winner_name,
+        bidder_contact: auction.winner_contact,
+      },
       "Arrematante confirmado",
     );
   }, [auction]);
 
+  const rivalLabel = useMemo(() => {
+    if (!viewer?.rival_bidder_name) return null;
+    return formatBidderName(
+      {
+        bidder_name: viewer.rival_bidder_name,
+        bidder_contact: null,
+      },
+      "Participante",
+    );
+  }, [viewer?.rival_bidder_name]);
+
   const submitBid = useCallback(
     async (event: React.FormEvent) => {
       event.preventDefault();
+
       if (!auction || !viewer?.authenticated) {
         setStatusMessage("Faça login para participar do leilão.");
         setStatusTone("error");
@@ -252,16 +364,20 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
       }
 
       const numericAmount =
-        amount.trim() === ""
-          ? null
-          : Number(amount.trim().replace(",", "."));
+        amount.trim() === "" ? null : Number(amount.trim().replace(",", "."));
       const numericProxy =
         proxyMaxAmount.trim() === ""
           ? null
           : Number(proxyMaxAmount.trim().replace(",", "."));
 
-      if ((numericAmount == null || !Number.isFinite(numericAmount) || numericAmount <= 0) &&
-        (numericProxy == null || !Number.isFinite(numericProxy) || numericProxy <= 0)) {
+      if (
+        (numericAmount == null ||
+          !Number.isFinite(numericAmount) ||
+          numericAmount <= 0) &&
+        (numericProxy == null ||
+          !Number.isFinite(numericProxy) ||
+          numericProxy <= 0)
+      ) {
         setStatusMessage("Informe um lance manual ou um teto de auto-bid válido.");
         setStatusTone("error");
         return;
@@ -300,7 +416,11 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
         setProxyMaxAmount("");
         setStatusMessage(
           json.autoBidEnabled
-            ? `Lance confirmado e auto-bid armado até ${json.autoBidMaxCents ? formatBrlFromCents(json.autoBidMaxCents) : "--"}.`
+            ? `Lance confirmado e auto-bid armado até ${
+                json.autoBidMaxCents
+                  ? formatBrlFromCents(json.autoBidMaxCents)
+                  : "--"
+              }.`
             : json.extended
               ? "Lance confirmado. O relógio foi estendido porque a disputa entrou nos minutos finais."
               : "Lance confirmado. Você já aparece na atualização ao vivo do leilão.",
@@ -308,7 +428,9 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
         setStatusTone("success");
         await fetchAuction(true);
       } catch (error) {
-        setStatusMessage(error instanceof Error ? error.message : "Falha ao registrar lance.");
+        setStatusMessage(
+          error instanceof Error ? error.message : "Falha ao registrar lance.",
+        );
         setStatusTone("error");
       } finally {
         setSubmitting(false);
@@ -373,51 +495,95 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
             <div className={styles.heroPanel}>
               <div className={styles.titleWrap}>
                 <div className={styles.kickerRow}>
-                  {auction.lot_label ? <span className={styles.lotLabel}>{auction.lot_label}</span> : null}
-                  {auction.highlight_badge ? <span className={styles.highlightBadge}>{auction.highlight_badge}</span> : null}
+                  {auction.lot_label ? (
+                    <span className={styles.lotLabel}>{auction.lot_label}</span>
+                  ) : null}
+                  {auction.highlight_badge ? (
+                    <span className={styles.highlightBadge}>
+                      {auction.highlight_badge}
+                    </span>
+                  ) : null}
                   <span className={statusClassName}>{countdown}</span>
                 </div>
+
                 <h2 className={styles.title}>{auction.title}</h2>
-                {auction.subtitle ? <p className={styles.subtitle}>{auction.subtitle}</p> : null}
-                {auction.description ? <p className={styles.description}>{auction.description}</p> : null}
+
+                {auction.subtitle ? (
+                  <p className={styles.subtitle}>{auction.subtitle}</p>
+                ) : null}
+
+                {auction.description ? (
+                  <p className={styles.description}>{auction.description}</p>
+                ) : null}
               </div>
 
               <div className={styles.metricGrid}>
                 <div className={styles.metricCard}>
                   <p className={styles.metricLabel}>Lance atual</p>
-                  <p className={styles.metricValue}>{formatBrlFromCents(auction.current_bid_cents)}</p>
+                  <p className={styles.metricValue}>
+                    {formatBrlFromCents(auction.current_bid_cents)}
+                  </p>
                   <span className={styles.metricSoft}>
                     {auction.current_bid_cents > 0
-                      ? `liderando ${formatBidderName({ bidder_name: auction.leading_bidder_name, bidder_contact: auction.leading_bidder_contact }, "participante")}`
+                      ? `liderando ${formatBidderName(
+                          {
+                            bidder_name: auction.leading_bidder_name,
+                            bidder_contact: auction.leading_bidder_contact,
+                          },
+                          "participante",
+                        )}`
                       : "sem lance líder ainda"}
                   </span>
                 </div>
+
                 <div className={styles.metricCard}>
                   <p className={styles.metricLabel}>Próximo mínimo</p>
                   <p className={`${styles.metricValue} ${styles.metricAccent}`}>
-                    {nextMinBidCents != null ? formatBrlFromCents(nextMinBidCents) : "--"}
+                    {nextMinBidCents != null
+                      ? formatBrlFromCents(nextMinBidCents)
+                      : "--"}
                   </p>
                   <span className={styles.metricSoft}>
                     incremento de {formatBrlFromCents(auction.min_increment_cents)}
                   </span>
                 </div>
+
                 <div className={styles.metricCard}>
                   <p className={styles.metricLabel}>Mercado / reserva</p>
-                  <p className={`${styles.metricValue} ${trust?.reserve_met ? styles.metricAccent : styles.metricWarn}`}>
-                    {auction.market_value_cents != null ? formatBrlFromCents(auction.market_value_cents) : "sem referência"}
+                  <p
+                    className={`${styles.metricValue} ${
+                      trust?.reserve_met ? styles.metricAccent : styles.metricWarn
+                    }`}
+                  >
+                    {auction.market_value_cents != null
+                      ? formatBrlFromCents(auction.market_value_cents)
+                      : "sem referência"}
                   </p>
                   <span className={styles.metricSoft}>
                     {auction.reserve_price_cents != null
                       ? trust?.reserve_met
-                        ? `reserva atingida em ${formatBrlFromCents(auction.reserve_price_cents)}`
-                        : `reserva em ${formatBrlFromCents(auction.reserve_price_cents)}`
+                        ? `reserva atingida em ${formatBrlFromCents(
+                            auction.reserve_price_cents,
+                          )}`
+                        : `reserva em ${formatBrlFromCents(
+                            auction.reserve_price_cents,
+                          )}`
                       : "sem preço de reserva configurado"}
                   </span>
                 </div>
+
                 <div className={styles.metricCard}>
                   <p className={styles.metricLabel}>Pulso da disputa</p>
-                  <p className={`${styles.metricValue} ${endsSoon ? styles.metricWarn : ""}`}>{countdown}</p>
-                  <span className={styles.metricSoft}>último lance {formatRelativeTime(stats?.last_bid_at)}</span>
+                  <p
+                    className={`${styles.metricValue} ${
+                      endsSoon ? styles.metricWarn : ""
+                    }`}
+                  >
+                    {countdown}
+                  </p>
+                  <span className={styles.metricSoft}>
+                    último lance {formatRelativeTime(stats?.last_bid_at)}
+                  </span>
                 </div>
               </div>
 
@@ -425,29 +591,54 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
                 <div className={styles.signalCard}>
                   <span className={styles.signalLabel}>Maior rival</span>
                   <strong className={styles.signalValue}>
-                    {viewer?.rival_bidder_name ? formatBidderName({ bidder_name: viewer.rival_bidder_name, bidder_contact: null }, "Participante") : "Sem rival direto"}
+                    {viewer?.rival_bidder_name
+                      ? formatBidderName(
+                          {
+                            bidder_name: viewer.rival_bidder_name,
+                            bidder_contact: null,
+                          },
+                          "Participante",
+                        )
+                      : "Sem rival direto"}
                   </strong>
                   <span className={styles.signalMeta}>
-                    {viewer?.rival_amount_cents != null ? formatBrlFromCents(viewer.rival_amount_cents) : "sem valor comparativo"}
+                    {viewer?.rival_amount_cents != null
+                      ? formatBrlFromCents(viewer.rival_amount_cents)
+                      : "sem valor comparativo"}
                   </span>
                 </div>
+
                 <div className={styles.signalCard}>
                   <span className={styles.signalLabel}>Gap para retomar</span>
                   <strong className={styles.signalValue}>
-                    {viewer?.gap_to_lead_cents != null ? formatBrlFromCents(viewer.gap_to_lead_cents) : "--"}
+                    {viewer?.gap_to_lead_cents != null
+                      ? formatBrlFromCents(viewer.gap_to_lead_cents)
+                      : "--"}
                   </strong>
                   <span className={styles.signalMeta}>
-                    {viewer?.rank ? `seu rank atual: #${viewer.rank}` : "entre para aparecer no ranking"}
+                    {viewer?.rank
+                      ? `seu rank atual: #${viewer.rank}`
+                      : "entre para aparecer no ranking"}
                   </span>
                 </div>
+
                 <div className={styles.signalCard}>
                   <span className={styles.signalLabel}>Streak da liderança</span>
-                  <strong className={styles.signalValue}>{stats?.leader_streak_count ?? 0}x</strong>
-                  <span className={styles.signalMeta}>sequência do líder atual</span>
+                  <strong className={styles.signalValue}>
+                    {stats?.leader_streak_count ?? 0}x
+                  </strong>
+                  <span className={styles.signalMeta}>
+                    sequência do líder atual
+                  </span>
                 </div>
+
                 <div className={styles.signalCard}>
                   <span className={styles.signalLabel}>Ritmo médio</span>
-                  <strong className={styles.signalValue}>{formatSeconds(performance?.average_bid_interval_seconds ?? null)}</strong>
+                  <strong className={styles.signalValue}>
+                    {formatSeconds(
+                      performance?.average_bid_interval_seconds ?? null,
+                    )}
+                  </strong>
                   <span className={styles.signalMeta}>entre lances válidos</span>
                 </div>
               </div>
@@ -465,15 +656,30 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
                     src={gallery[selectedImage]}
                   />
                 ) : null}
+
                 <div className={styles.mediaOverlay}>
                   <div className={styles.trustRow}>
-                    <span className={styles.trustPill}>{stats?.total_bids ?? 0} lances</span>
-                    <span className={styles.trustPill}>{stats?.unique_bidders ?? 0} participantes</span>
-                    <span className={styles.trustPill}>{performance?.visitors ?? 0} visitantes</span>
-                    <span className={styles.trustPill}>{performance?.auto_bid_count ?? 0} auto-bids ativos</span>
+                    <span className={styles.trustPill}>
+                      {stats?.total_bids ?? 0} lances
+                    </span>
+                    <span className={styles.trustPill}>
+                      {stats?.unique_bidders ?? 0} participantes
+                    </span>
+                    <span className={styles.trustPill}>
+                      {performance?.visitors ?? 0} visitantes
+                    </span>
+                    <span className={styles.trustPill}>
+                      {performance?.auto_bid_count ?? 0} auto-bids ativos
+                    </span>
                   </div>
+
                   {auction.video_url ? (
-                    <Link className={styles.mediaLink} href={auction.video_url} rel="noreferrer" target="_blank">
+                    <Link
+                      className={styles.mediaLink}
+                      href={auction.video_url}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
                       Ver vídeo principal do lote
                     </Link>
                   ) : null}
@@ -484,13 +690,25 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
                 <div className={styles.thumbRow}>
                   {gallery.map((image, index) => (
                     <button
-                      className={index === selectedImage ? `${styles.thumbButton} ${styles.thumbButtonActive}` : styles.thumbButton}
+                      className={
+                        index === selectedImage
+                          ? `${styles.thumbButton} ${styles.thumbButtonActive}`
+                          : styles.thumbButton
+                      }
                       key={`${image}-${index}`}
                       onClick={() => setSelectedImage(index)}
                       type="button"
                     >
-                      <span className={styles.hiddenText}>Selecionar imagem {index + 1}</span>
-                      <Image alt="" className={styles.thumbImage} fill sizes="84px" src={image} />
+                      <span className={styles.hiddenText}>
+                        Selecionar imagem {index + 1}
+                      </span>
+                      <Image
+                        alt=""
+                        className={styles.thumbImage}
+                        fill
+                        sizes="84px"
+                        src={image}
+                      />
                     </button>
                   ))}
                 </div>
@@ -502,6 +720,7 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
             <div className={styles.contentColumn}>
               <div className={styles.card}>
                 <h3 className={styles.cardTitle}>Por que esse lote prende atenção</h3>
+
                 <div className={styles.statsStrip}>
                   <div className={styles.statBox}>
                     <strong>{stats?.total_bids ?? 0}</strong>
@@ -517,7 +736,9 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
                   </div>
                 </div>
 
-                {auction.lot_story ? <p className={styles.storyCopy}>{auction.lot_story}</p> : null}
+                {auction.lot_story ? (
+                  <p className={styles.storyCopy}>{auction.lot_story}</p>
+                ) : null}
 
                 {auction.feature_bullets.length > 0 ? (
                   <ul className={styles.featureList}>
@@ -530,46 +751,69 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
                   </ul>
                 ) : (
                   <p className={styles.emptyState}>
-                    Adicione ficha técnica e argumentos de valor para este lote no painel administrativo.
+                    Adicione ficha técnica e argumentos de valor para este lote no
+                    painel administrativo.
                   </p>
                 )}
-                {auction.appraisal_notes ? <div className={styles.noteCard}>{auction.appraisal_notes}</div> : null}
+
+                {auction.appraisal_notes ? (
+                  <div className={styles.noteCard}>{auction.appraisal_notes}</div>
+                ) : null}
               </div>
 
               <div className={styles.twoColumnGrid}>
                 <div className={styles.card}>
                   <h3 className={styles.cardTitle}>Condição, laudo e autenticidade</h3>
+
                   <div className={styles.detailGrid}>
                     <div className={styles.detailCard}>
                       <span className={styles.detailLabel}>Condição</span>
-                      <span className={styles.detailValue}>{auction.condition_summary || "Não informado."}</span>
+                      <span className={styles.detailValue}>
+                        {auction.condition_summary || "Não informado."}
+                      </span>
                     </div>
                     <div className={styles.detailCard}>
                       <span className={styles.detailLabel}>Laudo / estado</span>
-                      <span className={styles.detailValue}>{auction.condition_report || "Sem laudo detalhado."}</span>
+                      <span className={styles.detailValue}>
+                        {auction.condition_report || "Sem laudo detalhado."}
+                      </span>
                     </div>
                     <div className={styles.detailCard}>
                       <span className={styles.detailLabel}>Envio</span>
-                      <span className={styles.detailValue}>{auction.shipping_info || "Não informado."}</span>
+                      <span className={styles.detailValue}>
+                        {auction.shipping_info || "Não informado."}
+                      </span>
                     </div>
                     <div className={styles.detailCard}>
                       <span className={styles.detailLabel}>Retirada</span>
-                      <span className={styles.detailValue}>{auction.pickup_info || "Não informado."}</span>
+                      <span className={styles.detailValue}>
+                        {auction.pickup_info || "Não informado."}
+                      </span>
                     </div>
                     <div className={styles.detailCard}>
                       <span className={styles.detailLabel}>Autenticidade</span>
-                      <span className={styles.detailValue}>{auction.authenticity_info || "Não informado."}</span>
+                      <span className={styles.detailValue}>
+                        {auction.authenticity_info || "Não informado."}
+                      </span>
                     </div>
                     <div className={styles.detailCard}>
                       <span className={styles.detailLabel}>Documentação</span>
-                      <span className={styles.detailValue}>{auction.invoice_info || "Não informado."}</span>
+                      <span className={styles.detailValue}>
+                        {auction.invoice_info || "Não informado."}
+                      </span>
                     </div>
                   </div>
 
                   {auction.authenticity_assets.length > 0 ? (
                     <div className={styles.assetGrid}>
                       {auction.authenticity_assets.map((asset, index) => (
-                        <Link className={styles.assetLink} href={asset} key={`${asset}-${index}`} rel="noreferrer" target="_blank">
+                        <Link
+                          className={styles.assetLink}
+                          href={asset}
+                          key={`${asset}-${index}`}
+                          rel="noreferrer"
+                          target="_blank"
+                        >
                           Prova #{index + 1}
                         </Link>
                       ))}
@@ -579,29 +823,46 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
 
                 <div className={styles.card}>
                   <h3 className={styles.cardTitle}>Selo de confiança</h3>
+
                   <div className={styles.trustList}>
                     <div className={styles.trustItem}>
                       <strong>Extensão automática</strong>
                       <span>
-                        Lance nos últimos {trust?.bid_extension_window_seconds ?? auction.bid_extension_window_seconds}s
-                        estende o relógio por {trust?.bid_extension_seconds ?? auction.bid_extension_seconds}s.
+                        Lance nos últimos{" "}
+                        {trust?.bid_extension_window_seconds ??
+                          auction.bid_extension_window_seconds}
+                        s estende o relógio por{" "}
+                        {trust?.bid_extension_seconds ??
+                          auction.bid_extension_seconds}
+                        s.
                       </span>
                     </div>
+
                     <div className={styles.trustItem}>
                       <strong>Reserva</strong>
                       <span>
                         {trust?.reserve_price_cents != null
-                          ? `Valor de reserva em ${formatBrlFromCents(trust.reserve_price_cents)}.`
+                          ? `Valor de reserva em ${formatBrlFromCents(
+                              trust.reserve_price_cents,
+                            )}.`
                           : "Este lote não exige valor de reserva."}
                       </span>
                     </div>
+
                     <div className={styles.trustItem}>
                       <strong>Desempate</strong>
-                      <span>{trust?.tie_break_rule || "Em empate de valor, vence o lance registrado primeiro."}</span>
+                      <span>
+                        {trust?.tie_break_rule ||
+                          "Em empate de valor, vence o lance registrado primeiro."}
+                      </span>
                     </div>
+
                     <div className={styles.trustItem}>
                       <strong>Pagamento do vencedor</strong>
-                      <span>{trust?.settlement_deadline_hours ?? 24}h para concluir o arremate após o fechamento.</span>
+                      <span>
+                        {trust?.settlement_deadline_hours ?? 24}h para concluir o
+                        arremate após o fechamento.
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -610,23 +871,44 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
               <div className={styles.twoColumnGrid}>
                 <div className={styles.card}>
                   <h3 className={styles.cardTitle}>Timeline da disputa</h3>
+
                   {timeline.length === 0 ? (
-                    <p className={styles.emptyState}>A linha do tempo aparece conforme o lote ganha movimento.</p>
+                    <p className={styles.emptyState}>
+                      A linha do tempo aparece conforme o lote ganha movimento.
+                    </p>
                   ) : (
                     <ul className={styles.timelineList}>
                       {timeline.map((event) => (
-                        <li className={event.is_highlight ? `${styles.timelineItem} ${styles.timelineHighlight}` : styles.timelineItem} key={event.id}>
+                        <li
+                          className={
+                            event.is_highlight
+                              ? `${styles.timelineItem} ${styles.timelineHighlight}`
+                              : styles.timelineItem
+                          }
+                          key={event.id}
+                        >
                           <div className={styles.timelineMarker} aria-hidden="true" />
                           <div className={styles.timelineBody}>
                             <div className={styles.feedTop}>
-                              <span className={styles.timelineHeadline}>{event.headline}</span>
+                              <span className={styles.timelineHeadline}>
+                                {event.headline}
+                              </span>
                               {event.amount_cents != null ? (
-                                <span className={styles.feedAmount}>{formatBrlFromCents(event.amount_cents)}</span>
+                                <span className={styles.feedAmount}>
+                                  {formatBrlFromCents(event.amount_cents)}
+                                </span>
                               ) : null}
                             </div>
-                            {event.description ? <span className={styles.timelineDescription}>{event.description}</span> : null}
+
+                            {event.description ? (
+                              <span className={styles.timelineDescription}>
+                                {event.description}
+                              </span>
+                            ) : null}
+
                             <span className={styles.feedMeta}>
-                              {new Date(event.created_at).toLocaleString("pt-BR")} • {formatRelativeTime(event.created_at)}
+                              {new Date(event.created_at).toLocaleString("pt-BR")} •{" "}
+                              {formatRelativeTime(event.created_at)}
                             </span>
                           </div>
                         </li>
@@ -637,9 +919,11 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
 
                 <div className={styles.card}>
                   <h3 className={styles.cardTitle}>Movimento mais recente</h3>
+
                   {recentBids.length === 0 ? (
                     <p className={styles.emptyState}>
-                      Nenhum lance registrado ainda. Configure uma abertura forte e empurre a primeira disputa.
+                      Nenhum lance registrado ainda. Configure uma abertura forte e
+                      empurre a primeira disputa.
                     </p>
                   ) : (
                     <ul className={styles.feedList}>
@@ -654,12 +938,19 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
                             <div className={styles.feedTop}>
                               <span className={styles.feedName}>
                                 {formatBidderName(bid, "Participante")}
-                                {bid.is_leading ? " lidera" : bid.is_viewer ? " é seu lance" : ""}
+                                {bid.is_leading
+                                  ? " lidera"
+                                  : bid.is_viewer
+                                    ? " é seu lance"
+                                    : ""}
                               </span>
-                              <span className={styles.feedAmount}>{formatBrlFromCents(bid.amount_cents)}</span>
+                              <span className={styles.feedAmount}>
+                                {formatBrlFromCents(bid.amount_cents)}
+                              </span>
                             </div>
                             <span className={styles.feedMeta}>
-                              {new Date(bid.created_at).toLocaleString("pt-BR")} • {formatRelativeTime(bid.created_at)}
+                              {new Date(bid.created_at).toLocaleString("pt-BR")} •{" "}
+                              {formatRelativeTime(bid.created_at)}
                             </span>
                           </li>
                         );
@@ -679,15 +970,60 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
                     {viewer.is_leading
                       ? "Você está liderando neste momento."
                       : viewer.has_bid
-                        ? `Seu maior lance: ${viewer.highest_bid_cents != null ? formatBrlFromCents(viewer.highest_bid_cents) : "--"}`
+                        ? `Seu maior lance: ${
+                            viewer.highest_bid_cents != null
+                              ? formatBrlFromCents(viewer.highest_bid_cents)
+                              : "--"
+                          }`
                         : "Você ainda não entrou na disputa."}
+                  </div>
+                ) : null}
+
+                <PressureCard
+                  isLeading={viewer?.is_leading}
+                  gap={
+                    viewer?.gap_to_lead_cents != null
+                      ? formatBrlFromCents(viewer.gap_to_lead_cents)
+                      : null
+                  }
+                  rival={rivalLabel}
+                />
+
+                {!viewer?.is_leading && auctionAcceptingBids ? (
+                  <div
+                    style={{
+                      background: "rgba(255,120,0,0.1)",
+                      border: "1px solid rgba(255,120,0,0.35)",
+                      padding: 14,
+                      borderRadius: 14,
+                      marginBottom: 14,
+                    }}
+                  >
+                    <strong style={{ display: "block", marginBottom: 6 }}>
+                      Alta chance de outro participante entrar agora
+                    </strong>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: 14,
+                        color: "rgba(255,255,255,0.82)",
+                        lineHeight: 1.55,
+                      }}
+                    >
+                      Esse lote está sendo acompanhado em tempo real. Quanto mais
+                      você demora, maior a chance de perder a liderança ou entrar
+                      tarde demais.
+                    </p>
                   </div>
                 ) : null}
 
                 {auction.paused_at ? (
                   <div className={styles.detailCard}>
                     <span className={styles.detailLabel}>Pausa operacional</span>
-                    <span className={styles.detailValue}>{auction.pause_reason || "A moderação pausou os lances temporariamente."}</span>
+                    <span className={styles.detailValue}>
+                      {auction.pause_reason ||
+                        "A moderação pausou os lances temporariamente."}
+                    </span>
                   </div>
                 ) : null}
 
@@ -696,7 +1032,9 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
                     <span className={styles.detailLabel}>Arrematante</span>
                     <span className={styles.detailValue}>
                       {winnerLabel}
-                      {auction.winner_bid_cents != null ? ` por ${formatBrlFromCents(auction.winner_bid_cents)}` : ""}
+                      {auction.winner_bid_cents != null
+                        ? ` por ${formatBrlFromCents(auction.winner_bid_cents)}`
+                        : ""}
                     </span>
                   </div>
                 ) : null}
@@ -710,7 +1048,11 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
                         inputMode="decimal"
                         min={nextMinBidCents != null ? nextMinBidCents / 100 : undefined}
                         onChange={(event) => setAmount(event.target.value)}
-                        placeholder={nextMinBidCents != null ? formatBrlFromCents(nextMinBidCents) : "R$ 0,00"}
+                        placeholder={
+                          nextMinBidCents != null
+                            ? formatBrlFromCents(nextMinBidCents)
+                            : "R$ 0,00"
+                        }
                         step={Math.max(auction.min_increment_cents, 1) / 100}
                         type="number"
                         value={amount}
@@ -735,30 +1077,67 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
                     </label>
 
                     {quickBidOptions.length > 0 ? (
-                      <div className={styles.quickBidRow}>
-                        {quickBidOptions.map((value) => (
-                          <button
-                            className={styles.quickBidButton}
-                            key={value}
-                            onClick={() => setAmount((value / 100).toFixed(2))}
-                            type="button"
-                          >
-                            {formatBrlFromCents(value)}
-                          </button>
-                        ))}
+                      <div
+                        style={{
+                          display: "grid",
+                          gap: 10,
+                          marginTop: 4,
+                          marginBottom: 6,
+                        }}
+                      >
+                        {quickBidOptions.map((value, index) => {
+                          const labels = [
+                            "Dar lance mínimo",
+                            "Dar lance competitivo",
+                            "Dar lance agressivo",
+                          ];
+                          return (
+                            <button
+                              key={value}
+                              onClick={() => setAmount((value / 100).toFixed(2))}
+                              type="button"
+                              style={{
+                                padding: "14px",
+                                borderRadius: 14,
+                                fontWeight: 900,
+                                background:
+                                  "linear-gradient(135deg,#f7d978,#d4a63a)",
+                                color: "#111",
+                                border: "none",
+                                cursor: "pointer",
+                                boxShadow: "0 10px 24px rgba(0,0,0,0.18)",
+                              }}
+                            >
+                              {labels[index] ?? "Dar lance"} •{" "}
+                              {formatBrlFromCents(value)}
+                            </button>
+                          );
+                        })}
                       </div>
                     ) : null}
 
-                    <button className={styles.submitButton} disabled={submitting || auctionEnded} type="submit">
-                      {auctionEnded ? "Leilão encerrado" : submitting ? "Enviando lance..." : "Confirmar lance / auto-bid"}
+                    <button
+                      className={styles.submitButton}
+                      disabled={submitting || auctionEnded}
+                      type="submit"
+                    >
+                      {auctionEnded
+                        ? "Leilão encerrado"
+                        : submitting
+                          ? "Enviando lance..."
+                          : "Confirmar lance / auto-bid"}
                     </button>
                   </form>
                 ) : (
                   <div className={styles.form}>
                     <p className={styles.message}>
-                      Entre na sua conta para dar lance, ativar auto-bid, receber atualização ao vivo e acompanhar se você está na frente.
+                      Entre na sua conta para dar lance, ativar auto-bid, receber
+                      atualização ao vivo e acompanhar se você está na frente.
                     </p>
-                    <Link className={styles.loginButton} href={`/login?next=${encodeURIComponent(`/r/${raffleSlug}#leilao`)}`}>
+                    <Link
+                      className={styles.loginButton}
+                      href={`/login?next=${encodeURIComponent(`/r/${raffleSlug}#leilao`)}`}
+                    >
                       Entrar para participar
                     </Link>
                   </div>
@@ -780,15 +1159,39 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
 
                 <div className={styles.smallStats}>
                   <span>Rank atual: {viewer?.rank ? `#${viewer.rank}` : "--"}</span>
-                  <span>{viewer?.outside_podium ? "fora do top 3" : "dentro do pódio"}</span>
+                  <span>
+                    {viewer?.outside_podium ? "fora do top 3" : "dentro do pódio"}
+                  </span>
                   <span>streak: {viewer?.streak_count ?? 0}x</span>
+                </div>
+
+                <div style={{ marginTop: 20 }}>
+                  <Link
+                    href="/rifas"
+                    style={{
+                      display: "block",
+                      textAlign: "center",
+                      padding: "14px",
+                      borderRadius: 14,
+                      background: "rgba(255,255,255,0.05)",
+                      color: "#fff",
+                      fontWeight: 800,
+                      textDecoration: "none",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                    }}
+                  >
+                    Enquanto isso, veja outras campanhas
+                  </Link>
                 </div>
               </div>
 
               <div className={styles.card}>
                 <h3 className={styles.cardTitle}>Quem está na frente</h3>
+
                 {leaderboard.length === 0 ? (
-                  <p className={styles.emptyState}>Assim que os primeiros lances entrarem, o pódio aparece aqui.</p>
+                  <p className={styles.emptyState}>
+                    Assim que os primeiros lances entrarem, o pódio aparece aqui.
+                  </p>
                 ) : (
                   <ul className={styles.leaderboardList}>
                     {leaderboard.map((entry, index) => {
@@ -797,25 +1200,34 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
                         : styles.leaderboardItem;
 
                       return (
-                        <li className={itemClass} key={`${entry.amount_cents}-${entry.created_at}-${index}`}>
+                        <li
+                          className={itemClass}
+                          key={`${entry.amount_cents}-${entry.created_at}-${index}`}
+                        >
                           <div className={styles.feedTop}>
                             <span className={styles.leaderName}>
-                              #{entry.rank ?? index + 1} {formatBidderName(entry, "Participante")}
+                              #{entry.rank ?? index + 1}{" "}
+                              {formatBidderName(entry, "Participante")}
                               {entry.is_viewer ? " • você" : ""}
                             </span>
-                            <span className={styles.leaderAmount}>{formatBrlFromCents(entry.amount_cents)}</span>
+                            <span className={styles.leaderAmount}>
+                              {formatBrlFromCents(entry.amount_cents)}
+                            </span>
                           </div>
                           <span className={styles.leaderMeta}>
-                            streak {entry.streak_count ?? 1}x • {formatRelativeTime(entry.created_at)}
+                            streak {entry.streak_count ?? 1}x •{" "}
+                            {formatRelativeTime(entry.created_at)}
                           </span>
                         </li>
                       );
                     })}
                   </ul>
                 )}
+
                 {viewer?.outside_podium ? (
                   <div className={styles.noteCard}>
-                    Você está fora do top 3. Seu rank atual é #{viewer.rank} entre {viewer.total_ranked_bidders} participantes.
+                    Você está fora do top 3. Seu rank atual é #{viewer.rank} entre{" "}
+                    {viewer.total_ranked_bidders} participantes.
                   </div>
                 ) : null}
               </div>
@@ -832,11 +1244,17 @@ export function Auction({ raffleSlug, auctionSlug }: Props) {
                     <span>taxa de participantes</span>
                   </div>
                   <div className={styles.performanceCard}>
-                    <strong>{formatBrlFromCents(performance?.total_raised_cents ?? 0)}</strong>
+                    <strong>
+                      {formatBrlFromCents(performance?.total_raised_cents ?? 0)}
+                    </strong>
                     <span>total arrecadado</span>
                   </div>
                   <div className={styles.performanceCard}>
-                    <strong>{formatSeconds(performance?.average_bid_interval_seconds ?? null)}</strong>
+                    <strong>
+                      {formatSeconds(
+                        performance?.average_bid_interval_seconds ?? null,
+                      )}
+                    </strong>
                     <span>tempo medio entre lances</span>
                   </div>
                 </div>
