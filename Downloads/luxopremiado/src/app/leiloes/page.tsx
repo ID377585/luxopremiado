@@ -98,7 +98,14 @@ export default function LeiloesPage() {
           padding: "56px 24px 28px",
         }}
       >
-        <p style={{ color: "#f2d067", fontWeight: 800, letterSpacing: 1.2, margin: 0 }}>
+        <p
+          style={{
+            color: "#f2d067",
+            fontWeight: 800,
+            letterSpacing: 1.2,
+            margin: 0,
+          }}
+        >
           MODALIDADE
         </p>
 
@@ -121,8 +128,10 @@ export default function LeiloesPage() {
             margin: 0,
           }}
         >
-          Leilões dinâmicos, concorrência real e chances únicas de conquistar itens de alto valor.
-          Acompanhe os lances ao vivo, sinta a competição em tempo real e aproveite oportunidades que podem acabar a qualquer segundo.
+          Leilões dinâmicos, concorrência real e chances únicas de conquistar
+          itens de alto valor. Acompanhe os lances ao vivo, sinta a competição
+          em tempo real e aproveite oportunidades que podem acabar a qualquer
+          segundo.
         </p>
 
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 24 }}>
@@ -216,8 +225,10 @@ export default function LeiloesPage() {
           </div>
 
           <p style={{ margin: 0, color: "rgba(255,255,255,0.72)" }}>
-            Não perca a chance de participar dos leilões mais disputados da plataforma.
-        </p>
+            Não perca a chance de participar dos leilões mais disputados da
+            plataforma.
+          </p>
+        </div>
 
         <div
           style={{
@@ -381,7 +392,13 @@ export default function LeiloesPage() {
                 <strong style={{ display: "block", marginBottom: 8 }}>
                   {item.name}
                 </strong>
-                <p style={{ margin: 0, color: "rgba(255,255,255,0.8)", lineHeight: 1.7 }}>
+                <p
+                  style={{
+                    margin: 0,
+                    color: "rgba(255,255,255,0.8)",
+                    lineHeight: 1.7,
+                  }}
+                >
                   {item.text}
                 </p>
               </div>
@@ -407,7 +424,9 @@ export default function LeiloesPage() {
             boxShadow: "0 18px 42px rgba(0,0,0,0.24)",
           }}
         >
-          <p style={{ color: "#f2d067", fontWeight: 800, marginTop: 0 }}>FAQ</p>
+          <p style={{ color: "#f2d067", fontWeight: 800, marginTop: 0 }}>
+            FAQ
+          </p>
           <h2 style={{ fontSize: 32, marginTop: 0 }}>
             Dúvidas frequentes sobre os leilões
           </h2>
@@ -426,7 +445,9 @@ export default function LeiloesPage() {
                 <strong style={{ display: "block", marginBottom: 8 }}>
                   {item.question}
                 </strong>
-                <span style={{ color: "rgba(255,255,255,0.76)", lineHeight: 1.7 }}>
+                <span
+                  style={{ color: "rgba(255,255,255,0.76)", lineHeight: 1.7 }}
+                >
                   {item.answer}
                 </span>
               </div>
