@@ -50,8 +50,8 @@ export default function RifasPage() {
       }}
     >
       <QuickAccessBar
-        chooseHref="/r/bigode-das-rifas#premio"
-        userHref="/r/bigode-das-rifas#painel"
+        chooseHref="/app/comprar"
+        userHref="/area-do-usuario"
         vipHref="/vip"
       />
 
@@ -197,7 +197,7 @@ export default function RifasPage() {
                 </Link>
 
                 <Link
-                  href="/r/bigode-das-rifas#premio"
+                  href="/app/comprar"
                   style={{
                     display: "inline-block",
                     background: "rgba(255,255,255,0.05)",

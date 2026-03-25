@@ -73,8 +73,8 @@ export default function HomePage() {
       }}
     >
       <QuickAccessBar
-        chooseHref="/r/bigode-das-rifas#premio"
-        userHref="/r/bigode-das-rifas#painel"
+        chooseHref="/app/comprar"
+        userHref="/area-do-usuario"
         vipHref="/vip"
       />
 
@@ -135,7 +135,7 @@ export default function HomePage() {
             }}
           >
             <Link
-              href="/r/bigode-das-rifas#premio"
+              href="/app/comprar"
               style={{
                 background: "linear-gradient(135deg, #f7d978 0%, #d4a63a 100%)",
                 color: "#111",
@@ -150,7 +150,7 @@ export default function HomePage() {
             </Link>
 
             <Link
-              href="/r/bigode-das-rifas#painel"
+              href="/area-do-usuario"
               style={{
                 border: "1px solid rgba(255,255,255,0.18)",
                 color: "#fff",
@@ -221,7 +221,7 @@ export default function HomePage() {
             </div>
 
             <Link
-              href="/r/bigode-das-rifas#premio"
+              href="/app/comprar"
               style={{
                 display: "block",
                 marginTop: 18,

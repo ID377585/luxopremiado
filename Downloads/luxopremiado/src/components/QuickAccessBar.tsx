@@ -7,8 +7,8 @@ type Props = {
 };
 
 export default function QuickAccessBar({
-  chooseHref = "/#premio",
-  userHref = "/usuario",
+  chooseHref = "/app/comprar",
+  userHref = "/area-do-usuario",
   vipHref = "/vip",
 }: Props) {
   return (
