@@ -72,7 +72,7 @@ export default async function HomePage() {
             margin: "12px 0 16px",
           }}
         >
-          Agora cada modalidade tem sua própria página.
+          Bigode das Rifas.
         </h1>
 
         <p
@@ -83,9 +83,8 @@ export default async function HomePage() {
             lineHeight: 1.6,
           }}
         >
-          Reestruturamos a navegação para separar rifas, sorteios, leilões e VIP.
-          Isso melhora a experiência, deixa a comunicação mais clara e aumenta o
-          foco de cada funil.
+          Participe, concorra, ganhe — simples assim.
+          Rifas online seguras para quem quer ganhar de verdade.
         </p>
 
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 24 }}>

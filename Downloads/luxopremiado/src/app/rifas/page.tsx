@@ -123,7 +123,7 @@ export default function RifasPage() {
             margin: "12px 0 16px",
           }}
         >
-          Rifas com visual premium, urgência real e experiência pensada para conversão
+          Escolha seus números agora e concorra a prêmios reais, com uma experiência rápida, segura e feita para ganhar.
         </h1>
 
         <p
@@ -135,9 +135,8 @@ export default function RifasPage() {
             margin: 0,
           }}
         >
-          Explore campanhas com forte apelo comercial, acompanhe a disponibilidade
-          em tempo real e escolha seus números em um ambiente mais elegante, confiável
-          e preparado para acelerar a decisão de compra.
+          Acompanhe em tempo real o que ainda está disponível, entre nas campanhas mais disputadas e garanta sua chance antes que acabe.
+          Uma nova forma de participar de rifas: mais rápida, segura e com prêmios que realmente valem a pena.
         </p>
 
         <div
@@ -238,7 +237,7 @@ export default function RifasPage() {
           </div>
 
           <p style={{ margin: 0, color: "rgba(255,255,255,0.72)" }}>
-            Estrutura criada para vender melhor e reter mais atenção.
+            Participe agora mesmo!
           </p>
         </div>
 

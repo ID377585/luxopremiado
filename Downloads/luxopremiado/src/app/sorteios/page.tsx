@@ -109,7 +109,7 @@ export default function SorteiosPage() {
             margin: "12px 0 16px",
           }}
         >
-          Sorteios promocionais com visual premium, regras claras e mais confiança
+          Participe agora de sorteios confiáveis, com regras claras e prêmios que valem a pena.
         </h1>
 
         <p
@@ -121,9 +121,8 @@ export default function SorteiosPage() {
             margin: 0,
           }}
         >
-          Reunimos aqui os sorteios da plataforma em uma estrutura separada, elegante
-          e muito mais clara, com foco em participação, prêmio e entendimento rápido
-          da campanha.
+          Tudo transparente, fácil de entender e pronto para você participar em poucos segundos.
+          Escolha, participe e acompanhe tudo com total transparência — rápido e direto ao ponto.
         </p>
 
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 24 }}>
@@ -212,12 +211,12 @@ export default function SorteiosPage() {
               SORTEIOS DISPONÍVEIS
             </p>
             <h2 style={{ fontSize: 34, margin: 0 }}>
-              Campanhas promocionais com mais clareza e valor percebido
+              Campanhas promocionais que acabam rápido.
             </h2>
           </div>
 
           <p style={{ margin: 0, color: "rgba(255,255,255,0.72)" }}>
-            Estrutura feita para reduzir dúvida e aumentar adesão.
+            Participe agora mesmo!
           </p>
         </div>
 

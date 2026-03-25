@@ -109,7 +109,7 @@ export default function LeiloesPage() {
             margin: "12px 0 16px",
           }}
         >
-          Leilões com lotes premium, visual sofisticado e disputa mais envolvente
+          Dispute, aumente seu lance e garanta o melhor antes que outro leve.
         </h1>
 
         <p
@@ -121,9 +121,8 @@ export default function LeiloesPage() {
             margin: 0,
           }}
         >
-          Os leilões foram organizados em uma experiência própria para destacar lotes
-          premium, aumentar retenção e comunicar com mais força a disputa, o valor do
-          item e o interesse do público.
+          Leilões dinâmicos, concorrência real e chances únicas de conquistar itens de alto valor.
+          Acompanhe os lances ao vivo, sinta a competição em tempo real e aproveite oportunidades que podem acabar a qualquer segundo.
         </p>
 
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 24 }}>
@@ -212,13 +211,12 @@ export default function LeiloesPage() {
               LEILÕES DISPONÍVEIS
             </p>
             <h2 style={{ fontSize: 34, margin: 0 }}>
-              Lotes com maior valor percebido e leitura mais clara da disputa
+              Lotes com produtos de alto valor.
             </h2>
           </div>
 
           <p style={{ margin: 0, color: "rgba(255,255,255,0.72)" }}>
-            Estrutura pensada para tensão competitiva e retenção.
-          </p>
+            Não perca a chance de participar dos leilões mais disputados da plataforma.
         </div>
 
         <div
