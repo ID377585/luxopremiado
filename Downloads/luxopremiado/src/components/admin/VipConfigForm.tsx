@@ -67,7 +67,7 @@ function formatMoney(cents: number) {
   }).format((cents ?? 0) / 100);
 }
 
-async function readErrorMessage<T extends { error?: string }>(response: Response): Promise<T> {
+async function readJson<T>(response: Response): Promise<T> {
   return (await response.json().catch(() => ({}))) as T;
 }
 
@@ -102,7 +102,7 @@ export function VipConfigForm() {
     const loadSettings = async () => {
       try {
         const response = await fetch("/api/admin/vip");
-        const data = await readErrorMessage<{ settings?: VipProgramSettings }>(response);
+        const data = await readJson<{ settings?: VipProgramSettings }>(response);
 
         if (!active || !response.ok || !data.settings) {
           return;
@@ -147,7 +147,7 @@ export function VipConfigForm() {
 
     try {
       const response = await fetch(`/api/admin/vip?email=${encodeURIComponent(normalizedEmail)}`);
-      const data = await readErrorMessage<VipSnapshot & { error?: string }>(response);
+      const data = await readJson<VipSnapshot & { error?: string }>(response);
 
       if (!response.ok) {
         setSnapshot(null);
@@ -198,7 +198,7 @@ export function VipConfigForm() {
         }),
       });
 
-      const data = await readErrorMessage<VipSnapshot & { error?: string }>(response);
+      const data = await readJson<VipSnapshot & { error?: string }>(response);
 
       if (!response.ok) {
         setStatus(data.error ?? "Erro ao salvar o status VIP.");
@@ -241,7 +241,7 @@ export function VipConfigForm() {
         }),
       });
 
-      const data = await readErrorMessage<{ settings?: VipProgramSettings; error?: string }>(response);
+      const data = await readJson<{ settings?: VipProgramSettings; error?: string }>(response);
 
       if (!response.ok || !data.settings) {
         setStatus(data.error ?? "Erro ao salvar as configurações operacionais do VIP.");
