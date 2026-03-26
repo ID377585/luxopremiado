@@ -77,7 +77,7 @@ export default function RootLayout({
             }}
           >
             <Link
-              href={DEFAULT_LANDING}
+              href="/"
               style={{
                 color: "#f2d067",
                 fontWeight: 900,
