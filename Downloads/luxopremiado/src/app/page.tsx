@@ -5,59 +5,53 @@ import TrustStrip from "@/components/TrustStrip";
 import QuickAccessBar from "@/components/QuickAccessBar";
 
 export const metadata: Metadata = {
-  title: "Bigode das Rifas | Rifas, sorteios e leilões com PIX imediato",
+  title: "Bigode das Rifas | Rifas com PIX imediato",
   description:
-    "Escolha seus números, participe de rifas, sorteios e leilões com experiência premium, campanhas fortes e pagamento rápido no PIX.",
+    "Escolha seus números, participe das campanhas e finalize sua compra com rapidez, clareza e transparência.",
 };
 
 const categorias = [
   {
-    title: "Rifas em alta",
+    title: "Rifas em destaque",
     description:
-      "Campanhas com entrada rápida, tickets acessíveis e prêmios que chamam atenção logo no primeiro clique.",
+      "Campanhas com entrada rápida, prêmios desejados e compra simples no PIX.",
     href: "/rifas",
-    cta: "Explorar rifas",
+    cta: "Ver rifas",
   },
   {
-    title: "Sorteios promocionais",
+    title: "Área do participante",
     description:
-      "Ofertas diretas, prêmios desejados e regras claras para facilitar a decisão de participação.",
-    href: "/sorteios",
-    cta: "Ver sorteios",
+      "Acompanhe seus pedidos, pagamentos e confirmações em um só lugar.",
+    href: "/login",
+    cta: "Entrar agora",
   },
   {
-    title: "Leilões premium",
+    title: "Campanha principal",
     description:
-      "Lotes que geram desejo, disputa e retenção para quem gosta de acompanhar e entrar na hora certa.",
-    href: "/leiloes",
-    cta: "Abrir leilões",
+      "Acesse a página oficial da campanha com detalhes do prêmio, pacotes e transparência.",
+    href: "/r/bigode-das-rifas",
+    cta: "Abrir campanha",
   },
 ];
 
 const premios = [
   {
-    title: "Moto 0km",
-    badge: "Mais desejado",
+    title: "SHINERAY FREE 150",
+    badge: "Prêmio principal",
     description:
-      "Um dos prêmios com maior apelo popular e excelente capacidade de chamar clique na home.",
+      "Campanha principal com apelo popular e forte potencial de conversão.",
   },
   {
-    title: "iPhone Pro Max",
-    badge: "Alta conversão",
+    title: "iPhone 17 Pro Max 256 GB",
+    badge: "Prêmio bônus",
     description:
-      "Prêmio de giro rápido, ótimo para campanhas que precisam performar bem no celular.",
+      "Bônus premium para reforçar valor percebido e aumentar atratividade.",
   },
   {
-    title: "PIX de R$ 10.000",
-    badge: "Decisão rápida",
+    title: "R$ 500,00 em PIX",
+    badge: "Bônus extra",
     description:
-      "Oferta direta, simples de entender e muito forte para quem quer entrar sem enrolação.",
-  },
-  {
-    title: 'PlayStation 5 + TV 55"',
-    badge: "Combo premium",
-    description:
-      "Campanha com alto valor percebido e ótimo potencial para aumentar permanência na página.",
+      "Recompensa direta para ampliar desejo e acelerar decisão de compra.",
   },
 ];
 
@@ -73,9 +67,9 @@ export default function HomePage() {
       }}
     >
       <QuickAccessBar
-        chooseHref="/app/comprar"
-        userHref="/area-do-usuario"
-        vipHref="/vip"
+        chooseHref="/r/bigode-das-rifas#pacotes"
+        userHref="/login"
+        vipHref="/r/bigode-das-rifas#transparencia"
       />
 
       <section
@@ -109,7 +103,7 @@ export default function HomePage() {
               maxWidth: 780,
             }}
           >
-            Não fique de fora — sua chance de ganhar está aqui.
+            Escolha seus números e participe da campanha oficial agora.
           </h1>
 
           <p
@@ -121,7 +115,8 @@ export default function HomePage() {
               lineHeight: 1.75,
             }}
           >
-            Escolha sua campanha e garanta seus números antes que acabem.
+            Compra rápida, confirmação transparente e acesso direto à campanha
+            principal sem desvio desnecessário.
           </p>
 
           <div
@@ -132,34 +127,12 @@ export default function HomePage() {
               marginTop: 24,
             }}
           >
-            <Link
-              href="/app/comprar"
-              style={{
-                background: "linear-gradient(135deg, #f7d978 0%, #d4a63a 100%)",
-                color: "#111",
-                textDecoration: "none",
-                padding: "15px 22px",
-                borderRadius: 16,
-                fontWeight: 900,
-                boxShadow: "0 14px 30px rgba(0,0,0,0.24)",
-              }}
-            >
+            <Link href="/r/bigode-das-rifas#pacotes" style={primaryButtonStyle}>
               ESCOLHER NÚMEROS AGORA
             </Link>
 
-            <Link
-              href="/area-do-usuario"
-              style={{
-                border: "1px solid rgba(255,255,255,0.18)",
-                color: "#fff",
-                textDecoration: "none",
-                padding: "15px 22px",
-                borderRadius: 16,
-                fontWeight: 800,
-                background: "rgba(255,255,255,0.04)",
-              }}
-            >
-              ABRIR ÁREA DO USUÁRIO
+            <Link href="/login" style={secondaryButtonStyle}>
+              ENTRAR NA ÁREA DO USUÁRIO
             </Link>
           </div>
         </div>
@@ -178,9 +151,11 @@ export default function HomePage() {
             <p style={{ marginTop: 0, color: "#f2d067", fontWeight: 800 }}>
               CAMPANHA EM DESTAQUE
             </p>
+
             <h2 style={{ fontSize: 32, margin: "0 0 14px" }}>
-              Moto 0km + bônus em PIX
+              SHINERAY FREE 150 + bônus
             </h2>
+
             <p
               style={{
                 margin: "0 0 18px",
@@ -188,16 +163,16 @@ export default function HomePage() {
                 lineHeight: 1.7,
               }}
             >
-              Oferta forte para puxar clique, mas agora com acesso direto ao
-              fluxo real de compra.
+              Página principal pronta para conversão com pacotes, transparência
+              e CTA direto para compra.
             </p>
 
             <div style={{ display: "grid", gap: 12 }}>
               {[
-                ["Valor por número", "R$ 1,99"],
-                ["Prêmio bônus", "PIX de R$ 5.000"],
-                ["Modalidade", "Rifa em alta"],
-                ["Status", "Entrada acelerada"],
+                ["Valor por número", "R$ 1,60"],
+                ["Prêmio bônus 1", "iPhone 17 Pro Max 256 GB"],
+                ["Prêmio bônus 2", "R$ 500,00 em PIX"],
+                ["Sorteio", "30/04/2026 às 19:00"],
               ].map(([label, value]) => (
                 <div
                   key={label}
@@ -219,7 +194,7 @@ export default function HomePage() {
             </div>
 
             <Link
-              href="/app/comprar"
+              href="/r/bigode-das-rifas"
               style={{
                 display: "block",
                 marginTop: 18,
@@ -232,14 +207,14 @@ export default function HomePage() {
                 fontWeight: 900,
               }}
             >
-              ESCOLHER NÚMEROS
+              ABRIR CAMPANHA
             </Link>
           </aside>
 
           <CountdownCard
-            title="Oferta quente da semana"
-            timeLeft="02h 14m 39s"
-            subtitle="Não deixe a home virar um beco sem saída: leve o usuário para compra e painel com 1 clique."
+            title="Encerramento da campanha"
+            targetDateIso="2026-04-30T19:00:00-03:00"
+            subtitle="Acompanhe o tempo restante até o fechamento oficial da campanha."
           />
         </div>
       </section>
@@ -257,30 +232,12 @@ export default function HomePage() {
         }}
       >
         {categorias.map((item) => (
-          <article
-            key={item.title}
-            style={{
-              background:
-                "linear-gradient(180deg, rgba(10,20,64,0.94), rgba(5,16,52,0.94))",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: 24,
-              padding: 24,
-            }}
-          >
+          <article key={item.title} style={infoCardStyle}>
             <h2 style={{ marginTop: 0, fontSize: 28 }}>{item.title}</h2>
             <p style={{ color: "rgba(255,255,255,0.78)", lineHeight: 1.7 }}>
               {item.description}
             </p>
-            <Link
-              href={item.href}
-              style={{
-                display: "inline-block",
-                marginTop: 10,
-                color: "#f2d067",
-                textDecoration: "none",
-                fontWeight: 800,
-              }}
-            >
+            <Link href={item.href} style={inlineLinkStyle}>
               {item.cta}
             </Link>
           </article>
@@ -306,10 +263,10 @@ export default function HomePage() {
         >
           <div>
             <p style={{ margin: 0, color: "#f2d067", fontWeight: 900 }}>
-              PRÊMIOS QUE CHAMAM CLIQUE
+              DESTAQUES DA CAMPANHA
             </p>
             <h2 style={{ margin: "8px 0 0", fontSize: 34 }}>
-              Campanhas com valor percebido mais forte
+              Prêmios com forte apelo de participação
             </h2>
           </div>
         </div>
@@ -322,29 +279,8 @@ export default function HomePage() {
           }}
         >
           {premios.map((item) => (
-            <article
-              key={item.title}
-              style={{
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                borderRadius: 24,
-                padding: 22,
-              }}
-            >
-              <span
-                style={{
-                  display: "inline-block",
-                  padding: "7px 11px",
-                  borderRadius: 999,
-                  background: "rgba(242,208,103,0.12)",
-                  border: "1px solid rgba(242,208,103,0.24)",
-                  color: "#f2d067",
-                  fontWeight: 800,
-                  fontSize: 13,
-                }}
-              >
-                {item.badge}
-              </span>
+            <article key={item.title} style={prizeCardStyle}>
+              <span style={badgeStyle}>{item.badge}</span>
               <h3 style={{ margin: "14px 0 10px", fontSize: 26 }}>
                 {item.title}
               </h3>
@@ -364,3 +300,57 @@ export default function HomePage() {
     </main>
   );
 }
+
+const primaryButtonStyle: React.CSSProperties = {
+  background: "linear-gradient(135deg, #f7d978 0%, #d4a63a 100%)",
+  color: "#111",
+  textDecoration: "none",
+  padding: "15px 22px",
+  borderRadius: 16,
+  fontWeight: 900,
+  boxShadow: "0 14px 30px rgba(0,0,0,0.24)",
+};
+
+const secondaryButtonStyle: React.CSSProperties = {
+  border: "1px solid rgba(255,255,255,0.18)",
+  color: "#fff",
+  textDecoration: "none",
+  padding: "15px 22px",
+  borderRadius: 16,
+  fontWeight: 800,
+  background: "rgba(255,255,255,0.04)",
+};
+
+const infoCardStyle: React.CSSProperties = {
+  background:
+    "linear-gradient(180deg, rgba(10,20,64,0.94), rgba(5,16,52,0.94))",
+  border: "1px solid rgba(255,255,255,0.08)",
+  borderRadius: 24,
+  padding: 24,
+};
+
+const prizeCardStyle: React.CSSProperties = {
+  background: "rgba(255,255,255,0.04)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  borderRadius: 24,
+  padding: 22,
+};
+
+const inlineLinkStyle: React.CSSProperties = {
+  display: "inline-block",
+  marginTop: 10,
+  color: "#f2d067",
+  textDecoration: "none",
+  fontWeight: 800,
+};
+
+const badgeStyle: React.CSSProperties = {
+  display: "inline-block",
+  padding: "7px 11px",
+  borderRadius: 999,
+  background: "rgba(242,208,103,0.12)",
+  border: "1px solid rgba(242,208,103,0.24)",
+  color: "#f2d067",
+  fontWeight: 800,
+  fontSize: 13,
+};

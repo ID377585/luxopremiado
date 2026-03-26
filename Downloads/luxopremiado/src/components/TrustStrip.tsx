@@ -1,19 +1,19 @@
 const trustItems = [
   {
-    title: "Pagamento rápido",
-    text: "Fluxo simples para reduzir atrito e fazer o usuário concluir mais rápido.",
+    title: "Pagamento no PIX",
+    text: "Fluxo de pagamento rápido para confirmar a participação sem burocracia desnecessária.",
   },
   {
-    title: "Experiência premium",
-    text: "Layout forte para aumentar percepção de valor e confiança visual.",
+    title: "Compra transparente",
+    text: "Página com informações claras sobre prêmio, sorteio, pacotes e regras da campanha.",
   },
   {
-    title: "Campanhas objetivas",
-    text: "Menos ruído, mais clareza e mais chance de participação imediata.",
+    title: "Acompanhamento do participante",
+    text: "Área de acesso para conferir pedidos, confirmações e histórico de participação.",
   },
   {
-    title: "Mais retenção",
-    text: "Rifas, sorteios e leilões organizados para manter o visitante navegando.",
+    title: "Campanha organizada",
+    text: "Estrutura pensada para dar clareza, confiança visual e decisão de compra mais rápida.",
   },
 ];
 

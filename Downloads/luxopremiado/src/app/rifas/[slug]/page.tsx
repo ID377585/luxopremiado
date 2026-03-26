@@ -97,16 +97,6 @@ const campaign = {
       text: "Tive uma dúvida e o suporte respondeu com clareza no mesmo dia.",
       author: "Karina, Belo Horizonte/MG",
     },
-    {
-      title: "Checkout seguro",
-      text: "Gostei do anti-bot e da verificação. Passou confiança.",
-      author: "Sara, Florianópolis/SC",
-    },
-    {
-      title: "Layout leve",
-      text: "Usei no celular com 4G fraco e não travou nenhuma vez.",
-      author: "Letícia, Curitiba/PR",
-    },
   ],
   winners: [
     {
@@ -493,7 +483,7 @@ export default async function RifaPage({ params }: PageProps) {
               <p style={{ margin: "10px 0 0", color: "rgba(255,255,255,0.78)" }}>
                 {pack.unitPrice} por número
               </p>
-              <a href="#inicio" style={{ ...primaryButtonStyle, marginTop: 18 }}>
+              <a href="#checkout" style={{ ...primaryButtonStyle, marginTop: 18 }}>
                 {pack.cta}
               </a>
             </article>
@@ -611,7 +601,7 @@ export default async function RifaPage({ params }: PageProps) {
         style={{
           maxWidth: 1240,
           margin: "0 auto",
-          padding: "8px 24px 56px",
+          padding: "8px 24px 28px",
         }}
       >
         <p style={eyebrowStyle}>TRANSPARÊNCIA</p>
@@ -637,17 +627,61 @@ export default async function RifaPage({ params }: PageProps) {
             <MetricCard label="CNPJ" value={ORGANIZER_CNPJ} />
           ) : null}
         </div>
+      </section>
 
-        <p
+      <section
+        id="checkout"
+        style={{
+          maxWidth: 1240,
+          margin: "0 auto",
+          padding: "8px 24px 56px",
+        }}
+      >
+        <div
           style={{
-            marginTop: 16,
-            color: "rgba(255,255,255,0.72)",
-            lineHeight: 1.7,
+            background:
+              "linear-gradient(135deg, rgba(247,217,120,0.16), rgba(10,20,64,0.94))",
+            border: "1px solid rgba(242,208,103,0.28)",
+            borderRadius: 28,
+            padding: 28,
+            display: "grid",
+            gap: 14,
           }}
         >
-          Este conteúdo só deve exibir dados oficiais. Nunca publique CNPJ
-          placeholder, datas conflitantes ou especificações de prêmio misturadas.
-        </p>
+          <p style={{ margin: 0, color: "#f2d067", fontWeight: 900 }}>
+            CTA FINAL
+          </p>
+          <h2 style={{ margin: 0, fontSize: 34 }}>
+            Escolha agora seus números antes do encerramento da campanha
+          </h2>
+          <p
+            style={{
+              margin: 0,
+              color: "rgba(255,255,255,0.82)",
+              lineHeight: 1.7,
+              maxWidth: 860,
+            }}
+          >
+            A campanha já está estruturada com prêmio principal, bônus, pacotes e
+            área de transparência. O próximo passo é seguir para o fluxo de compra.
+          </p>
+
+          <div
+            style={{
+              display: "flex",
+              gap: 12,
+              flexWrap: "wrap",
+              marginTop: 8,
+            }}
+          >
+            <Link href="/login" style={secondaryButtonStyle}>
+              ENTRAR NO PAINEL
+            </Link>
+            <a href="#pacotes" style={primaryButtonStyle}>
+              ESCOLHER PACOTE AGORA
+            </a>
+          </div>
+        </div>
       </section>
 
       <footer
@@ -661,11 +695,30 @@ export default async function RifaPage({ params }: PageProps) {
             maxWidth: 1240,
             margin: "0 auto",
             padding: "18px 24px 32px",
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 18,
+            flexWrap: "wrap",
           }}
         >
-          © 2026 {campaign.title}. Todos os direitos reservados. Rota canônica:
-          {" "}
-          <code>/r/{canonicalSlug}</code>
+          <div>
+            © 2026 {campaign.title}. Todos os direitos reservados.
+            <div style={{ marginTop: 8 }}>
+              <code>/r/{canonicalSlug}</code>
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gap: 6 }}>
+            <Link href="/r/bigode-das-rifas" style={footerLinkStyle}>
+              Campanha principal
+            </Link>
+            <Link href="/login" style={footerLinkStyle}>
+              Área do usuário
+            </Link>
+            <a href={`mailto:${SUPPORT_EMAIL}`} style={footerLinkStyle}>
+              {SUPPORT_EMAIL}
+            </a>
+          </div>
         </div>
       </footer>
     </main>
@@ -756,6 +809,11 @@ const secondaryButtonStyle: React.CSSProperties = {
   borderRadius: 16,
   fontWeight: 800,
   border: "1px solid rgba(255,255,255,0.10)",
+};
+
+const footerLinkStyle: React.CSSProperties = {
+  color: "rgba(255,255,255,0.82)",
+  textDecoration: "none",
 };
 
 const cardStyle: React.CSSProperties = {
