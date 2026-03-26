@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAllRaffleSlugs, getRaffleContent } from "@/lib/raffles-content";
+import { getSiteUrl } from "@/lib/env";
 
 const SUPPORT_EMAIL =
   process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "suporte@bigodedasrifas.com";
@@ -10,6 +11,9 @@ const ORGANIZER_NAME =
   process.env.NEXT_PUBLIC_ORGANIZER_NAME ?? "Bigode das Rifas";
 
 const ORGANIZER_CNPJ = process.env.NEXT_PUBLIC_ORGANIZER_CNPJ ?? "";
+
+const SITE_URL = getSiteUrl();
+const DEFAULT_OG_IMAGE = "/images/og/bigode-das-rifas-og.jpg";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -24,23 +28,41 @@ export async function generateMetadata({
   if (!raffle) {
     return {
       title: "Rifa não encontrada | Bigode das Rifas",
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
+
+  const canonicalPath = `/rifas/${raffle.slug}`;
 
   return {
     title: raffle.seoTitle,
     description: raffle.seoDescription,
+    alternates: {
+      canonical: canonicalPath,
+    },
     openGraph: {
       title: raffle.seoTitle,
       description: raffle.seoDescription,
       type: "website",
       locale: "pt_BR",
-      url: `/rifas/${raffle.slug}`,
+      url: `${SITE_URL}${canonicalPath}`,
+      images: [
+        {
+          url: DEFAULT_OG_IMAGE,
+          width: 1200,
+          height: 630,
+          alt: raffle.seoTitle,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: raffle.seoTitle,
       description: raffle.seoDescription,
+      images: [DEFAULT_OG_IMAGE],
     },
   };
 }
@@ -49,8 +71,7 @@ export async function generateStaticParams() {
   return getAllRaffleSlugs().map((slug) => ({ slug }));
 }
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 300;
 
 export default async function RifaDetalhePage({ params }: PageProps) {
   const { slug } = await params;
@@ -334,9 +355,9 @@ export default async function RifaDetalhePage({ params }: PageProps) {
                 {pack.description}
               </p>
 
-              <a href="#checkout" style={{ ...primaryButtonStyle, marginTop: 18 }}>
+              <Link href="/login" style={{ ...primaryButtonStyle, marginTop: 18 }}>
                 {pack.cta}
-              </a>
+              </Link>
             </article>
           ))}
         </div>
@@ -503,11 +524,11 @@ export default async function RifaDetalhePage({ params }: PageProps) {
               marginTop: 8,
             }}
           >
-            <Link href="/login" style={secondaryButtonStyle}>
-              ENTRAR NO PAINEL
+            <Link href="/login" style={primaryButtonStyle}>
+              ENTRAR E COMPRAR AGORA
             </Link>
-            <a href="#pacotes" style={primaryButtonStyle}>
-              ESCOLHER PACOTE AGORA
+            <a href="#pacotes" style={secondaryButtonStyle}>
+              REVER PACOTES
             </a>
           </div>
         </div>

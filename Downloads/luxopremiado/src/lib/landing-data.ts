@@ -96,7 +96,7 @@ export const fallbackRaffleData: RaffleLandingData = {
       "Escolha seus números, pague no PIX e acompanhe tudo com transparência. Compra rápida, confirmação automática e sorteio auditável.",
     drawDateLabel: "Sorteio: 30/04/2026 às 19:00",
     priceLabel: "R$ 19,90 por número",
-    badges: ["PIX imediato (sem enrolação)", "Números rastreáveis em tempo real", "Ranking de compradores"],
+    badges: ["PIX imediato", "Números rastreáveis em tempo real", "Ranking de compradores"],
     ctaLabel: "QUERO ESCOLHER MEUS NÚMEROS AGORA",
   },
   prize: {
@@ -165,7 +165,7 @@ export const fallbackRaffleData: RaffleLandingData = {
   transparency: {
     drawMethod: "Baseado no resultado da Loteria Federal",
     organizer: "Bigode das Rifas",
-    organizerDoc: "CNPJ 00.000.000/0001-00",
+    organizerDoc: "",
     contact: "suporte@bigodedasrifas.com",
     rulesSummary:
       "Todos os números ficam auditáveis em tempo real e o regulamento completo é publicado antes da abertura das vendas.",
@@ -268,9 +268,9 @@ export const fallbackRaffleData: RaffleLandingData = {
       },
     ],
     ctaPrimaryLabel: "ATIVAR ALERTAS NO PAINEL",
-    ctaPrimaryHref: "/area-do-usuario",
+    ctaPrimaryHref: "/login",
     ctaSecondaryLabel: "QUERO COMPRAR MAIS NÚMEROS",
-    ctaSecondaryHref: "/app/comprar",
+    ctaSecondaryHref: "/login",
   },
   faq: [
     {
