@@ -3,10 +3,50 @@ import Link from "next/link";
 import QuickAccessBar from "@/components/QuickAccessBar";
 import { getAllRaffles } from "@/lib/raffles-content";
 
+const OG_IMAGE = "/images/og/bigode-das-rifas-og.jpg";
+
 export const metadata: Metadata = {
   title: "Rifas | Bigode das Rifas",
   description:
     "Veja as rifas em destaque, compare campanhas e escolha a melhor para participar agora.",
+  alternates: {
+    canonical: "/rifas",
+  },
+  openGraph: {
+    title: "Rifas | Bigode das Rifas",
+    description:
+      "Veja as rifas em destaque, compare campanhas e escolha a melhor para participar agora.",
+    url: "/rifas",
+    siteName: "Bigode das Rifas",
+    locale: "pt_BR",
+    type: "website",
+    images: [
+      {
+        url: OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: "Rifas | Bigode das Rifas",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Rifas | Bigode das Rifas",
+    description:
+      "Veja as rifas em destaque, compare campanhas e escolha a melhor para participar agora.",
+    images: [OG_IMAGE],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 export default function RifasPage() {

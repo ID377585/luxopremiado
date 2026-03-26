@@ -20,9 +20,6 @@ export const metadata: Metadata = {
   applicationName: "Bigode das Rifas",
   category: "sorteios e rifas",
   referrer: "origin-when-cross-origin",
-  alternates: {
-    canonical: "/",
-  },
   openGraph: {
     title: "Bigode das Rifas",
     description:

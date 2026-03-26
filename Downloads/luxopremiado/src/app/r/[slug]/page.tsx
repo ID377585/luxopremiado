@@ -71,6 +71,8 @@ const ORGANIZER_NAME =
 
 const ORGANIZER_CNPJ = process.env.NEXT_PUBLIC_ORGANIZER_CNPJ ?? "";
 
+const DEFAULT_OG_IMAGE = "/images/og/bigode-das-rifas-og.jpg";
+
 const landingContentBySlug: Record<string, LandingContent> = {
   "bigode-das-rifas": {
     slug: "bigode-das-rifas",
@@ -352,6 +354,17 @@ export async function generateMetadata({
     return {
       title: "Campanha não encontrada | Bigode das Rifas",
       description: "A campanha solicitada não foi encontrada.",
+      robots: {
+        index: false,
+        follow: false,
+        googleBot: {
+          index: false,
+          follow: false,
+          "max-video-preview": -1,
+          "max-image-preview": "large",
+          "max-snippet": -1,
+        },
+      },
     };
   }
 
@@ -368,11 +381,31 @@ export async function generateMetadata({
       locale: "pt_BR",
       url: `/r/${content.slug}`,
       siteName: "Bigode das Rifas",
+      images: [
+        {
+          url: DEFAULT_OG_IMAGE,
+          width: 1200,
+          height: 630,
+          alt: content.seoTitle,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: content.seoTitle,
       description: content.seoDescription,
+      images: [DEFAULT_OG_IMAGE],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
     },
   };
 }

@@ -9,7 +9,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/rifas",
     "/sorteios",
     "/leiloes",
-    "/vip",
     "/privacidade",
     "/termos",
     "/sobre",

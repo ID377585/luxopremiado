@@ -1,10 +1,50 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+const OG_IMAGE = "/images/og/bigode-das-rifas-og.jpg";
+
 export const metadata: Metadata = {
   title: "VIP | Bigode das Rifas",
   description:
     "Área VIP com benefícios exclusivos, acesso prioritário e vantagens para quem participa mais.",
+  alternates: {
+    canonical: "/vip",
+  },
+  openGraph: {
+    title: "VIP | Bigode das Rifas",
+    description:
+      "Área VIP com benefícios exclusivos, acesso prioritário e vantagens para quem participa mais.",
+    url: "/vip",
+    siteName: "Bigode das Rifas",
+    locale: "pt_BR",
+    type: "website",
+    images: [
+      {
+        url: OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: "VIP | Bigode das Rifas",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "VIP | Bigode das Rifas",
+    description:
+      "Área VIP com benefícios exclusivos, acesso prioritário e vantagens para quem participa mais.",
+    images: [OG_IMAGE],
+  },
+  robots: {
+    index: false,
+    follow: true,
+    googleBot: {
+      index: false,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 const beneficios = [

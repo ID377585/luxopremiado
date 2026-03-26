@@ -2,10 +2,50 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import QuickAccessBar from "@/components/QuickAccessBar";
 
+const OG_IMAGE = "/images/og/bigode-das-rifas-og.jpg";
+
 export const metadata: Metadata = {
   title: "Sorteios | Bigode das Rifas",
   description:
     "Campanhas promocionais com regulamento claro, prêmios atrativos e fluxo simples de participação.",
+  alternates: {
+    canonical: "/sorteios",
+  },
+  openGraph: {
+    title: "Sorteios | Bigode das Rifas",
+    description:
+      "Campanhas promocionais com regulamento claro, prêmios atrativos e fluxo simples de participação.",
+    url: "/sorteios",
+    siteName: "Bigode das Rifas",
+    locale: "pt_BR",
+    type: "website",
+    images: [
+      {
+        url: OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: "Sorteios | Bigode das Rifas",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Sorteios | Bigode das Rifas",
+    description:
+      "Campanhas promocionais com regulamento claro, prêmios atrativos e fluxo simples de participação.",
+    images: [OG_IMAGE],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 const sorteios = [
