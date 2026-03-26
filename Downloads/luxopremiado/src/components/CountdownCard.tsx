@@ -4,8 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 
 type CountdownCardProps = {
   title: string;
-  targetDateIso: string;
   subtitle?: string;
+  targetDateIso?: string;
+  timeLeft?: string;
 };
 
 function getTimeLeft(targetDateIso: string) {
@@ -13,7 +14,7 @@ function getTimeLeft(targetDateIso: string) {
   const now = Date.now();
   const diff = target - now;
 
-  if (diff <= 0) {
+  if (Number.isNaN(target) || diff <= 0) {
     return {
       expired: true,
       text: "ENCERRADA",
@@ -42,22 +43,45 @@ function getTimeLeft(targetDateIso: string) {
 
 export default function CountdownCard({
   title,
-  targetDateIso,
   subtitle,
+  targetDateIso,
+  timeLeft,
 }: CountdownCardProps) {
-  const [timeLeft, setTimeLeft] = useState(() => getTimeLeft(targetDateIso));
+  const [dynamicTimeLeft, setDynamicTimeLeft] = useState(() =>
+    targetDateIso ? getTimeLeft(targetDateIso) : null
+  );
 
   useEffect(() => {
+    if (!targetDateIso) {
+      return;
+    }
+
+    setDynamicTimeLeft(getTimeLeft(targetDateIso));
+
     const interval = setInterval(() => {
-      setTimeLeft(getTimeLeft(targetDateIso));
+      setDynamicTimeLeft(getTimeLeft(targetDateIso));
     }, 1000);
 
     return () => clearInterval(interval);
   }, [targetDateIso]);
 
+  const displayText = useMemo(() => {
+    if (targetDateIso) {
+      return dynamicTimeLeft?.text ?? "ENCERRADA";
+    }
+
+    return timeLeft ?? "00h 00m 00s";
+  }, [dynamicTimeLeft, targetDateIso, timeLeft]);
+
   const statusLabel = useMemo(() => {
-    return timeLeft.expired ? "CAMPANHA ENCERRADA" : "CONTAGEM REGRESSIVA";
-  }, [timeLeft.expired]);
+    if (targetDateIso) {
+      return dynamicTimeLeft?.expired
+        ? "CAMPANHA ENCERRADA"
+        : "CONTAGEM REGRESSIVA";
+    }
+
+    return "CONTAGEM REGRESSIVA";
+  }, [dynamicTimeLeft, targetDateIso]);
 
   return (
     <article
@@ -91,7 +115,7 @@ export default function CountdownCard({
           letterSpacing: 1.2,
         }}
       >
-        {timeLeft.text}
+        {displayText}
       </div>
 
       {subtitle ? (
