@@ -19,6 +19,22 @@ interface StoredPayment {
   created_at?: string;
 }
 
+const JSON_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+  Pragma: "no-cache",
+  Expires: "0",
+} as const;
+
+function json(body: unknown, init?: ResponseInit) {
+  return NextResponse.json(body, {
+    ...init,
+    headers: {
+      ...JSON_HEADERS,
+      ...(init?.headers ?? {}),
+    },
+  });
+}
+
 function getMethodFromRaw(raw: Record<string, unknown> | null): "pix" | "card" | null {
   const value = raw?.method;
   if (value === "pix" || value === "card") {
@@ -48,8 +64,12 @@ function mapStoredPayment(payment: StoredPayment) {
 export async function POST(request: NextRequest) {
   const requestId = getRequestId(request);
 
+  if (!request.headers.get("content-type")?.includes("application/json")) {
+    return json({ error: "Content-Type inválido. Use application/json." }, { status: 415 });
+  }
+
   if (!isPaymentFlowEnabled()) {
-    return NextResponse.json(
+    return json(
       {
         error:
           "Pagamento temporariamente indisponível nesta etapa. A reserva de números continua ativa.",
@@ -59,7 +79,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (!hasSupabaseEnv()) {
-    return NextResponse.json(
+    return json(
       { error: "Supabase não configurado. Defina as variáveis de ambiente." },
       { status: 503 },
     );
@@ -70,7 +90,7 @@ export async function POST(request: NextRequest) {
     const parsed = paymentSchema.safeParse(payload);
 
     if (!parsed.success) {
-      return NextResponse.json(
+      return json(
         {
           error: "Payload inválido",
           details: parsed.error.flatten(),
@@ -86,7 +106,7 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       logStructured("warn", "payment.create.unauthorized", { requestId });
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const antiBotResult = await enforceAntiBot({
@@ -112,7 +132,7 @@ export async function POST(request: NextRequest) {
           reason: antiBotResult.error ?? "unknown",
         },
       });
-      return NextResponse.json({ error: antiBotResult.error }, { status: antiBotResult.status });
+      return json({ error: antiBotResult.error }, { status: antiBotResult.status });
     }
 
     const { data: order, error: orderError } = await supabase
@@ -123,15 +143,15 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (orderError) {
-      return NextResponse.json({ error: orderError.message }, { status: 400 });
+      return json({ error: orderError.message }, { status: 400 });
     }
 
     if (!order) {
-      return NextResponse.json({ error: "Pedido não encontrado" }, { status: 404 });
+      return json({ error: "Pedido não encontrado" }, { status: 404 });
     }
 
     if (order.status !== "pending") {
-      return NextResponse.json({ error: "Status inválido para pagamento" }, { status: 400 });
+      return json({ error: "Status inválido para pagamento" }, { status: 400 });
     }
 
     const vipOrder = await applyVipBenefitsToOrder({ orderId: order.id, userId: user.id });
@@ -158,7 +178,7 @@ export async function POST(request: NextRequest) {
         orderId: order.id,
       });
 
-      return NextResponse.json({ error: "Pedido expirado. Faça uma nova reserva." }, { status: 400 });
+      return json({ error: "Pedido expirado. Faça uma nova reserva." }, { status: 400 });
     }
 
     const serviceClient = createSupabaseServiceClient();
@@ -172,7 +192,7 @@ export async function POST(request: NextRequest) {
       .limit(5);
 
     if (openPaymentError) {
-      return NextResponse.json({ error: openPaymentError.message }, { status: 400 });
+      return json({ error: openPaymentError.message }, { status: 400 });
     }
 
     const matchingOpenPayment = openPayments?.find(
@@ -189,7 +209,7 @@ export async function POST(request: NextRequest) {
         providerReference: matchingOpenPayment.provider_reference,
       });
 
-      return NextResponse.json({
+      return json({
         success: true,
         reused: true,
         requestId,
@@ -276,7 +296,7 @@ export async function POST(request: NextRequest) {
             providerReference: matchingDuplicated.provider_reference,
           });
 
-          return NextResponse.json({
+          return json({
             success: true,
             reused: true,
             requestId,
@@ -291,7 +311,7 @@ export async function POST(request: NextRequest) {
         orderId: order.id,
         reason: paymentError.message,
       });
-      return NextResponse.json({ error: paymentError.message }, { status: 400 });
+      return json({ error: paymentError.message }, { status: 400 });
     }
 
     logStructured("info", "payment.create.success", {
@@ -302,6 +322,7 @@ export async function POST(request: NextRequest) {
       method: parsed.data.method,
       providerReference: paymentResponse.providerReference,
     });
+
     await persistPlatformEvent({
       event_type: "payment_create_success",
       request_id: requestId,
@@ -318,7 +339,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
+    return json({
       success: true,
       requestId,
       payment: {
@@ -338,6 +359,6 @@ export async function POST(request: NextRequest) {
         reason: message,
       },
     });
-    return NextResponse.json({ error: message }, { status: 500 });
+    return json({ error: message }, { status: 500 });
   }
 }

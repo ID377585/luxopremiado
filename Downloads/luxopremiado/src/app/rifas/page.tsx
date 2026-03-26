@@ -155,7 +155,7 @@ export default function RifasPage() {
                 }}
               >
                 <Link
-                  href={`/rifas/${item.slug}`}
+                  href={`/r/${item.slug}`}
                   style={{
                     display: "inline-block",
                     background: "#fff",
@@ -170,7 +170,7 @@ export default function RifasPage() {
                 </Link>
 
                 <Link
-                  href={`/rifas/${item.slug}#pacotes`}
+                  href={`/r/${item.slug}#pacotes`}
                   style={{
                     display: "inline-block",
                     background: "rgba(255,255,255,0.05)",

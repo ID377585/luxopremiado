@@ -122,7 +122,7 @@ export default function VipPage() {
           </Link>
 
           <Link
-            href="/usuario"
+            href="/app"
             style={{
               textDecoration: "none",
               background: "rgba(255,255,255,0.06)",

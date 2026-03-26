@@ -6,17 +6,37 @@ function hasSupabaseSessionCookie(request: NextRequest): boolean {
     .some((cookie) => cookie.name.startsWith("sb-") && cookie.name.includes("auth-token"));
 }
 
+function buildLoginRedirect(request: NextRequest, message: string) {
+  const loginUrl = new URL("/login", request.url);
+  const nextPath = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+
+  loginUrl.searchParams.set("error", message);
+  loginUrl.searchParams.set("next", nextPath);
+
+  return NextResponse.redirect(loginUrl);
+}
+
 export function middleware(request: NextRequest) {
-  if (request.nextUrl.pathname === "/app/vip" && !hasSupabaseSessionCookie(request)) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("error", "Faça login para acessar sua área VIP");
-    loginUrl.searchParams.set("next", "/app/vip");
-    return NextResponse.redirect(loginUrl);
+  const { pathname } = request.nextUrl;
+  const isLoggedIn = hasSupabaseSessionCookie(request);
+
+  if (pathname.startsWith("/app") && !isLoggedIn) {
+    return buildLoginRedirect(request, "Faça login para continuar");
   }
 
-  return NextResponse.next();
+  if (pathname.startsWith("/admin") && !isLoggedIn) {
+    return buildLoginRedirect(request, "Faça login para acessar o admin");
+  }
+
+  return NextResponse.next({
+    headers: {
+      "x-robots-tag": pathname.startsWith("/app") || pathname.startsWith("/admin")
+        ? "noindex, nofollow"
+        : "all",
+    },
+  });
 }
 
 export const config = {
-  matcher: ["/app/vip"],
+  matcher: ["/app/:path*", "/admin/:path*"],
 };
