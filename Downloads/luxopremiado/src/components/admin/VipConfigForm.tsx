@@ -147,20 +147,22 @@ export function VipConfigForm() {
 
     try {
       const response = await fetch(`/api/admin/vip?email=${encodeURIComponent(normalizedEmail)}`);
-      const data = await readJson<VipSnapshot & { error?: string }>(response);
+      const data = await readJson<(VipSnapshot & { error?: string }) | { error?: string }>(response);
 
       if (!response.ok) {
         setSnapshot(null);
-        setStatus(data.error ?? "Não foi possível localizar o usuário.");
+        setStatus(("error" in data && data.error) ?? "Não foi possível localizar o usuário.");
         return;
       }
 
-      setSnapshot(data);
+      const snapshotData = data as VipSnapshot;
+
+      setSnapshot(snapshotData);
       setForm({
-        vipTier: data.profile.vip_tier,
-        vipPoints: data.profile.vip_points,
-        vipManualOverride: data.profile.vip_manual_override,
-        vipNotes: data.profile.vip_notes ?? "",
+        vipTier: snapshotData.profile.vip_tier,
+        vipPoints: snapshotData.profile.vip_points,
+        vipManualOverride: snapshotData.profile.vip_manual_override,
+        vipNotes: snapshotData.profile.vip_notes ?? "",
       });
       setStatus("Usuário carregado.");
     } catch {
@@ -198,19 +200,21 @@ export function VipConfigForm() {
         }),
       });
 
-      const data = await readJson<VipSnapshot & { error?: string }>(response);
+      const data = await readJson<(VipSnapshot & { error?: string }) | { error?: string }>(response);
 
       if (!response.ok) {
-        setStatus(data.error ?? "Erro ao salvar o status VIP.");
+        setStatus(("error" in data && data.error) ?? "Erro ao salvar o status VIP.");
         return;
       }
 
-      setSnapshot(data);
+      const snapshotData = data as VipSnapshot;
+
+      setSnapshot(snapshotData);
       setForm({
-        vipTier: data.profile.vip_tier,
-        vipPoints: data.profile.vip_points,
-        vipManualOverride: data.profile.vip_manual_override,
-        vipNotes: data.profile.vip_notes ?? "",
+        vipTier: snapshotData.profile.vip_tier,
+        vipPoints: snapshotData.profile.vip_points,
+        vipManualOverride: snapshotData.profile.vip_manual_override,
+        vipNotes: snapshotData.profile.vip_notes ?? "",
       });
       setStatus("Status VIP atualizado com sucesso.");
     } catch {
