@@ -7,9 +7,9 @@ type QuickAccessBarProps = {
 };
 
 export default function QuickAccessBar({
-  chooseHref = "/app/comprar",
-  userHref = "/area-do-usuario",
-  vipHref = "/vip",
+  chooseHref = "/r/bigode-das-rifas#pacotes",
+  userHref = "/login",
+  vipHref = "/r/bigode-das-rifas#transparencia",
 }: QuickAccessBarProps) {
   return (
     <section
@@ -30,7 +30,7 @@ export default function QuickAccessBar({
           <span style={labelStyle}>ACESSO RÁPIDO</span>
           <strong style={titleStyle}>Escolher números</strong>
           <span style={textStyle}>
-            Vá direto para a compra sem perder tempo.
+            Vá direto para os pacotes da campanha principal.
           </span>
         </Link>
 
@@ -43,10 +43,10 @@ export default function QuickAccessBar({
         </Link>
 
         <Link href={vipHref} style={cardStyle}>
-          <span style={labelStyle}>VIP</span>
-          <strong style={titleStyle}>Ver benefícios</strong>
+          <span style={labelStyle}>TRANSPARÊNCIA</span>
+          <strong style={titleStyle}>Ver regras e dados</strong>
           <span style={textStyle}>
-            Confira vantagens e campanhas especiais.
+            Confira regras, organizador, contato e informações oficiais.
           </span>
         </Link>
       </div>

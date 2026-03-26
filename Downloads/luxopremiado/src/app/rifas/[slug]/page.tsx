@@ -20,7 +20,6 @@ const campaign = {
   heroDescription:
     "Escolha seus números, pague no PIX e acompanhe tudo com transparência. Compra rápida, confirmação automática e sorteio auditável.",
   drawDateLabel: "30/04/2026 às 19:00",
-  drawDateIso: "2026-04-30T19:00:00-03:00",
   pricePerNumber: "R$ 1,60",
   totalNumbers: 10000,
   soldNumbers: 0,
@@ -55,6 +54,8 @@ const campaign = {
       discount: "5%",
       unitPrice: "R$ 1,52",
       cta: "PEGAR 10 AGORA",
+      description:
+        "Entrada rápida na disputa com economia por número e confirmação mais ágil.",
     },
     {
       title: "Pacote Turbo",
@@ -65,6 +66,8 @@ const campaign = {
       unitPrice: "R$ 1,44",
       cta: "PEGAR 25 AGORA",
       badge: "Mais vendido",
+      description:
+        "Mais volume para subir no ranking e aumentar alcance no sorteio.",
     },
     {
       title: "Pacote Top Ranking",
@@ -74,6 +77,8 @@ const campaign = {
       discount: "15%",
       unitPrice: "R$ 1,36",
       cta: "PEGAR 50 AGORA",
+      description:
+        "Foco total em posição no ranking e maior cobertura de números com melhor custo.",
     },
   ],
   testimonials: [
@@ -96,6 +101,16 @@ const campaign = {
       title: "Suporte respondeu rápido",
       text: "Tive uma dúvida e o suporte respondeu com clareza no mesmo dia.",
       author: "Karina, Belo Horizonte/MG",
+    },
+    {
+      title: "Checkout seguro",
+      text: "Gostei do anti-bot e da verificação. Passou confiança.",
+      author: "Sara, Florianópolis/SC",
+    },
+    {
+      title: "Site leve no celular",
+      text: "Usei no celular com 4G fraco e não travou nenhuma vez.",
+      author: "Letícia, Curitiba/PR",
     },
   ],
   winners: [
@@ -270,6 +285,7 @@ export default async function RifaPage({ params }: PageProps) {
         >
           <div>
             <p style={eyebrowStyle}>{campaign.title}</p>
+
             <h1
               style={{
                 margin: "8px 0 12px",
@@ -279,6 +295,7 @@ export default async function RifaPage({ params }: PageProps) {
             >
               {campaign.heroTitle}
             </h1>
+
             <p
               style={{
                 margin: 0,
@@ -300,8 +317,8 @@ export default async function RifaPage({ params }: PageProps) {
               }}
             >
               <span style={pillStyle}>PIX imediato</span>
-              <span style={pillStyle}>Números rastreáveis</span>
-              <span style={pillStyle}>Sorteio auditável</span>
+              <span style={pillStyle}>Números rastreáveis em tempo real</span>
+              <span style={pillStyle}>Ranking de compradores</span>
             </div>
 
             <div
@@ -316,6 +333,7 @@ export default async function RifaPage({ params }: PageProps) {
             >
               <span>Sorteio: {campaign.drawDateLabel}</span>
               <span>{campaign.pricePerNumber} por número</span>
+              <span>Afiliados VIP: comissão + benefícios exclusivos</span>
             </div>
 
             <div
@@ -329,10 +347,19 @@ export default async function RifaPage({ params }: PageProps) {
               <a href="#pacotes" style={primaryButtonStyle}>
                 QUERO ESCOLHER MEUS NÚMEROS AGORA
               </a>
-              <a href="#transparencia" style={secondaryButtonStyle}>
-                VER TRANSPARÊNCIA
-              </a>
             </div>
+
+            <p
+              style={{
+                marginTop: 16,
+                color: "rgba(255,255,255,0.75)",
+                lineHeight: 1.7,
+                maxWidth: 760,
+              }}
+            >
+              Sem taxas escondidas. Você acompanha o status dos seus números pelo
+              painel depois do pagamento.
+            </p>
           </div>
 
           <aside
@@ -383,6 +410,7 @@ export default async function RifaPage({ params }: PageProps) {
                   }}
                 />
               </div>
+
               <p
                 style={{
                   margin: "10px 0 0",
@@ -394,51 +422,6 @@ export default async function RifaPage({ params }: PageProps) {
               </p>
             </div>
           </aside>
-        </div>
-      </section>
-
-      <section
-        id="premio"
-        style={{
-          maxWidth: 1240,
-          margin: "0 auto",
-          padding: "8px 24px 28px",
-        }}
-      >
-        <p style={eyebrowStyle}>PRÊMIO PRINCIPAL</p>
-        <h2 style={{ margin: "8px 0 16px", fontSize: 34 }}>
-          {campaign.mainPrize.title}
-        </h2>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-            gap: 18,
-          }}
-        >
-          <MetricCard label="Descrição" value={campaign.mainPrize.description} />
-          <MetricCard label="Ano / Modelo" value={campaign.mainPrize.yearModel} />
-          <MetricCard label="Motorização" value={campaign.mainPrize.engine} />
-          <MetricCard label="Entrega" value={campaign.mainPrize.delivery} />
-          <MetricCard label="Garantia" value={campaign.mainPrize.warranty} />
-          <MetricCard label="Data do sorteio" value={campaign.drawDateLabel} />
-        </div>
-
-        <div
-          style={{
-            marginTop: 18,
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-            gap: 16,
-          }}
-        >
-          {campaign.secondaryPrizes.map((item) => (
-            <article key={item.title} style={cardStyle}>
-              <p style={eyebrowMiniStyle}>{item.label}</p>
-              <h3 style={{ margin: "8px 0 0", fontSize: 22 }}>{item.title}</h3>
-            </article>
-          ))}
         </div>
       </section>
 
@@ -455,6 +438,18 @@ export default async function RifaPage({ params }: PageProps) {
           Leve mais números e aumente suas chances
         </h2>
 
+        <p
+          style={{
+            margin: "0 0 18px",
+            color: "rgba(255,255,255,0.78)",
+            lineHeight: 1.7,
+            maxWidth: 860,
+          }}
+        >
+          Pacotes valem apenas para o 1º prêmio: economize por número e suba no
+          ranking focando no prêmio principal.
+        </p>
+
         <div
           style={{
             display: "grid",
@@ -465,27 +460,290 @@ export default async function RifaPage({ params }: PageProps) {
           {campaign.packages.map((pack) => (
             <article key={pack.title} style={cardStyle}>
               {pack.badge ? <span style={badgeStyle}>{pack.badge}</span> : null}
+
               <h3 style={{ margin: "12px 0 10px", fontSize: 24 }}>
                 {pack.title}
               </h3>
+
               <p style={{ margin: "0 0 8px", color: "rgba(255,255,255,0.78)" }}>
                 {pack.quantity} números
               </p>
+
               <p style={{ margin: 0, textDecoration: "line-through", opacity: 0.6 }}>
-                {pack.originalPrice}
+                Avulso: {pack.originalPrice}
               </p>
+
               <p style={{ margin: "8px 0 4px", fontSize: 30, fontWeight: 900 }}>
                 {pack.price}
               </p>
+
               <p style={{ margin: 0, color: "#f2d067", fontWeight: 800 }}>
                 Economia de {pack.discount}
               </p>
+
               <p style={{ margin: "10px 0 0", color: "rgba(255,255,255,0.78)" }}>
                 {pack.unitPrice} por número
               </p>
+
+              <p
+                style={{
+                  margin: "12px 0 0",
+                  color: "rgba(255,255,255,0.78)",
+                  lineHeight: 1.7,
+                }}
+              >
+                {pack.description}
+              </p>
+
               <a href="#checkout" style={{ ...primaryButtonStyle, marginTop: 18 }}>
                 {pack.cta}
               </a>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section
+        id="premio"
+        style={{
+          maxWidth: 1240,
+          margin: "0 auto",
+          padding: "8px 24px 28px",
+        }}
+      >
+        <p style={eyebrowStyle}>PRÊMIOS</p>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+            gap: 18,
+            marginBottom: 24,
+          }}
+        >
+          <PrizeCard
+            title={campaign.mainPrize.title}
+            label="Prêmio 1"
+            description="Prêmio principal da campanha."
+          />
+          <PrizeCard
+            title={campaign.secondaryPrizes[0].title}
+            label="Prêmio 2"
+            description="Bônus premium da campanha."
+          />
+          <PrizeCard
+            title={campaign.secondaryPrizes[1].title}
+            label="Prêmio 3"
+            description="Bônus extra da campanha."
+          />
+        </div>
+
+        <h2 style={{ margin: "8px 0 16px", fontSize: 34 }}>
+          {campaign.mainPrize.title}
+        </h2>
+
+        <p
+          style={{
+            margin: "0 0 18px",
+            color: "rgba(255,255,255,0.78)",
+            lineHeight: 1.7,
+            maxWidth: 860,
+          }}
+        >
+          {campaign.mainPrize.description}
+        </p>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+            gap: 18,
+          }}
+        >
+          <MetricCard label="Valor do prêmio" value={campaign.mainPrize.value} />
+          <MetricCard label="Total de números" value={String(campaign.totalNumbers)} />
+          <MetricCard label="Data do sorteio" value={campaign.drawDateLabel} />
+          <MetricCard label="Garantia" value={campaign.mainPrize.warranty} />
+          <MetricCard label="Entrega" value={campaign.mainPrize.delivery} />
+          <MetricCard label="Ano / Modelo" value={campaign.mainPrize.yearModel} />
+          <MetricCard label="Motorização" value={campaign.mainPrize.engine} />
+        </div>
+
+        <p
+          style={{
+            marginTop: 16,
+            color: "rgba(255,255,255,0.72)",
+            lineHeight: 1.7,
+          }}
+        >
+          Entrega com registro público para reforçar segurança e confiança.
+        </p>
+      </section>
+
+      <section
+        style={{
+          maxWidth: 1240,
+          margin: "0 auto",
+          padding: "8px 24px 28px",
+        }}
+      >
+        <p style={eyebrowStyle}>NÚMEROS ACABANDO</p>
+        <h2 style={{ margin: "8px 0 18px", fontSize: 34 }}>
+          Garanta o seu agora
+        </h2>
+
+        <p
+          style={{
+            margin: "0 0 18px",
+            color: "rgba(255,255,255,0.78)",
+            lineHeight: 1.7,
+            maxWidth: 860,
+          }}
+        >
+          Escassez real com atualização contínua de reserva e venda para acelerar
+          decisão de compra.
+        </p>
+
+        <div style={cardStyle}>
+          <p style={{ margin: 0, color: "rgba(255,255,255,0.82)" }}>
+            Ainda não há vendas confirmadas. Seja o primeiro a garantir números.
+          </p>
+
+          <p style={{ margin: "12px 0 0", color: "rgba(255,255,255,0.72)" }}>
+            Faltam {campaign.availableNumbers.toLocaleString("pt-BR")} números
+            para encerrar.
+          </p>
+        </div>
+
+        <div style={{ marginTop: 18 }}>
+          <a href="#checkout" style={primaryButtonStyle}>
+            QUERO ESCOLHER MEUS NÚMEROS AGORA
+          </a>
+        </div>
+      </section>
+
+      <section
+        style={{
+          maxWidth: 1240,
+          margin: "0 auto",
+          padding: "8px 24px 28px",
+        }}
+      >
+        <p style={eyebrowStyle}>COMO PARTICIPAR</p>
+        <h2 style={{ margin: "8px 0 18px", fontSize: 34 }}>
+          Como participar (é bem simples)
+        </h2>
+
+        <p
+          style={{
+            margin: "0 0 18px",
+            color: "rgba(255,255,255,0.78)",
+            lineHeight: 1.7,
+            maxWidth: 860,
+          }}
+        >
+          Fluxo objetivo para você comprar rápido, confirmar no PIX e acompanhar
+          tudo com transparência.
+        </p>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+            gap: 18,
+          }}
+        >
+          {[
+            {
+              title: "1. Crie sua conta",
+              text: "Cadastro rápido para acompanhar números, pagamento e confirmação em um só painel.",
+            },
+            {
+              title: "2. Selecione os números",
+              text: "Escolha manualmente ou use pacotes aleatórios para ganhar velocidade na compra.",
+            },
+            {
+              title: "3. Finalize pagamento",
+              text: "Finalize no PIX e acompanhe o status em tempo real direto no checkout.",
+            },
+            {
+              title: "4. Acompanhe o sorteio",
+              text: "Resultado, auditoria e histórico publicados com transparência na campanha.",
+            },
+          ].map((item) => (
+            <article key={item.title} style={cardStyle}>
+              <h3 style={{ margin: "0 0 10px", fontSize: 22 }}>{item.title}</h3>
+              <p
+                style={{
+                  margin: 0,
+                  color: "rgba(255,255,255,0.82)",
+                  lineHeight: 1.7,
+                }}
+              >
+                {item.text}
+              </p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section
+        id="vencedores"
+        style={{
+          maxWidth: 1240,
+          margin: "0 auto",
+          padding: "8px 24px 28px",
+        }}
+      >
+        <p style={eyebrowStyle}>RANKING E VENCEDORES</p>
+        <h2 style={{ margin: "8px 0 18px", fontSize: 34 }}>
+          Suba de posição e acompanhe vencedores verificados
+        </h2>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gap: 16,
+            marginBottom: 18,
+          }}
+        >
+          <article style={cardStyle}>
+            <h3 style={{ margin: "0 0 10px", fontSize: 22 }}>
+              Ranking de compradores
+            </h3>
+            <p
+              style={{
+                margin: 0,
+                color: "rgba(255,255,255,0.82)",
+                lineHeight: 1.7,
+              }}
+            >
+              Nenhuma compra confirmada ainda. Seja o primeiro a aparecer no
+              ranking.
+            </p>
+          </article>
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+            gap: 16,
+          }}
+        >
+          {campaign.winners.map((winner) => (
+            <article key={`${winner.name}-${winner.city}`} style={cardStyle}>
+              <h3 style={{ margin: "0 0 8px", fontSize: 22 }}>{winner.name}</h3>
+              <p style={{ margin: 0, color: "rgba(255,255,255,0.82)" }}>
+                {winner.prize}
+              </p>
+              <p style={{ margin: "10px 0 0", color: "#f2d067", fontWeight: 800 }}>
+                {winner.city}
+              </p>
+              <p style={{ margin: "8px 0 0", color: "rgba(255,255,255,0.72)" }}>
+                {winner.status}
+              </p>
             </article>
           ))}
         </div>
@@ -537,43 +795,6 @@ export default async function RifaPage({ params }: PageProps) {
       </section>
 
       <section
-        id="vencedores"
-        style={{
-          maxWidth: 1240,
-          margin: "0 auto",
-          padding: "8px 24px 28px",
-        }}
-      >
-        <p style={eyebrowStyle}>VENCEDORES</p>
-        <h2 style={{ margin: "8px 0 18px", fontSize: 34 }}>
-          Mural de vencedores verificados
-        </h2>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-            gap: 16,
-          }}
-        >
-          {campaign.winners.map((winner) => (
-            <article key={`${winner.name}-${winner.city}`} style={cardStyle}>
-              <h3 style={{ margin: "0 0 8px", fontSize: 22 }}>{winner.name}</h3>
-              <p style={{ margin: 0, color: "rgba(255,255,255,0.82)" }}>
-                {winner.prize}
-              </p>
-              <p style={{ margin: "10px 0 0", color: "#f2d067", fontWeight: 800 }}>
-                {winner.city}
-              </p>
-              <p style={{ margin: "8px 0 0", color: "rgba(255,255,255,0.72)" }}>
-                {winner.status}
-              </p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section
         id="faq"
         style={{
           maxWidth: 1240,
@@ -588,7 +809,13 @@ export default async function RifaPage({ params }: PageProps) {
           {campaign.faq.map((item) => (
             <article key={item.question} style={cardStyle}>
               <h3 style={{ margin: "0 0 8px", fontSize: 20 }}>{item.question}</h3>
-              <p style={{ margin: 0, color: "rgba(255,255,255,0.82)", lineHeight: 1.7 }}>
+              <p
+                style={{
+                  margin: 0,
+                  color: "rgba(255,255,255,0.82)",
+                  lineHeight: 1.7,
+                }}
+              >
                 {item.answer}
               </p>
             </article>
@@ -736,8 +963,27 @@ function MetricCard({
     <article style={cardStyle}>
       <p style={{ margin: 0, color: "rgba(255,255,255,0.62)" }}>{label}</p>
       <strong style={{ display: "block", marginTop: 8, lineHeight: 1.5 }}>
-        {value}
-      </strong>
+        {value}</strong>
+    </article>
+  );
+}
+
+function PrizeCard({
+  title,
+  label,
+  description,
+}: {
+  title: string;
+  label: string;
+  description: string;
+}) {
+  return (
+    <article style={cardStyle}>
+      <p style={eyebrowMiniStyle}>{label}</p>
+      <h3 style={{ margin: "8px 0 10px", fontSize: 22 }}>{title}</h3>
+      <p style={{ margin: 0, color: "rgba(255,255,255,0.78)", lineHeight: 1.7 }}>
+        {description}
+      </p>
     </article>
   );
 }
