@@ -1,3 +1,20 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Política de Privacidade",
+  description:
+    "Entenda como o Bigode das Rifas coleta, utiliza, armazena e protege dados pessoais dos usuários.",
+  alternates: {
+    canonical: "/privacidade",
+  },
+  openGraph: {
+    title: "Política de Privacidade | Bigode das Rifas",
+    description:
+      "Entenda como o Bigode das Rifas coleta, utiliza, armazena e protege dados pessoais dos usuários.",
+    url: "/privacidade",
+  },
+};
+
 export default function PrivacyPage() {
   const updatedAt = "23/02/2026";
 

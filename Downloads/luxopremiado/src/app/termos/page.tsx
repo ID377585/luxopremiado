@@ -1,3 +1,20 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Termos de Uso",
+  description:
+    "Leia os termos de uso do Bigode das Rifas, incluindo regras de acesso, participação, pagamentos e responsabilidades.",
+  alternates: {
+    canonical: "/termos",
+  },
+  openGraph: {
+    title: "Termos de Uso | Bigode das Rifas",
+    description:
+      "Leia os termos de uso do Bigode das Rifas, incluindo regras de acesso, participação, pagamentos e responsabilidades.",
+    url: "/termos",
+  },
+};
+
 export default function TermsPage() {
   const updatedAt = "23/02/2026";
 

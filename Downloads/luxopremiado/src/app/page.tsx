@@ -8,6 +8,15 @@ export const metadata: Metadata = {
   title: "Bigode das Rifas | Rifas com PIX imediato",
   description:
     "Escolha seus números, participe das campanhas e finalize sua compra com rapidez, clareza e transparência.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Bigode das Rifas | Rifas com PIX imediato",
+    description:
+      "Escolha seus números, participe das campanhas e finalize sua compra com rapidez, clareza e transparência.",
+    url: "/",
+  },
 };
 
 const categorias = [

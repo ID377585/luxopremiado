@@ -9,6 +9,22 @@ interface WebhookRouteContext {
   params: Promise<{ provider: string }>;
 }
 
+const JSON_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+  Pragma: "no-cache",
+  Expires: "0",
+} as const;
+
+function json(body: unknown, init?: ResponseInit) {
+  return NextResponse.json(body, {
+    ...init,
+    headers: {
+      ...JSON_HEADERS,
+      ...(init?.headers ?? {}),
+    },
+  });
+}
+
 function isKnownProvider(value: string): value is PaymentProviderName {
   return ["asaas", "mercadopago", "stripe"].includes(value);
 }
@@ -16,11 +32,16 @@ function isKnownProvider(value: string): value is PaymentProviderName {
 export async function POST(request: NextRequest, context: WebhookRouteContext) {
   const requestId = getRequestId(request);
 
+  if (request.method !== "POST") {
+    return json({ error: "Método não permitido" }, { status: 405 });
+  }
+
   try {
     const { provider } = await context.params;
+
     if (!isKnownProvider(provider)) {
       logStructured("warn", "webhook.provider_invalid", { requestId, provider });
-      return NextResponse.json({ error: "Provider inválido." }, { status: 400 });
+      return json({ error: "Provider inválido." }, { status: 400 });
     }
 
     const rawBody = await request.text();
@@ -47,7 +68,7 @@ export async function POST(request: NextRequest, context: WebhookRouteContext) {
         orderId: parsed.orderId,
         reason: orderError.message,
       });
-      return NextResponse.json({ error: orderError.message }, { status: 400 });
+      return json({ error: orderError.message }, { status: 400 });
     }
 
     if (!order) {
@@ -56,7 +77,7 @@ export async function POST(request: NextRequest, context: WebhookRouteContext) {
         provider,
         orderId: parsed.orderId,
       });
-      return NextResponse.json({ error: "Pedido não encontrado" }, { status: 404 });
+      return json({ error: "Pedido não encontrado" }, { status: 404 });
     }
 
     if (order.status === "paid") {
@@ -66,6 +87,7 @@ export async function POST(request: NextRequest, context: WebhookRouteContext) {
         orderId: parsed.orderId,
         providerReference: parsed.providerReference,
       });
+
       await persistPlatformEvent({
         event_type: "webhook_idempotent_skip",
         request_id: requestId,
@@ -75,7 +97,8 @@ export async function POST(request: NextRequest, context: WebhookRouteContext) {
           providerReference: parsed.providerReference,
         },
       });
-      return NextResponse.json({ success: true, alreadyProcessed: true, requestId });
+
+      return json({ success: true, alreadyProcessed: true, requestId });
     }
 
     if (parsed.paid) {
@@ -93,6 +116,7 @@ export async function POST(request: NextRequest, context: WebhookRouteContext) {
           orderId: parsed.orderId,
           reason: markError.message,
         });
+
         await persistPlatformEvent({
           event_type: "webhook_mark_order_paid_failed",
           level: "error",
@@ -104,13 +128,15 @@ export async function POST(request: NextRequest, context: WebhookRouteContext) {
             providerReference: parsed.providerReference,
           },
         });
+
         await emitAlert("Falha mark_order_paid", {
           requestId,
           provider,
           orderId: parsed.orderId,
           reason: markError.message,
         });
-        return NextResponse.json({ error: markError.message }, { status: 400 });
+
+        return json({ error: markError.message }, { status: 400 });
       }
 
       logStructured("info", "webhook.payment_confirmed", {
@@ -119,7 +145,9 @@ export async function POST(request: NextRequest, context: WebhookRouteContext) {
         orderId: parsed.orderId,
         providerReference: parsed.providerReference,
       });
+
       await processVipRewardsForPaidOrder(parsed.orderId);
+
       await persistPlatformEvent({
         event_type: "webhook_payment_confirmed",
         request_id: requestId,
@@ -129,7 +157,8 @@ export async function POST(request: NextRequest, context: WebhookRouteContext) {
           providerReference: parsed.providerReference,
         },
       });
-      return NextResponse.json({ success: true, paid: true, requestId });
+
+      return json({ success: true, paid: true, requestId });
     }
 
     const { error: failedPaymentError } = await serviceClient.from("payments").upsert(
@@ -152,6 +181,7 @@ export async function POST(request: NextRequest, context: WebhookRouteContext) {
         orderId: parsed.orderId,
         reason: failedPaymentError.message,
       });
+
       await persistPlatformEvent({
         event_type: "webhook_failed_payment_upsert_error",
         level: "warn",
@@ -171,6 +201,7 @@ export async function POST(request: NextRequest, context: WebhookRouteContext) {
       orderId: parsed.orderId,
       providerReference: parsed.providerReference,
     });
+
     await persistPlatformEvent({
       event_type: "webhook_payment_not_paid",
       level: "warn",
@@ -181,10 +212,13 @@ export async function POST(request: NextRequest, context: WebhookRouteContext) {
         providerReference: parsed.providerReference,
       },
     });
-    return NextResponse.json({ success: true, paid: false, requestId });
+
+    return json({ success: true, paid: false, requestId });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erro inesperado";
+
     logStructured("error", "webhook.unhandled_error", { requestId, reason: message });
+
     await persistPlatformEvent({
       event_type: "webhook_unhandled_error",
       level: "error",
@@ -193,10 +227,12 @@ export async function POST(request: NextRequest, context: WebhookRouteContext) {
         reason: message,
       },
     });
+
     await emitAlert("Falha webhook", {
       requestId,
       reason: message,
     });
-    return NextResponse.json({ error: message }, { status: 500 });
+
+    return json({ error: message }, { status: 500 });
   }
 }
