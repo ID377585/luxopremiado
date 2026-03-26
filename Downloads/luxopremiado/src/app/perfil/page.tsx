@@ -1,57 +1,91 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { getSessionUser } from "@/lib/session";
+
 export const metadata: Metadata = {
   title: "Meu Perfil | Bigode das Rifas",
   description:
     "Painel de perfil do usuário com dados cadastrais, status da conta, segurança e atalhos rápidos.",
 };
 
-const profile = {
-  name: "Ivan Escobar",
-  email: "id377585@gmail.com",
-  phone: "(11) 94905-2807",
-  city: "São Paulo - SP",
-  status: "Conta verificada",
-  vipStatus: "VIP Ouro",
-  affiliateCode: "IVANVIP2026",
-  createdAt: "Cadastro desde 14/01/2026",
-};
+function readUserMetadataValue(
+  metadata: Record<string, unknown> | undefined,
+  key: string,
+): string | null {
+  const value = metadata?.[key];
 
-const quickActions = [
-  {
-    title: "Editar dados pessoais",
-    description: "Atualize nome, telefone e informações principais do cadastro.",
-  },
-  {
-    title: "Alterar senha",
-    description: "Aumente a segurança da conta atualizando sua senha de acesso.",
-  },
-  {
-    title: "Verificar documentos",
-    description: "Confirme o status de validação e de segurança do seu perfil.",
-  },
-  {
-    title: "Gerenciar preferências",
-    description: "Defina notificações, comunicações e alertas da sua conta.",
-  },
-];
+  if (typeof value !== "string") {
+    return null;
+  }
 
-const accountStatus = [
-  { label: "Situação da conta", value: "Ativa" },
-  { label: "Validação", value: "Concluída" },
-  { label: "Status VIP", value: profile.vipStatus },
-  { label: "Código de afiliado", value: profile.affiliateCode },
-];
+  const normalized = value.trim();
+  return normalized ? normalized : null;
+}
 
-const securityItems = [
-  "Senha protegida e atualizável",
-  "Validação cadastral concluída",
-  "Histórico de acesso monitorado",
-  "Canal de suporte disponível",
-];
+export default async function AppPerfilPage() {
+  const user = await getSessionUser();
+  const metadata = (user?.user_metadata ?? {}) as Record<string, unknown>;
 
-export default function AppPerfilPage() {
+  const profile = {
+    name:
+      readUserMetadataValue(metadata, "full_name") ??
+      readUserMetadataValue(metadata, "name") ??
+      "Participante",
+    email: user?.email ?? "Não informado",
+    phone:
+      readUserMetadataValue(metadata, "phone") ??
+      readUserMetadataValue(metadata, "telefone") ??
+      "Não informado",
+    city:
+      readUserMetadataValue(metadata, "city") ??
+      readUserMetadataValue(metadata, "cidade") ??
+      "Não informado",
+    status: user ? "Conta ativa" : "Sessão não encontrada",
+    vipStatus:
+      readUserMetadataValue(metadata, "vip_status") ??
+      "Em análise",
+    affiliateCode:
+      readUserMetadataValue(metadata, "affiliate_code") ??
+      "—",
+    createdAt: user?.created_at
+      ? `Cadastro desde ${new Date(user.created_at).toLocaleDateString("pt-BR")}`
+      : "Data de cadastro indisponível",
+  };
+
+  const quickActions = [
+    {
+      title: "Editar dados pessoais",
+      description: "Atualize nome, telefone e informações principais do cadastro.",
+    },
+    {
+      title: "Alterar senha",
+      description: "Aumente a segurança da conta atualizando sua senha de acesso.",
+    },
+    {
+      title: "Verificar documentos",
+      description: "Confirme o status de validação e de segurança do seu perfil.",
+    },
+    {
+      title: "Gerenciar preferências",
+      description: "Defina notificações, comunicações e alertas da sua conta.",
+    },
+  ];
+
+  const accountStatus = [
+    { label: "Situação da conta", value: user ? "Ativa" : "Indisponível" },
+    { label: "Validação", value: user ? "Concluída" : "Pendente" },
+    { label: "Status VIP", value: profile.vipStatus },
+    { label: "Código de afiliado", value: profile.affiliateCode },
+  ];
+
+  const securityItems = [
+    "Senha protegida e atualizável",
+    "Validação cadastral concluída",
+    "Histórico de acesso monitorado",
+    "Canal de suporte disponível",
+  ];
+
   return (
     <main style={{ background: "#0b0b0f", color: "#fff", minHeight: "100vh" }}>
       <section

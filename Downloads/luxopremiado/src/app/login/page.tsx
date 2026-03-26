@@ -122,7 +122,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   const friendlyError = mapFriendlyError(params.error);
   const nextPath = normalizeNextPath(params.next);
-  const landingHref = buildLandingPathForSlug(raffle?.slug ?? preferredSlug, "inicio");
+  const landingHref = buildLandingPathForSlug(raffle?.slug ?? preferredSlug);
   const isVipIntent = nextPath.startsWith("/app/vip");
   const headlinePrize = prizeOne?.prizeLabel ?? raffle?.prize.title ?? "o prêmio principal";
 

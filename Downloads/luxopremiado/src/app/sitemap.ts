@@ -1,20 +1,23 @@
 import type { MetadataRoute } from "next";
 import { getSiteUrl } from "@/lib/env";
+import { getAllRaffleSlugs } from "@/lib/raffles-content";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const siteUrl = getSiteUrl();
 
-  const routes = [
+  const staticRoutes = [
     "",
     "/rifas",
     "/sorteios",
-    "/leiloes",
+    "/vip",
     "/privacidade",
     "/termos",
     "/sobre",
     "/contato",
-    "/r/bigode-das-rifas",
   ];
+
+  const raffleRoutes = getAllRaffleSlugs().map((slug) => `/r/${slug}`);
+  const routes = [...staticRoutes, ...raffleRoutes];
 
   const now = new Date();
 
@@ -22,13 +25,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     url: `${siteUrl}${route}`,
     lastModified: now,
     changeFrequency:
-      route === "" || route === "/rifas" || route === "/r/bigode-das-rifas"
+      route === "" || route === "/rifas" || route.startsWith("/r/")
         ? "daily"
         : "weekly",
     priority:
       route === ""
         ? 1
-        : route === "/r/bigode-das-rifas"
+        : route.startsWith("/r/")
           ? 0.95
           : route === "/rifas"
             ? 0.9
