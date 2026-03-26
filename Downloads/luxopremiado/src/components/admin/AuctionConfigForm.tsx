@@ -41,6 +41,23 @@ function cardStyle() {
   } as const;
 }
 
+function toDatetimeLocalValue(value: string | null | undefined): string {
+  if (!value) return "";
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return String(value).slice(0, 16);
+  }
+
+  const local = new Date(parsed.getTime() - parsed.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+}
+
+async function readErrorMessage(response: Response, fallback: string) {
+  const json = (await response.json().catch(() => ({}))) as { error?: string };
+  return json.error ?? fallback;
+}
+
 const CONTROL_BUTTON_STYLE = {
   border: "1px solid rgba(56,189,248,0.28)",
   background: "rgba(15,23,42,0.92)",
@@ -64,14 +81,22 @@ export function AuctionConfigForm({ raffleSlug }: AuctionConfigFormProps) {
   const fetchData = async () => {
     try {
       const res = await fetch(`/api/admin/auction?raffleSlug=${encodeURIComponent(raffleSlug)}`);
-      if (!res.ok) return;
+      if (!res.ok) {
+        return;
+      }
+
       const json = (await res.json()) as AuctionAdminPayload;
+      const normalizedAuction = {
+        ...json.auction,
+        endsAt: toDatetimeLocalValue(json.auction.endsAt),
+      };
+
       setPayload(json);
-      setAuction(json.auction);
+      setAuction(normalizedAuction);
       setSelectedBidId((current) => current ?? json.recentBids[0]?.id ?? null);
-      setReopenEndsAt((current) => current || json.auction.endsAt);
+      setReopenEndsAt((current) => current || normalizedAuction.endsAt);
     } catch {
-      // noop
+      setStatusMessage("Não foi possível carregar a configuração do leilão.");
     }
   };
 
@@ -96,50 +121,58 @@ export function AuctionConfigForm({ raffleSlug }: AuctionConfigFormProps) {
     setLoading(true);
     setStatusMessage(null);
 
-    const res = await fetch("/api/admin/auction", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(auction),
-    });
+    try {
+      const res = await fetch("/api/admin/auction", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(auction),
+      });
 
-    if (!res.ok) {
-      const json = await res.json().catch(() => ({}));
-      setStatusMessage(json.error ?? "Erro ao salvar leilão.");
-    } else {
+      if (!res.ok) {
+        setStatusMessage(await readErrorMessage(res, "Erro ao salvar leilão."));
+        return;
+      }
+
       setStatusMessage("Leilão salvo com sucesso.");
       await fetchData();
+    } catch {
+      setStatusMessage("Falha de rede ao salvar o leilão.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const runAction = async (action: string) => {
     setActionLoading(action);
     setStatusMessage(null);
 
-    const res = await fetch("/api/admin/auction/actions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        raffleSlug,
-        slug: auction.slug,
-        action,
-        bidId: selectedBidId,
-        reason: moderationReason || undefined,
-        endsAt: reopenEndsAt || undefined,
-      }),
-    });
+    try {
+      const res = await fetch("/api/admin/auction/actions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          raffleSlug,
+          slug: auction.slug,
+          action,
+          bidId: selectedBidId,
+          reason: moderationReason || undefined,
+          endsAt: reopenEndsAt || undefined,
+        }),
+      });
 
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      setStatusMessage(json.error ?? "Falha ao executar ação.");
-    } else {
+      if (!res.ok) {
+        setStatusMessage(await readErrorMessage(res, "Falha ao executar ação."));
+        return;
+      }
+
       setStatusMessage("Ação executada com sucesso.");
       setModerationReason("");
       await fetchData();
+    } catch {
+      setStatusMessage("Falha de rede ao executar a ação do leilão.");
+    } finally {
+      setActionLoading(null);
     }
-
-    setActionLoading(null);
   };
 
   return (
@@ -378,31 +411,39 @@ export function AuctionConfigForm({ raffleSlug }: AuctionConfigFormProps) {
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
+
                     try {
                       setStatusMessage(null);
+
                       const metaRes = await fetch("/api/admin/auction-upload", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ fileName: file.name, slug: auction.slug || "auction" }),
                       });
+
                       if (!metaRes.ok) {
-                        const metaJson = await metaRes.json().catch(() => ({}));
-                        throw new Error(metaJson.error ?? "Erro ao preparar upload");
+                        throw new Error(await readErrorMessage(metaRes, "Erro ao preparar upload"));
                       }
+
                       const metaJson = (await metaRes.json()) as { signedUrl: string; publicUrl: string };
+
                       const uploadRes = await fetch(metaJson.signedUrl, {
                         method: "PUT",
                         headers: { "Content-Type": file.type || "application/octet-stream" },
                         body: file,
                       });
+
                       if (!uploadRes.ok) {
                         throw new Error("Falha ao enviar o arquivo.");
                       }
+
                       setField("imageUrl", metaJson.publicUrl);
                       setStatusMessage("Imagem enviada com sucesso.");
                     } catch (err) {
                       const message = err instanceof Error ? err.message : String(err);
                       setStatusMessage(`Erro ao enviar imagem: ${message}`);
+                    } finally {
+                      e.currentTarget.value = "";
                     }
                   }}
                   style={{ display: "none" }}
@@ -728,7 +769,7 @@ export function AuctionConfigForm({ raffleSlug }: AuctionConfigFormProps) {
             {loading ? "Salvando..." : "Salvar leilão"}
           </button>
           {statusMessage ? (
-            <p style={{ color: statusMessage.includes("sucesso") ? "#22c55e" : "#f87171", margin: 0 }}>
+            <p style={{ color: statusMessage.toLowerCase().includes("sucesso") ? "#22c55e" : "#f87171", margin: 0 }}>
               {statusMessage}
             </p>
           ) : null}

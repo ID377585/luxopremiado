@@ -17,9 +17,11 @@ function normalizeVipTier(value: unknown): VipTier {
 async function findAuthUserByEmail(email: string) {
   const supabase = createSupabaseServiceClient();
   const normalized = email.trim().toLowerCase();
+  const perPage = 200;
+  const maxPages = 1000;
 
-  for (let page = 1; page <= 5; page += 1) {
-    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: 200 });
+  for (let page = 1; page <= maxPages; page += 1) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage });
 
     if (error) {
       throw error;
@@ -30,7 +32,7 @@ async function findAuthUserByEmail(email: string) {
       return found;
     }
 
-    if (data.users.length < 200) {
+    if (data.users.length < perPage) {
       break;
     }
   }

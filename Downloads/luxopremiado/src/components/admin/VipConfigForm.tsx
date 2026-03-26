@@ -67,6 +67,10 @@ function formatMoney(cents: number) {
   }).format((cents ?? 0) / 100);
 }
 
+async function readErrorMessage<T extends { error?: string }>(response: Response): Promise<T> {
+  return (await response.json().catch(() => ({}))) as T;
+}
+
 export function VipConfigForm() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -96,26 +100,32 @@ export function VipConfigForm() {
     let active = true;
 
     const loadSettings = async () => {
-      const response = await fetch("/api/admin/vip");
-      const data = (await response.json().catch(() => ({}))) as { settings?: VipProgramSettings };
+      try {
+        const response = await fetch("/api/admin/vip");
+        const data = await readErrorMessage<{ settings?: VipProgramSettings }>(response);
 
-      if (!active || !response.ok || !data.settings) {
-        return;
+        if (!active || !response.ok || !data.settings) {
+          return;
+        }
+
+        setSettingsForm({
+          cashbackEnabled: data.settings.cashbackEnabled,
+          discountsEnabled: data.settings.discountsEnabled,
+          levelRewardsEnabled: data.settings.levelRewardsEnabled,
+          birthdayBonusEnabled: data.settings.birthdayBonusEnabled,
+          reloadBonusEnabled: data.settings.reloadBonusEnabled,
+          rakebackEnabled: data.settings.rakebackEnabled,
+          exclusivePerksEnabled: data.settings.exclusivePerksEnabled,
+          defaultReloadBonusPercent: data.settings.defaultReloadBonusPercent,
+          defaultBirthdayBonusCents: data.settings.defaultBirthdayBonusCents,
+          vipHostChannel: data.settings.vipHostChannel ?? "",
+          eventNotes: data.settings.eventNotes ?? "",
+        });
+      } catch {
+        if (active) {
+          setStatus("Não foi possível carregar as configurações operacionais do VIP.");
+        }
       }
-
-      setSettingsForm({
-        cashbackEnabled: data.settings.cashbackEnabled,
-        discountsEnabled: data.settings.discountsEnabled,
-        levelRewardsEnabled: data.settings.levelRewardsEnabled,
-        birthdayBonusEnabled: data.settings.birthdayBonusEnabled,
-        reloadBonusEnabled: data.settings.reloadBonusEnabled,
-        rakebackEnabled: data.settings.rakebackEnabled,
-        exclusivePerksEnabled: data.settings.exclusivePerksEnabled,
-        defaultReloadBonusPercent: data.settings.defaultReloadBonusPercent,
-        defaultBirthdayBonusCents: data.settings.defaultBirthdayBonusCents,
-        vipHostChannel: data.settings.vipHostChannel ?? "",
-        eventNotes: data.settings.eventNotes ?? "",
-      });
     };
 
     void loadSettings();
@@ -135,25 +145,30 @@ export function VipConfigForm() {
     setLoading(true);
     setStatus(null);
 
-    const response = await fetch(`/api/admin/vip?email=${encodeURIComponent(normalizedEmail)}`);
-    const data = (await response.json().catch(() => ({}))) as VipSnapshot & { error?: string };
+    try {
+      const response = await fetch(`/api/admin/vip?email=${encodeURIComponent(normalizedEmail)}`);
+      const data = await readErrorMessage<VipSnapshot & { error?: string }>(response);
 
-    if (!response.ok) {
+      if (!response.ok) {
+        setSnapshot(null);
+        setStatus(data.error ?? "Não foi possível localizar o usuário.");
+        return;
+      }
+
+      setSnapshot(data);
+      setForm({
+        vipTier: data.profile.vip_tier,
+        vipPoints: data.profile.vip_points,
+        vipManualOverride: data.profile.vip_manual_override,
+        vipNotes: data.profile.vip_notes ?? "",
+      });
+      setStatus("Usuário carregado.");
+    } catch {
       setSnapshot(null);
-      setStatus(data.error ?? "Não foi possível localizar o usuário.");
+      setStatus("Falha de rede ao buscar o usuário VIP.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setSnapshot(data);
-    setForm({
-      vipTier: data.profile.vip_tier,
-      vipPoints: data.profile.vip_points,
-      vipManualOverride: data.profile.vip_manual_override,
-      vipNotes: data.profile.vip_notes ?? "",
-    });
-    setStatus("Usuário carregado.");
-    setLoading(false);
   }
 
   async function handleSubmit(event: React.FormEvent) {
@@ -168,37 +183,41 @@ export function VipConfigForm() {
     setLoading(true);
     setStatus(null);
 
-    const response = await fetch("/api/admin/vip", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: normalizedEmail,
-        vipTier: form.vipTier,
-        vipPoints: form.vipPoints,
-        vipManualOverride: form.vipManualOverride,
-        vipNotes: form.vipNotes,
-      }),
-    });
+    try {
+      const response = await fetch("/api/admin/vip", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: normalizedEmail,
+          vipTier: form.vipTier,
+          vipPoints: form.vipPoints,
+          vipManualOverride: form.vipManualOverride,
+          vipNotes: form.vipNotes,
+        }),
+      });
 
-    const data = (await response.json().catch(() => ({}))) as VipSnapshot & { error?: string };
+      const data = await readErrorMessage<VipSnapshot & { error?: string }>(response);
 
-    if (!response.ok) {
-      setStatus(data.error ?? "Erro ao salvar o status VIP.");
+      if (!response.ok) {
+        setStatus(data.error ?? "Erro ao salvar o status VIP.");
+        return;
+      }
+
+      setSnapshot(data);
+      setForm({
+        vipTier: data.profile.vip_tier,
+        vipPoints: data.profile.vip_points,
+        vipManualOverride: data.profile.vip_manual_override,
+        vipNotes: data.profile.vip_notes ?? "",
+      });
+      setStatus("Status VIP atualizado com sucesso.");
+    } catch {
+      setStatus("Falha de rede ao salvar o status VIP.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setSnapshot(data);
-    setForm({
-      vipTier: data.profile.vip_tier,
-      vipPoints: data.profile.vip_points,
-      vipManualOverride: data.profile.vip_manual_override,
-      vipNotes: data.profile.vip_notes ?? "",
-    });
-    setStatus("Status VIP atualizado com sucesso.");
-    setLoading(false);
   }
 
   async function handleSettingsSubmit(event: React.FormEvent) {
@@ -206,44 +225,48 @@ export function VipConfigForm() {
     setLoading(true);
     setStatus(null);
 
-    const response = await fetch("/api/admin/vip", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        mode: "settings",
-        settings: {
-          ...settingsForm,
-          vipHostChannel: settingsForm.vipHostChannel?.trim() || null,
-          eventNotes: settingsForm.eventNotes?.trim() || null,
+    try {
+      const response = await fetch("/api/admin/vip", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      }),
-    });
+        body: JSON.stringify({
+          mode: "settings",
+          settings: {
+            ...settingsForm,
+            vipHostChannel: settingsForm.vipHostChannel?.trim() || null,
+            eventNotes: settingsForm.eventNotes?.trim() || null,
+          },
+        }),
+      });
 
-    const data = (await response.json().catch(() => ({}))) as { settings?: VipProgramSettings; error?: string };
+      const data = await readErrorMessage<{ settings?: VipProgramSettings; error?: string }>(response);
 
-    if (!response.ok || !data.settings) {
-      setStatus(data.error ?? "Erro ao salvar as configurações operacionais do VIP.");
+      if (!response.ok || !data.settings) {
+        setStatus(data.error ?? "Erro ao salvar as configurações operacionais do VIP.");
+        return;
+      }
+
+      setSettingsForm({
+        cashbackEnabled: data.settings.cashbackEnabled,
+        discountsEnabled: data.settings.discountsEnabled,
+        levelRewardsEnabled: data.settings.levelRewardsEnabled,
+        birthdayBonusEnabled: data.settings.birthdayBonusEnabled,
+        reloadBonusEnabled: data.settings.reloadBonusEnabled,
+        rakebackEnabled: data.settings.rakebackEnabled,
+        exclusivePerksEnabled: data.settings.exclusivePerksEnabled,
+        defaultReloadBonusPercent: data.settings.defaultReloadBonusPercent,
+        defaultBirthdayBonusCents: data.settings.defaultBirthdayBonusCents,
+        vipHostChannel: data.settings.vipHostChannel ?? "",
+        eventNotes: data.settings.eventNotes ?? "",
+      });
+      setStatus("Configurações operacionais do VIP atualizadas.");
+    } catch {
+      setStatus("Falha de rede ao salvar as configurações operacionais do VIP.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setSettingsForm({
-      cashbackEnabled: data.settings.cashbackEnabled,
-      discountsEnabled: data.settings.discountsEnabled,
-      levelRewardsEnabled: data.settings.levelRewardsEnabled,
-      birthdayBonusEnabled: data.settings.birthdayBonusEnabled,
-      reloadBonusEnabled: data.settings.reloadBonusEnabled,
-      rakebackEnabled: data.settings.rakebackEnabled,
-      exclusivePerksEnabled: data.settings.exclusivePerksEnabled,
-      defaultReloadBonusPercent: data.settings.defaultReloadBonusPercent,
-      defaultBirthdayBonusCents: data.settings.defaultBirthdayBonusCents,
-      vipHostChannel: data.settings.vipHostChannel ?? "",
-      eventNotes: data.settings.eventNotes ?? "",
-    });
-    setStatus("Configurações operacionais do VIP atualizadas.");
-    setLoading(false);
   }
 
   return (
@@ -298,7 +321,7 @@ export function VipConfigForm() {
         </button>
       </div>
 
-      {status ? <p style={{ color: "#fde68a", marginBottom: "0.9rem" }}>{status}</p> : null}
+      {status ? <p style={{ color: status.toLowerCase().includes("sucesso") ? "#22c55e" : "#fde68a", marginBottom: "0.9rem" }}>{status}</p> : null}
 
       <form onSubmit={handleSettingsSubmit} style={{ display: "grid", gap: "0.9rem", marginBottom: "1.2rem" }}>
         <div style={{ display: "grid", gap: "0.8rem", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}>

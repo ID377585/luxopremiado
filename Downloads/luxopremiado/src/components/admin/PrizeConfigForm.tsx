@@ -35,13 +35,38 @@ interface Props {
   raffleSlug: string;
 }
 
+function getCurrentDatetimeLocal(): string {
+  const now = new Date();
+  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+}
+
+function toDatetimeLocalValue(value: string | null | undefined): string {
+  if (!value) {
+    return getCurrentDatetimeLocal();
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return String(value).slice(0, 16);
+  }
+
+  const local = new Date(parsed.getTime() - parsed.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+}
+
+async function readErrorMessage(response: Response, fallback: string) {
+  const json = (await response.json().catch(() => ({}))) as { error?: string };
+  return json.error ?? fallback;
+}
+
 export function PrizeConfigForm({ raffleSlug }: Props) {
   const [prizes, setPrizes] = useState<PrizeConfig[]>(
     PRIZES.map((p) => ({
       ...p,
       totalNumbers: 100,
       totalNumbersLabel: "Total de números",
-      drawDate: new Date().toISOString().slice(0, 16),
+      drawDate: getCurrentDatetimeLocal(),
       drawDateLabel: "Data do sorteio",
       luckyNumber: 1,
       luckyNumberLabel: "Número da sorte (fixo)",
@@ -62,135 +87,159 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    let active = true;
+
     const fetchData = async () => {
       try {
         const res = await fetch(`/api/admin/prize-config?raffleSlug=${encodeURIComponent(raffleSlug)}`);
-        if (!res.ok) return;
-        const json = (await res.json()) as { prizes?: Array<Record<string, unknown>> };
-        if (json.prizes?.length) {
-          setPrizes(
-            PRIZES.map((base) => {
-              const match = (json.prizes ?? []).find((p) => (p as Record<string, unknown>).prize_order === base.prizeOrder) as
-                | Record<string, unknown>
-                | undefined;
-
-              const prizeLabel =
-                typeof match?.prize_label === "string" && match.prize_label.trim().length > 0
-                  ? (match.prize_label as string)
-                  : base.prizeLabel;
-
-              const prizeValueLabel =
-                typeof match?.prize_value_label === "string" && match.prize_value_label.trim().length > 0
-                  ? (match.prize_value_label as string)
-                  : "Valor do prêmio (R$)";
-              const totalNumbers =
-                typeof match?.total_numbers === "number" && match.total_numbers > 0 ? (match.total_numbers as number) : 100;
-              const totalNumbersLabel =
-                typeof match?.total_numbers_label === "string" && match.total_numbers_label.trim().length > 0
-                  ? (match.total_numbers_label as string)
-                  : "Total de números";
-
-              const drawDateRaw = typeof match?.draw_date === "string" ? (match.draw_date as string) : null;
-              const drawDate = drawDateRaw ? drawDateRaw.slice(0, 16) : new Date().toISOString().slice(0, 16);
-              const drawDateLabel =
-                typeof match?.draw_date_label === "string" && match.draw_date_label.trim().length > 0
-                  ? (match.draw_date_label as string)
-                  : "Data do sorteio";
-
-              const luckyNumber =
-                typeof match?.lucky_number === "number" && match.lucky_number > 0 ? (match.lucky_number as number) : 1;
-              const luckyNumberLabel =
-                typeof match?.lucky_number_label === "string" && match.lucky_number_label.trim().length > 0
-                  ? (match.lucky_number_label as string)
-                  : "Número da sorte (fixo)";
-
-              const prizeValueCents =
-                typeof match?.prize_value_cents === "number" && match.prize_value_cents >= 0
-                  ? (match.prize_value_cents as number)
-                  : 0;
-
-              const imageUrl =
-                typeof match?.image_url === "string" && match.image_url.trim().length > 0 ? (match.image_url as string) : "";
-
-              const yearModelLabel =
-                typeof match?.year_model_label === "string" && match.year_model_label.trim().length > 0
-                  ? (match.year_model_label as string)
-                  : "Ano/Modelo";
-              const yearModelValue =
-                typeof match?.year_model_value === "string" && match.year_model_value.trim().length > 0
-                  ? (match.year_model_value as string)
-                  : "";
-
-              const motorLabel =
-                typeof match?.motor_label === "string" && match.motor_label.trim().length > 0
-                  ? (match.motor_label as string)
-                  : "Motor";
-              const motorValue =
-                typeof match?.motor_value === "string" && match.motor_value.trim().length > 0
-                  ? (match.motor_value as string)
-                  : "";
-
-              const guaranteeLabel =
-                typeof match?.guarantee_label === "string" && match.guarantee_label.trim().length > 0
-                  ? (match.guarantee_label as string)
-                  : "Garantia";
-              const guaranteeValue =
-                typeof match?.guarantee_value === "string" && match.guarantee_value.trim().length > 0
-                  ? (match.guarantee_value as string)
-                  : "Fábrica";
-
-              const deliveryLabel =
-                typeof match?.delivery_label === "string" && match.delivery_label.trim().length > 0
-                  ? (match.delivery_label as string)
-                  : "Entrega";
-              const deliveryValue =
-                typeof match?.delivery_value === "string" && match.delivery_value.trim().length > 0
-                  ? (match.delivery_value as string)
-                  : "Todo o Brasil";
-
-              return {
-                prizeOrder: base.prizeOrder,
-                prizeLabel,
-                prizeValueLabel,
-                totalNumbersLabel,
-                prizeValueCents,
-                imageUrl,
-                totalNumbers,
-                drawDate,
-                drawDateLabel,
-                luckyNumber,
-                luckyNumberLabel,
-                yearModelLabel,
-                yearModelValue,
-                motorLabel,
-                motorValue,
-                guaranteeLabel,
-                guaranteeValue,
-                deliveryLabel,
-                deliveryValue,
-              };
-            }),
-          );
+        if (!res.ok) {
+          return;
         }
+
+        const json = (await res.json()) as { prizes?: Array<Record<string, unknown>> };
+        if (!active || !json.prizes?.length) {
+          return;
+        }
+
+        setPrizes(
+          PRIZES.map((base) => {
+            const match = (json.prizes ?? []).find((p) => (p as Record<string, unknown>).prize_order === base.prizeOrder) as
+              | Record<string, unknown>
+              | undefined;
+
+            const prizeLabel =
+              typeof match?.prize_label === "string" && match.prize_label.trim().length > 0
+                ? (match.prize_label as string)
+                : base.prizeLabel;
+
+            const prizeValueLabel =
+              typeof match?.prize_value_label === "string" && match.prize_value_label.trim().length > 0
+                ? (match.prize_value_label as string)
+                : "Valor do prêmio (R$)";
+
+            const totalNumbers =
+              typeof match?.total_numbers === "number" && match.total_numbers > 0 ? (match.total_numbers as number) : 100;
+
+            const totalNumbersLabel =
+              typeof match?.total_numbers_label === "string" && match.total_numbers_label.trim().length > 0
+                ? (match.total_numbers_label as string)
+                : "Total de números";
+
+            const drawDate = toDatetimeLocalValue(typeof match?.draw_date === "string" ? (match.draw_date as string) : null);
+
+            const drawDateLabel =
+              typeof match?.draw_date_label === "string" && match.draw_date_label.trim().length > 0
+                ? (match.draw_date_label as string)
+                : "Data do sorteio";
+
+            const luckyNumber =
+              typeof match?.lucky_number === "number" && match.lucky_number > 0 ? (match.lucky_number as number) : 1;
+
+            const luckyNumberLabel =
+              typeof match?.lucky_number_label === "string" && match.lucky_number_label.trim().length > 0
+                ? (match.lucky_number_label as string)
+                : "Número da sorte (fixo)";
+
+            const prizeValueCents =
+              typeof match?.prize_value_cents === "number" && match.prize_value_cents >= 0
+                ? (match.prize_value_cents as number)
+                : 0;
+
+            const imageUrl =
+              typeof match?.image_url === "string" && match.image_url.trim().length > 0 ? (match.image_url as string) : "";
+
+            const yearModelLabel =
+              typeof match?.year_model_label === "string" && match.year_model_label.trim().length > 0
+                ? (match.year_model_label as string)
+                : "Ano/Modelo";
+
+            const yearModelValue =
+              typeof match?.year_model_value === "string" && match.year_model_value.trim().length > 0
+                ? (match.year_model_value as string)
+                : "";
+
+            const motorLabel =
+              typeof match?.motor_label === "string" && match.motor_label.trim().length > 0
+                ? (match.motor_label as string)
+                : "Motor";
+
+            const motorValue =
+              typeof match?.motor_value === "string" && match.motor_value.trim().length > 0
+                ? (match.motor_value as string)
+                : "";
+
+            const guaranteeLabel =
+              typeof match?.guarantee_label === "string" && match.guarantee_label.trim().length > 0
+                ? (match.guarantee_label as string)
+                : "Garantia";
+
+            const guaranteeValue =
+              typeof match?.guarantee_value === "string" && match.guarantee_value.trim().length > 0
+                ? (match.guarantee_value as string)
+                : "Fábrica";
+
+            const deliveryLabel =
+              typeof match?.delivery_label === "string" && match.delivery_label.trim().length > 0
+                ? (match.delivery_label as string)
+                : "Entrega";
+
+            const deliveryValue =
+              typeof match?.delivery_value === "string" && match.delivery_value.trim().length > 0
+                ? (match.delivery_value as string)
+                : "Todo o Brasil";
+
+            return {
+              prizeOrder: base.prizeOrder,
+              prizeLabel,
+              prizeValueLabel,
+              totalNumbersLabel,
+              prizeValueCents,
+              imageUrl,
+              totalNumbers,
+              drawDate,
+              drawDateLabel,
+              luckyNumber,
+              luckyNumberLabel,
+              yearModelLabel,
+              yearModelValue,
+              motorLabel,
+              motorValue,
+              guaranteeLabel,
+              guaranteeValue,
+              deliveryLabel,
+              deliveryValue,
+            };
+          }),
+        );
       } catch {
-        // noop
+        if (active) {
+          setStatus("Não foi possível carregar as configurações atuais dos prêmios.");
+        }
       }
     };
-    fetchData();
+
+    void fetchData();
+
+    return () => {
+      active = false;
+    };
   }, [raffleSlug]);
 
   const handleChange = (index: number, field: keyof PrizeConfig, value: string) => {
     setPrizes((prev) => {
       const next = [...prev];
       const current = { ...next[index] };
+
       if (field === "totalNumbers" || field === "luckyNumber" || field === "prizeOrder") {
-        current[field] = Number(value) as PrizeConfig[typeof field];
+        const parsed = Math.max(1, Number(value) || 1);
+        current[field] = parsed as PrizeConfig[typeof field];
       } else if (field === "prizeValueCents") {
         const cents = Number(value.replace(/\D/g, "")) || 0;
         current.prizeValueCents = cents;
       } else {
         current[field] = value as PrizeConfig[typeof field];
       }
+
       next[index] = current;
       return next;
     });
@@ -201,45 +250,49 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
     setLoading(true);
     setStatus(null);
 
-    const payload = {
-      raffleSlug,
-      prizes: prizes.map((p) => ({
-        prizeOrder: p.prizeOrder,
-        prizeLabel: p.prizeLabel,
-        prizeValueLabel: p.prizeValueLabel,
-        prizeValueCents: p.prizeValueCents,
-        imageUrl: p.imageUrl,
-        totalNumbersLabel: p.totalNumbersLabel,
-        totalNumbers: p.totalNumbers,
-        drawDate: p.drawDate,
-        drawDateLabel: p.drawDateLabel,
-        luckyNumber: p.luckyNumber,
-        luckyNumberLabel: p.luckyNumberLabel,
-        yearModelLabel: p.yearModelLabel,
-        yearModelValue: p.yearModelValue,
-        motorLabel: p.motorLabel,
-        motorValue: p.motorValue,
-        guaranteeLabel: p.guaranteeLabel,
-        guaranteeValue: p.guaranteeValue,
-        deliveryLabel: p.deliveryLabel,
-        deliveryValue: p.deliveryValue,
-      })),
-    };
+    try {
+      const payload = {
+        raffleSlug,
+        prizes: prizes.map((p) => ({
+          prizeOrder: p.prizeOrder,
+          prizeLabel: p.prizeLabel,
+          prizeValueLabel: p.prizeValueLabel,
+          prizeValueCents: p.prizeValueCents,
+          imageUrl: p.imageUrl,
+          totalNumbersLabel: p.totalNumbersLabel,
+          totalNumbers: p.totalNumbers,
+          drawDate: p.drawDate,
+          drawDateLabel: p.drawDateLabel,
+          luckyNumber: p.luckyNumber,
+          luckyNumberLabel: p.luckyNumberLabel,
+          yearModelLabel: p.yearModelLabel,
+          yearModelValue: p.yearModelValue,
+          motorLabel: p.motorLabel,
+          motorValue: p.motorValue,
+          guaranteeLabel: p.guaranteeLabel,
+          guaranteeValue: p.guaranteeValue,
+          deliveryLabel: p.deliveryLabel,
+          deliveryValue: p.deliveryValue,
+        })),
+      };
 
-    const res = await fetch("/api/admin/prize-config", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+      const res = await fetch("/api/admin/prize-config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    if (!res.ok) {
-      const json = await res.json().catch(() => ({}));
-      setStatus(json.error ?? "Erro ao salvar.");
-    } else {
+      if (!res.ok) {
+        setStatus(await readErrorMessage(res, "Erro ao salvar."));
+        return;
+      }
+
       setStatus("Configurações salvas com sucesso.");
+    } catch {
+      setStatus("Falha de rede ao salvar as configurações dos prêmios.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
@@ -482,16 +535,18 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (!file) return;
+
                       try {
                         const metaRes = await fetch("/api/admin/prize-upload", {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({ fileName: file.name, prizeOrder: prize.prizeOrder }),
                         });
+
                         if (!metaRes.ok) {
-                          const metaJson = await metaRes.json().catch(() => ({}));
-                          throw new Error(metaJson.error ?? "Erro ao preparar upload");
+                          throw new Error(await readErrorMessage(metaRes, "Erro ao preparar upload"));
                         }
+
                         const metaJson = (await metaRes.json()) as { signedUrl: string; publicUrl: string };
 
                         const uploadRes = await fetch(metaJson.signedUrl, {
@@ -499,15 +554,18 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
                           headers: { "Content-Type": file.type || "application/octet-stream" },
                           body: file,
                         });
+
                         if (!uploadRes.ok) {
                           throw new Error("Falha ao enviar o arquivo (RLS ou Content-Type)");
                         }
 
                         handleChange(index, "imageUrl", metaJson.publicUrl);
-                        setStatus(null);
+                        setStatus("Imagem enviada com sucesso.");
                       } catch (err) {
                         const message = err instanceof Error ? err.message : String(err);
                         setStatus(`Erro ao enviar imagem: ${message}`);
+                      } finally {
+                        e.currentTarget.value = "";
                       }
                     }}
                     style={{ display: "none" }}
@@ -540,12 +598,12 @@ export function PrizeConfigForm({ raffleSlug }: Props) {
           borderRadius: "12px",
           padding: "0.75rem 1rem",
           border: "none",
-          cursor: "pointer",
+          cursor: loading ? "wait" : "pointer",
         }}
       >
         {loading ? "Salvando..." : "Salvar configurações"}
       </button>
-      {status && <p style={{ color: status.includes("sucesso") ? "#22c55e" : "#f87171" }}>{status}</p>}
+      {status && <p style={{ color: status.toLowerCase().includes("sucesso") ? "#22c55e" : "#f87171" }}>{status}</p>}
     </form>
   );
 }
