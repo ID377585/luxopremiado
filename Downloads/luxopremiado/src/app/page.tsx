@@ -109,7 +109,7 @@ export default function HomePage() {
               maxWidth: 780,
             }}
           >
-            Escolha sua campanha agora e entre no fluxo certo sem perder tempo.
+            Não fique de fora — sua chance de ganhar está aqui.
           </h1>
 
           <p
@@ -121,9 +121,7 @@ export default function HomePage() {
               lineHeight: 1.75,
             }}
           >
-            A home precisa vender, mas também precisa levar o usuário para o que
-            realmente importa: escolher números, entrar na área do usuário,
-            acompanhar campanhas e comprar sem atrito.
+            Escolha sua campanha e garanta seus números antes que acabem.
           </p>
 
           <div

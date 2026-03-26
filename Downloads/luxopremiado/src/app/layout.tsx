@@ -1,20 +1,59 @@
 import "./globals.css";
+import type { Metadata } from "next";
 import Link from "next/link";
 
-export const metadata = {
-  title: "Bigode das Rifas",
-  description: "Plataforma premium de rifas, sorteios e leilões",
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.bigodedasrifas.com";
+
+const DEFAULT_LANDING = "/r/bigode-das-rifas";
+
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Bigode das Rifas",
+    template: "%s | Bigode das Rifas",
+  },
+  description:
+    "Escolha seus números, pague no PIX e acompanhe tudo com transparência. Compra rápida, confirmação automática e sorteio auditável.",
+  alternates: {
+    canonical: DEFAULT_LANDING,
+  },
+  openGraph: {
+    title: "Bigode das Rifas",
+    description:
+      "Escolha seus números, pague no PIX e acompanhe tudo com transparência. Compra rápida, confirmação automática e sorteio auditável.",
+    url: DEFAULT_LANDING,
+    siteName: "Bigode das Rifas",
+    locale: "pt_BR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Bigode das Rifas",
+    description:
+      "Escolha seus números, pague no PIX e acompanhe tudo com transparência. Compra rápida, confirmação automática e sorteio auditável.",
+  },
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
-    <html lang="pt-br">
-      <body>
-        {/* HEADER GLOBAL */}
+    <html lang="pt-BR">
+      <body
+        style={{
+          margin: 0,
+          background: "#071632",
+          color: "#ffffff",
+          fontFamily:
+            'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        }}
+      >
         <header
           style={{
             position: "sticky",
@@ -33,11 +72,12 @@ export default function RootLayout({
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
+              gap: 16,
+              flexWrap: "wrap",
             }}
           >
-            {/* LOGO */}
             <Link
-              href="/"
+              href={DEFAULT_LANDING}
               style={{
                 color: "#f2d067",
                 fontWeight: 900,
@@ -49,31 +89,32 @@ export default function RootLayout({
               BIGODE DAS RIFAS
             </Link>
 
-            {/* MENU */}
             <nav
               style={{
                 display: "flex",
-                gap: 18,
+                gap: 10,
                 flexWrap: "wrap",
               }}
             >
-              <Link href="/rifas" style={linkStyle}>
-                Rifas
+              <Link href={`${DEFAULT_LANDING}#premio`} style={linkStyle}>
+                Prêmio
               </Link>
-              <Link href="/sorteios" style={linkStyle}>
-                Sorteios
+              <Link href={`${DEFAULT_LANDING}#pacotes`} style={linkStyle}>
+                Pacotes
               </Link>
-              <Link href="/leiloes" style={linkStyle}>
-                Leilões
+              <Link href={`${DEFAULT_LANDING}#vencedores`} style={linkStyle}>
+                Vencedores
               </Link>
-              <Link href="/vip" style={linkStyle}>
-                VIP
+              <Link href={`${DEFAULT_LANDING}#transparencia`} style={linkStyle}>
+                Transparência
+              </Link>
+              <Link href="/login" style={linkStyle}>
+                Área do usuário
               </Link>
             </nav>
           </div>
         </header>
 
-        {/* CONTEÚDO DAS PÁGINAS */}
         {children}
       </body>
     </html>
@@ -83,8 +124,9 @@ export default function RootLayout({
 const linkStyle: React.CSSProperties = {
   color: "#fff",
   textDecoration: "none",
-  fontWeight: 600,
-  padding: "6px 10px",
-  borderRadius: 8,
-  transition: "0.2s",
+  fontWeight: 700,
+  padding: "8px 12px",
+  borderRadius: 999,
+  background: "rgba(255,255,255,0.05)",
+  border: "1px solid rgba(255,255,255,0.08)",
 };

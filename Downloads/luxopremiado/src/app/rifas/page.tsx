@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import QuickAccessBar from "@/components/QuickAccessBar";
+import { APP_ROUTES } from "@/lib/routes";
 
 export const metadata: Metadata = {
   title: "Rifas | Bigode das Rifas",
@@ -49,11 +50,7 @@ export default function RifasPage() {
         paddingBottom: 110,
       }}
     >
-      <QuickAccessBar
-        chooseHref="/app/comprar"
-        userHref="/area-do-usuario"
-        vipHref="/vip"
-      />
+      <QuickAccessBar />
 
       <section
         style={{
@@ -182,7 +179,7 @@ export default function RifasPage() {
                 }}
               >
                 <Link
-                  href={`/rifas/${item.slug}`}
+                  href={`${APP_ROUTES.raffles}/${item.slug}`}
                   style={{
                     display: "inline-block",
                     background: "#fff",
@@ -197,7 +194,7 @@ export default function RifasPage() {
                 </Link>
 
                 <Link
-                  href="/app/comprar"
+                  href={APP_ROUTES.buy}
                   style={{
                     display: "inline-block",
                     background: "rgba(255,255,255,0.05)",
