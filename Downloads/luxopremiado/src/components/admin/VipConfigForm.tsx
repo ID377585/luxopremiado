@@ -60,6 +60,10 @@ interface VipProgramSettings {
   eventNotes: string | null;
 }
 
+type ApiError = {
+  error?: string;
+};
+
 function formatMoney(cents: number) {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
@@ -69,6 +73,20 @@ function formatMoney(cents: number) {
 
 async function readJson<T>(response: Response): Promise<T> {
   return (await response.json().catch(() => ({}))) as T;
+}
+
+function getErrorMessage(value: unknown, fallback: string): string {
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "error" in value &&
+    typeof (value as ApiError).error === "string" &&
+    (value as ApiError).error!.trim().length > 0
+  ) {
+    return (value as ApiError).error as string;
+  }
+
+  return fallback;
 }
 
 export function VipConfigForm() {
@@ -147,11 +165,11 @@ export function VipConfigForm() {
 
     try {
       const response = await fetch(`/api/admin/vip?email=${encodeURIComponent(normalizedEmail)}`);
-      const data = await readJson<(VipSnapshot & { error?: string }) | { error?: string }>(response);
+      const data = await readJson<VipSnapshot | ApiError>(response);
 
       if (!response.ok) {
         setSnapshot(null);
-        setStatus(("error" in data && data.error) ?? "Não foi possível localizar o usuário.");
+        setStatus(getErrorMessage(data, "Não foi possível localizar o usuário."));
         return;
       }
 
@@ -200,10 +218,10 @@ export function VipConfigForm() {
         }),
       });
 
-      const data = await readJson<(VipSnapshot & { error?: string }) | { error?: string }>(response);
+      const data = await readJson<VipSnapshot | ApiError>(response);
 
       if (!response.ok) {
-        setStatus(("error" in data && data.error) ?? "Erro ao salvar o status VIP.");
+        setStatus(getErrorMessage(data, "Erro ao salvar o status VIP."));
         return;
       }
 
