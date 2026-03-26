@@ -25,32 +25,35 @@ function readUserMetadataValue(
 
 export default async function AppPerfilPage() {
   const user = await getSessionUser();
-  const metadata = (user?.user_metadata ?? {}) as Record<string, unknown>;
+
+  // Ajuste cirúrgico:
+  // getSessionUser() não expõe user_metadata no tipo atual.
+  // Mantemos a estrutura preparada para futuros incrementos sem quebrar o build.
+  const userMetadata: Record<string, unknown> = {};
 
   const profile = {
     name:
-      readUserMetadataValue(metadata, "full_name") ??
-      readUserMetadataValue(metadata, "name") ??
+      user?.name ??
+      readUserMetadataValue(userMetadata, "full_name") ??
+      readUserMetadataValue(userMetadata, "name") ??
       "Participante",
     email: user?.email ?? "Não informado",
     phone:
-      readUserMetadataValue(metadata, "phone") ??
-      readUserMetadataValue(metadata, "telefone") ??
+      readUserMetadataValue(userMetadata, "phone") ??
+      readUserMetadataValue(userMetadata, "telefone") ??
       "Não informado",
     city:
-      readUserMetadataValue(metadata, "city") ??
-      readUserMetadataValue(metadata, "cidade") ??
+      readUserMetadataValue(userMetadata, "city") ??
+      readUserMetadataValue(userMetadata, "cidade") ??
       "Não informado",
     status: user ? "Conta ativa" : "Sessão não encontrada",
     vipStatus:
-      readUserMetadataValue(metadata, "vip_status") ??
+      readUserMetadataValue(userMetadata, "vip_status") ??
       "Em análise",
     affiliateCode:
-      readUserMetadataValue(metadata, "affiliate_code") ??
+      readUserMetadataValue(userMetadata, "affiliate_code") ??
       "—",
-    createdAt: user?.created_at
-      ? `Cadastro desde ${new Date(user.created_at).toLocaleDateString("pt-BR")}`
-      : "Data de cadastro indisponível",
+    createdAt: "Data de cadastro indisponível",
   };
 
   const quickActions = [
