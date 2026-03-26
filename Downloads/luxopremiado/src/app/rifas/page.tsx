@@ -1,45 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import QuickAccessBar from "@/components/QuickAccessBar";
-import { APP_ROUTES } from "@/lib/routes";
+import { getAllRaffles } from "@/lib/raffles-content";
 
 export const metadata: Metadata = {
   title: "Rifas | Bigode das Rifas",
   description:
-    "Rifas com forte apelo comercial, pacotes estratégicos e campanhas criadas para converter rápido.",
+    "Veja as rifas em destaque, compare campanhas e escolha a melhor para participar agora.",
 };
 
-const rifas = [
-  {
-    slug: "moto-0km",
-    titulo: "Moto 0km",
-    descricao:
-      "Campanha com alto desejo popular, excelente clique e ótima percepção de prêmio principal.",
-    preco: "R$ 1,99",
-    numeros: "12.000 números",
-    destaque: "Mais procurada",
-  },
-  {
-    slug: "iphone-pro-max",
-    titulo: "iPhone Pro Max",
-    descricao:
-      "Oferta de giro rápido, muito forte para tráfego mobile e decisão imediata.",
-    preco: "R$ 1,49",
-    numeros: "8.000 números",
-    destaque: "Conversão alta",
-  },
-  {
-    slug: "pix-10-mil",
-    titulo: "PIX de R$ 10.000",
-    descricao:
-      "Prêmio direto, simples de entender e muito eficiente para campanhas promocionais.",
-    preco: "R$ 0,99",
-    numeros: "15.000 números",
-    destaque: "Entrada fácil",
-  },
-];
-
 export default function RifasPage() {
+  const raffles = getAllRaffles();
+
   return (
     <main
       style={{
@@ -50,7 +22,11 @@ export default function RifasPage() {
         paddingBottom: 110,
       }}
     >
-      <QuickAccessBar />
+      <QuickAccessBar
+        chooseHref="/rifas"
+        userHref="/login"
+        vipHref="/r/bigode-das-rifas#transparencia"
+      />
 
       <section
         style={{
@@ -71,7 +47,7 @@ export default function RifasPage() {
             maxWidth: 860,
           }}
         >
-          Veja as rifas em destaque e entre no fluxo real de compra sem perder tempo.
+          Escolha a campanha que mais faz sentido para você entrar agora.
         </h1>
 
         <p
@@ -83,8 +59,8 @@ export default function RifasPage() {
             lineHeight: 1.75,
           }}
         >
-          Esta página precisa vender, mas também precisa devolver o acesso ao
-          que sumiu: compra, área do usuário e navegação útil.
+          Aqui você encontra campanhas com forte apelo comercial, prêmios
+          desejados e pacotes pensados para acelerar participação.
         </p>
       </section>
 
@@ -102,7 +78,7 @@ export default function RifasPage() {
             gap: 20,
           }}
         >
-          {rifas.map((item) => (
+          {raffles.map((item) => (
             <article
               key={item.slug}
               style={{
@@ -125,15 +101,15 @@ export default function RifasPage() {
                   fontSize: 13,
                 }}
               >
-                {item.destaque}
+                {item.heroBadge}
               </span>
 
               <h2 style={{ margin: "14px 0 10px", fontSize: 30 }}>
-                {item.titulo}
+                {item.title}
               </h2>
 
               <p style={{ color: "rgba(255,255,255,0.78)", lineHeight: 1.7 }}>
-                {item.descricao}
+                {item.shortDescription}
               </p>
 
               <div style={{ display: "grid", gap: 12, marginTop: 18 }}>
@@ -149,7 +125,7 @@ export default function RifasPage() {
                     Valor por número
                   </p>
                   <strong style={{ display: "block", marginTop: 6 }}>
-                    {item.preco}
+                    {item.pricePerNumber}
                   </strong>
                 </div>
 
@@ -162,10 +138,10 @@ export default function RifasPage() {
                   }}
                 >
                   <p style={{ margin: 0, color: "rgba(255,255,255,0.62)" }}>
-                    Disponibilidade
+                    Sorteio
                   </p>
                   <strong style={{ display: "block", marginTop: 6 }}>
-                    {item.numeros}
+                    {item.drawDateLabel}
                   </strong>
                 </div>
               </div>
@@ -179,7 +155,7 @@ export default function RifasPage() {
                 }}
               >
                 <Link
-                  href={`${APP_ROUTES.raffles}/${item.slug}`}
+                  href={`/rifas/${item.slug}`}
                   style={{
                     display: "inline-block",
                     background: "#fff",
@@ -194,7 +170,7 @@ export default function RifasPage() {
                 </Link>
 
                 <Link
-                  href={APP_ROUTES.buy}
+                  href={`/rifas/${item.slug}#pacotes`}
                   style={{
                     display: "inline-block",
                     background: "rgba(255,255,255,0.05)",
@@ -206,7 +182,7 @@ export default function RifasPage() {
                     border: "1px solid rgba(255,255,255,0.1)",
                   }}
                 >
-                  Comprar números
+                  Escolher pacote
                 </Link>
               </div>
             </article>
