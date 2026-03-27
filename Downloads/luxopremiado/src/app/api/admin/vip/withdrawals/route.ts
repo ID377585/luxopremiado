@@ -4,8 +4,18 @@ import { getSessionUser, isAdminUser } from "@/lib/session";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { updateVipWithdrawalRequestStatus } from "@/lib/vip-runtime";
 
+const ALLOWED_WITHDRAWAL_STATUSES = new Set(["approved", "paid", "rejected", "canceled"]);
+
 function forbidden() {
   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+}
+
+function badRequest(message: string) {
+  return NextResponse.json({ error: message }, { status: 400 });
+}
+
+function normalizeAdminNotes(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
 }
 
 export async function GET() {
@@ -62,14 +72,28 @@ export async function POST(request: Request) {
   };
 
   if (!body.requestId || !body.status) {
-    return NextResponse.json({ error: "Informe requestId e status." }, { status: 400 });
+    return badRequest("Informe requestId e status.");
+  }
+
+  if (!ALLOWED_WITHDRAWAL_STATUSES.has(body.status)) {
+    return badRequest("Status de saque VIP inválido.");
+  }
+
+  const adminNotes = normalizeAdminNotes(body.adminNotes);
+
+  if ((body.status === "rejected" || body.status === "canceled") && !adminNotes) {
+    return badRequest("Observação administrativa obrigatória para rejeitar ou cancelar o saque.");
+  }
+
+  if (adminNotes.length > 2000) {
+    return badRequest("A observação administrativa do saque é muito longa.");
   }
 
   try {
     await updateVipWithdrawalRequestStatus({
       requestId: body.requestId,
       status: body.status,
-      adminNotes: body.adminNotes ?? null,
+      adminNotes: adminNotes || null,
     });
 
     return GET();
@@ -77,4 +101,4 @@ export async function POST(request: Request) {
     const message = error instanceof Error ? error.message : "Erro inesperado";
     return NextResponse.json({ error: message }, { status: 500 });
   }
-}
+} 

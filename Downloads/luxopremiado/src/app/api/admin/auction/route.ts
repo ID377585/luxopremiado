@@ -61,6 +61,8 @@ const ALLOWED_TIMELINE_EVENT_TYPES: readonly AuctionTimelineEventType[] = [
   "trust",
 ];
 
+const AUCTION_STATUS_VALUES = new Set(["scheduled", "open", "closed", "settled"]);
+
 function forbidden() {
   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 }
@@ -174,6 +176,123 @@ function mapTimelineRow(row: AuctionTimelineRow) {
     amount_cents: toNumberOrNull(row.amount_cents),
     created_at: String(row.created_at),
   };
+}
+
+function isValidHttpUrl(value: string) {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function isValidDatetime(value: string) {
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed);
+}
+
+function normalizeNonNegativeInteger(value: unknown, fallback = 0) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(0, Math.round(parsed));
+}
+
+function normalizeOptionalMoney(value: unknown): number | null {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return null;
+  return Math.round(parsed);
+}
+
+function validateAuctionAdminConfig(body: AuctionAdminConfig) {
+  const slug = body.slug?.trim() ?? "";
+  if (!slug) {
+    return "Slug do leilão é obrigatório.";
+  }
+
+  if (!/^[a-z0-9-]+$/.test(slug)) {
+    return "O slug do leilão deve conter apenas letras minúsculas, números e hífen.";
+  }
+
+  if (!body.title?.trim()) {
+    return "Título do leilão é obrigatório.";
+  }
+
+  if (!body.description?.trim()) {
+    return "Descrição comercial do leilão é obrigatória.";
+  }
+
+  const endsAt = body.endsAt?.trim();
+  if (!endsAt) {
+    return "Data de encerramento obrigatória.";
+  }
+
+  if (!isValidDatetime(endsAt)) {
+    return "Data de encerramento inválida.";
+  }
+
+  if (body.status === "scheduled" && Date.parse(endsAt) <= Date.now()) {
+    return "Para leilão agendado, a data de encerramento precisa estar no futuro.";
+  }
+
+  if (body.status && !AUCTION_STATUS_VALUES.has(body.status)) {
+    return "Status do leilão inválido.";
+  }
+
+  const openingBidCents = normalizeNonNegativeInteger(body.openingBidCents);
+  const minIncrementCents = normalizeNonNegativeInteger(body.minIncrementCents);
+
+  if (minIncrementCents < 1) {
+    return "O incremento mínimo do leilão deve ser pelo menos R$ 0,01.";
+  }
+
+  const reservePriceCents = normalizeOptionalMoney(body.reservePriceCents);
+  if (reservePriceCents !== null && reservePriceCents < openingBidCents) {
+    return "O preço de reserva não pode ser menor que o lance inicial.";
+  }
+
+  const marketValueCents = normalizeOptionalMoney(body.marketValueCents);
+  if (marketValueCents !== null && marketValueCents < openingBidCents) {
+    return "O valor de mercado não pode ser menor que o lance inicial.";
+  }
+
+  if (marketValueCents !== null && reservePriceCents !== null && marketValueCents < reservePriceCents) {
+    return "O valor de mercado não pode ser menor que o preço de reserva.";
+  }
+
+  if (body.imageUrl?.trim() && !isValidHttpUrl(body.imageUrl.trim())) {
+    return "A imagem principal precisa ser uma URL válida.";
+  }
+
+  if (body.videoUrl?.trim() && !isValidHttpUrl(body.videoUrl.trim())) {
+    return "A URL do vídeo precisa ser válida.";
+  }
+
+  if ((body.galleryUrls ?? []).some((item) => typeof item !== "string" || !isValidHttpUrl(item.trim()))) {
+    return "Todas as URLs da galeria precisam ser válidas.";
+  }
+
+  if ((body.authenticityAssets ?? []).some((item) => typeof item !== "string" || !isValidHttpUrl(item.trim()))) {
+    return "Todos os anexos de autenticidade precisam ser URLs válidas.";
+  }
+
+  if (normalizeNonNegativeInteger(body.bidExtensionWindowSeconds) < 0) {
+    return "A janela anti-sniping é inválida.";
+  }
+
+  if (normalizeNonNegativeInteger(body.bidExtensionSeconds) < 0) {
+    return "A extensão por lance é inválida.";
+  }
+
+  if (Math.max(1, Math.round(Number(body.settlementDeadlineHours ?? 24))) < 1) {
+    return "O prazo de pagamento do vencedor deve ser de pelo menos 1 hora.";
+  }
+
+  return null;
 }
 
 export async function GET(request: NextRequest) {
@@ -316,39 +435,31 @@ export async function POST(request: NextRequest) {
   if (!user) return forbidden();
 
   const body = (await request.json()) as AuctionAdminConfig;
+  const validationError = validateAuctionAdminConfig(body);
+  if (validationError) {
+    return badRequest(validationError);
+  }
+
   const raffleSlug = normalizeAuctionRaffleSlug(body.raffleSlug);
-  const slug = body.slug?.trim();
-
-  if (!slug) {
-    return badRequest("Slug do leilão é obrigatório.");
-  }
-
-  if (!body.title?.trim()) {
-    return badRequest("Título do leilão é obrigatório.");
-  }
-
-  const endsAt = body.endsAt?.trim();
-  if (!endsAt) {
-    return badRequest("Data de encerramento obrigatória.");
-  }
+  const slug = body.slug.trim();
 
   const status =
     body.status === "scheduled" || body.status === "closed" || body.status === "settled"
       ? body.status
       : "open";
 
-  const minIncrementCents = Math.max(1, Math.round(body.minIncrementCents));
-  const openingBidCents = Math.max(0, Math.round(body.openingBidCents));
+  const minIncrementCents = Math.max(1, Math.round(Number(body.minIncrementCents)));
+  const openingBidCents = Math.max(0, Math.round(Number(body.openingBidCents)));
 
   const reservePriceCents =
     body.reservePriceCents === null || body.reservePriceCents === undefined
       ? null
-      : Math.max(openingBidCents, Math.round(body.reservePriceCents));
+      : Math.max(openingBidCents, Math.round(Number(body.reservePriceCents)));
 
   const marketValueCents =
     body.marketValueCents === null || body.marketValueCents === undefined
       ? null
-      : Math.max(0, Math.round(body.marketValueCents));
+      : Math.max(0, Math.round(Number(body.marketValueCents)));
 
   const supabase = createSupabaseServiceClient();
 
@@ -375,14 +486,14 @@ export async function POST(request: NextRequest) {
     appraisal_notes: coerceOptionalText(body.appraisalNotes),
     tie_break_rule:
       coerceOptionalText(body.tieBreakRule) ?? "Em empate de valor, vence o lance registrado primeiro.",
-    settlement_deadline_hours: Math.max(1, Math.round(body.settlementDeadlineHours ?? 24)),
+    settlement_deadline_hours: Math.max(1, Math.round(Number(body.settlementDeadlineHours ?? 24))),
     opening_bid_cents: openingBidCents,
     min_increment_cents: minIncrementCents,
     reserve_price_cents: reservePriceCents,
     market_value_cents: marketValueCents,
-    ends_at: endsAt,
-    bid_extension_window_seconds: Math.max(0, Math.round(body.bidExtensionWindowSeconds ?? 120)),
-    bid_extension_seconds: Math.max(0, Math.round(body.bidExtensionSeconds ?? 120)),
+    ends_at: body.endsAt.trim(),
+    bid_extension_window_seconds: Math.max(0, Math.round(Number(body.bidExtensionWindowSeconds ?? 120))),
+    bid_extension_seconds: Math.max(0, Math.round(Number(body.bidExtensionSeconds ?? 120))),
     status,
     updated_at: new Date().toISOString(),
   };
