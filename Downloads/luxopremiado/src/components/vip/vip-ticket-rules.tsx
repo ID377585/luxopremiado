@@ -1,55 +1,106 @@
-import { VipUserState } from "@/lib/vip/types";
+export function VipTicketRules() {
+  const rows = [
+    ["Usuário Base", "não participa do prêmio principal"],
+    ["Ao entrar no VIP", "1 ticket oficial"],
+    ["A cada novo nível VIP", "+1 ticket"],
+    ["Ao entrar no VIP Elite", "+3 tickets"],
+    ["A cada nível Elite", "+2 tickets"],
+    ["Missões concluídas", "tickets bônus"],
+  ];
 
-interface Props {
-  user: VipUserState;
-}
-
-export function VipTicketRules({ user }: Props) {
   return (
-    <section className="rounded-3xl border border-white/10 bg-zinc-900 p-6 md:p-8">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold md:text-3xl">
+    <section
+      style={{
+        borderRadius: 28,
+        padding: 28,
+        border: "1px solid rgba(255,255,255,0.08)",
+        background: "linear-gradient(180deg, rgba(8,19,47,0.97) 0%, rgba(7,16,38,0.97) 100%)",
+        boxShadow: "0 18px 40px rgba(0,0,0,0.2)",
+      }}
+    >
+      <div style={{ display: "grid", gap: 8, marginBottom: 22 }}>
+        <div
+          style={{
+            color: "#f2d067",
+            fontSize: 13,
+            fontWeight: 800,
+            letterSpacing: 0.5,
+            textTransform: "uppercase",
+          }}
+        >
+          Estrutura de tickets
+        </div>
+
+        <h2 style={{ margin: 0, fontSize: 32, lineHeight: 1.15, fontWeight: 900 }}>
           Quanto maior seu nível, maiores suas chances
         </h2>
-        <p className="mt-2 max-w-3xl text-sm leading-7 text-zinc-300">
+
+        <p
+          style={{
+            margin: 0,
+            color: "rgba(255,255,255,0.76)",
+            lineHeight: 1.8,
+            fontSize: 15,
+            maxWidth: 900,
+          }}
+        >
           Para forçar progressão, a campanha não trabalha com 1 usuário igual a 1 chance. O sistema usa tickets por nível, metas e evolução.
         </p>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-white/10">
-        <table className="w-full border-collapse text-left">
-          <thead className="bg-white/5">
-            <tr>
-              <th className="px-4 py-4 text-sm font-semibold text-zinc-200">Marco</th>
-              <th className="px-4 py-4 text-sm font-semibold text-zinc-200">Recompensa</th>
-            </tr>
-          </thead>
-          <tbody>
-            <TableRow title="Usuário Base" reward="não participa do prêmio principal" />
-            <TableRow title="Ao entrar no VIP" reward="1 ticket oficial" />
-            <TableRow title="A cada novo nível VIP" reward="+1 ticket" />
-            <TableRow title="Ao entrar no VIP Elite" reward="+3 tickets" />
-            <TableRow title="A cada nível Elite" reward="+2 tickets" />
-            <TableRow title="Missões concluídas" reward="tickets bônus" />
-          </tbody>
-        </table>
+      <div
+        style={{
+          overflow: "hidden",
+          borderRadius: 22,
+          border: "1px solid rgba(255,255,255,0.08)",
+          background: "rgba(255,255,255,0.03)",
+        }}
+      >
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1.2fr 1fr",
+            background: "rgba(255,255,255,0.05)",
+            fontWeight: 800,
+          }}
+        >
+          <div style={{ padding: "16px 18px" }}>Marco</div>
+          <div style={{ padding: "16px 18px" }}>Recompensa</div>
+        </div>
+
+        {rows.map(([title, reward]) => (
+          <div
+            key={title}
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1.2fr 1fr",
+              borderTop: "1px solid rgba(255,255,255,0.08)",
+            }}
+          >
+            <div style={{ padding: "16px 18px", color: "#fff", fontWeight: 700 }}>
+              {title}
+            </div>
+            <div style={{ padding: "16px 18px", color: "rgba(255,255,255,0.78)" }}>
+              {reward}
+            </div>
+          </div>
+        ))}
       </div>
 
-      <div className="mt-5 rounded-2xl border border-yellow-500/20 bg-yellow-500/5 p-4">
-        <p className="text-sm text-zinc-200">
-          <span className="font-semibold text-yellow-300">Resumo estratégico:</span>{" "}
-          entrar no VIP coloca você dentro. Subir de nível faz você disputar de verdade.
-        </p>
+      <div
+        style={{
+          marginTop: 18,
+          borderRadius: 18,
+          padding: 16,
+          background: "rgba(242,208,103,0.08)",
+          border: "1px solid rgba(242,208,103,0.16)",
+          color: "rgba(255,255,255,0.9)",
+          lineHeight: 1.7,
+          fontSize: 14,
+        }}
+      >
+        <strong style={{ color: "#f2d067" }}>Resumo estratégico:</strong> entrar no VIP coloca você dentro. Subir de nível faz você disputar de verdade.
       </div>
     </section>
-  );
-}
-
-function TableRow({ title, reward }: { title: string; reward: string }) {
-  return (
-    <tr className="border-t border-white/10">
-      <td className="px-4 py-4 text-sm text-zinc-200">{title}</td>
-      <td className="px-4 py-4 text-sm text-zinc-300">{reward}</td>
-    </tr>
   );
 }

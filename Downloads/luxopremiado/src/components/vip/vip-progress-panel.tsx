@@ -1,4 +1,4 @@
-import { VipUserState } from "@/lib/vip/types";
+import type { VipUserState } from "@/lib/vip/types";
 import { getProgressPercentage, getTicketBonusSummary } from "@/lib/vip/utils";
 
 interface Props {
@@ -11,56 +11,140 @@ export function VipProgressPanel({ user }: Props) {
   return (
     <section
       id="progresso"
-      className="rounded-3xl border border-white/10 bg-zinc-900 p-6 md:p-8"
+      style={{
+        borderRadius: 28,
+        padding: 28,
+        border: "1px solid rgba(255,255,255,0.08)",
+        background: "linear-gradient(180deg, rgba(12,24,58,0.96) 0%, rgba(7,18,43,0.96) 100%)",
+        boxShadow: "0 18px 45px rgba(0,0,0,0.22)",
+      }}
     >
-      <div className="mb-6 flex flex-col gap-2">
-        <h2 className="text-2xl font-bold md:text-3xl">
+      <div style={{ display: "grid", gap: 8, marginBottom: 24 }}>
+        <div
+          style={{
+            color: "#f2d067",
+            fontSize: 13,
+            fontWeight: 800,
+            letterSpacing: 0.5,
+            textTransform: "uppercase",
+          }}
+        >
+          Painel de progresso
+        </div>
+
+        <h2 style={{ margin: 0, fontSize: 32, lineHeight: 1.2, fontWeight: 900 }}>
           Seu progresso para entrar oficialmente na Missão Elite
         </h2>
-        <p className="max-w-3xl text-sm leading-7 text-zinc-300">
+
+        <p
+          style={{
+            margin: 0,
+            color: "rgba(255,255,255,0.78)",
+            maxWidth: 900,
+            lineHeight: 1.8,
+            fontSize: 15,
+          }}
+        >
           A campanha transforma progressão em vantagem real. Entrar no VIP coloca você no jogo. Evoluir torna você competitivo.
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="space-y-4">
-          <div className="h-4 overflow-hidden rounded-full bg-white/10">
-            <div
-              className="h-full rounded-full bg-yellow-400 transition-all"
-              style={{ width: `${percentage}%` }}
-            />
-          </div>
+      <div
+        style={{
+          height: 16,
+          borderRadius: 999,
+          background: "rgba(255,255,255,0.08)",
+          overflow: "hidden",
+          border: "1px solid rgba(255,255,255,0.05)",
+        }}
+      >
+        <div
+          style={{
+            width: `${percentage}%`,
+            height: "100%",
+            background: "linear-gradient(90deg, #f2d067 0%, #ffd94d 100%)",
+            borderRadius: 999,
+            boxShadow: "0 0 20px rgba(242,208,103,0.3)",
+          }}
+        />
+      </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <StatCard label="Seus pontos totais" value={user.totalPoints.toLocaleString("pt-BR")} />
-            <StatCard label="Seus pontos próprios" value={user.ownPoints.toLocaleString("pt-BR")} />
-            <StatCard
-              label="Afiliados qualificados"
-              value={`${user.qualifiedAffiliates}/${user.requiredAffiliates}`}
-            />
-            <StatCard
-              label="Falta para liberar VIP"
-              value={`${user.pointsToUnlockVip.toLocaleString("pt-BR")} pontos`}
-            />
-          </div>
+      <div
+        style={{
+          marginTop: 22,
+          display: "grid",
+          gridTemplateColumns: "1.3fr 0.9fr",
+          gap: 20,
+        }}
+      >
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+            gap: 16,
+          }}
+        >
+          <StatCard label="Seus pontos totais" value={user.totalPoints.toLocaleString("pt-BR")} />
+          <StatCard label="Seus pontos próprios" value={user.ownPoints.toLocaleString("pt-BR")} />
+          <StatCard
+            label="Afiliados qualificados"
+            value={`${user.qualifiedAffiliates}/${user.requiredAffiliates}`}
+          />
+          <StatCard
+            label="Falta para liberar VIP"
+            value={`${user.pointsToUnlockVip.toLocaleString("pt-BR")} pontos`}
+          />
         </div>
 
-        <aside className="rounded-2xl border border-yellow-500/20 bg-yellow-500/5 p-5">
-          <p className="text-sm font-semibold text-yellow-300">
+        <aside
+          style={{
+            borderRadius: 24,
+            padding: 20,
+            background: "rgba(242,208,103,0.06)",
+            border: "1px solid rgba(242,208,103,0.14)",
+            display: "grid",
+            gap: 16,
+          }}
+        >
+          <div style={{ fontSize: 13, fontWeight: 800, color: "#f2d067" }}>
             Vantagem competitiva
-          </p>
-          <p className="mt-3 text-sm leading-7 text-zinc-300">
+          </div>
+
+          <p
+            style={{
+              margin: 0,
+              color: "rgba(255,255,255,0.84)",
+              lineHeight: 1.7,
+              fontSize: 14,
+            }}
+          >
             {getTicketBonusSummary(user)}
           </p>
 
-          <div className="mt-5 rounded-xl border border-white/10 bg-black/20 p-4">
-            <p className="text-sm font-medium text-zinc-200">
+          <div
+            style={{
+              borderRadius: 18,
+              padding: 16,
+              background: "rgba(0,0,0,0.2)",
+              border: "1px solid rgba(255,255,255,0.08)",
+            }}
+          >
+            <div style={{ fontWeight: 800, marginBottom: 10 }}>
               Ao bater o VIP, você libera:
-            </p>
-            <ul className="mt-3 space-y-2 text-sm text-zinc-300">
-              <li>• 1 ticket oficial para a experiência</li>
-              <li>• selo de Participante Oficial Missão Elite</li>
-              <li>• acesso às missões premium</li>
+            </div>
+
+            <ul
+              style={{
+                margin: 0,
+                paddingLeft: 18,
+                color: "rgba(255,255,255,0.8)",
+                lineHeight: 1.8,
+                fontSize: 14,
+              }}
+            >
+              <li>1 ticket oficial para a experiência</li>
+              <li>selo de Participante Oficial Missão Elite</li>
+              <li>acesso às missões premium</li>
             </ul>
           </div>
         </aside>
@@ -71,9 +155,26 @@ export function VipProgressPanel({ user }: Props) {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-      <p className="text-xs uppercase tracking-wide text-zinc-400">{label}</p>
-      <p className="mt-2 text-xl font-bold text-white">{value}</p>
+    <div
+      style={{
+        borderRadius: 22,
+        padding: 18,
+        background: "rgba(255,255,255,0.04)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
+      }}
+    >
+      <div
+        style={{
+          fontSize: 12,
+          color: "rgba(255,255,255,0.52)",
+          textTransform: "uppercase",
+          letterSpacing: 0.6,
+        }}
+      >
+        {label}
+      </div>
+      <div style={{ marginTop: 10, fontSize: 26, fontWeight: 900 }}>{value}</div>
     </div>
   );
 }

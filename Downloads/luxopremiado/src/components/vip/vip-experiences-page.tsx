@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { VipUserState } from "@/lib/vip/types";
+import type { VipUserState } from "@/lib/vip/types";
 import { canAccessVipExperience } from "@/lib/vip/utils";
 import { VipHero } from "./vip-hero";
 import { VipProgressPanel } from "./vip-progress-panel";
@@ -8,7 +8,6 @@ import { VipMissions } from "./vip-missions";
 import { VipPrizeDetails } from "./vip-prize-details";
 import { VipRules } from "./vip-rules";
 import { VipFaq } from "./vip-faq";
-import { VipWireframeNote } from "./vip-wireframe-note";
 
 interface Props {
   user: VipUserState;
@@ -24,16 +23,30 @@ export function VipExperiencesPage({ user }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-neutral-950 text-white">
-      <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 md:px-6 lg:px-8">
+    <main
+      style={{
+        minHeight: "100vh",
+        background:
+          "radial-gradient(circle at top, rgba(242,208,103,0.08), transparent 22%), linear-gradient(180deg, #071632 0%, #061129 48%, #040d1f 100%)",
+        color: "#fff",
+      }}
+    >
+      <section
+        style={{
+          maxWidth: 1280,
+          margin: "0 auto",
+          padding: "32px 20px 72px",
+          display: "grid",
+          gap: 28,
+        }}
+      >
         <VipHero user={user} />
         <VipProgressPanel user={user} />
-        <VipTicketRules user={user} />
+        <VipTicketRules />
         <VipMissions />
         <VipPrizeDetails />
         <VipRules />
         <VipFaq />
-        <VipWireframeNote />
       </section>
     </main>
   );

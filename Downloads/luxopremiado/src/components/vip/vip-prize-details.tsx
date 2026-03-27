@@ -1,66 +1,157 @@
 export function VipPrizeDetails() {
   return (
-    <section className="rounded-3xl border border-white/10 bg-zinc-900 p-6 md:p-8">
-      <div className="grid gap-8 lg:grid-cols-2">
-        <div>
-          <h2 className="text-2xl font-bold md:text-3xl">
-            O que o ganhador vive na prática
-          </h2>
-          <p className="mt-4 text-sm leading-7 text-zinc-300">
+    <section
+      style={{
+        borderRadius: 28,
+        padding: 28,
+        border: "1px solid rgba(255,255,255,0.08)",
+        background: "linear-gradient(180deg, rgba(9,20,49,0.98) 0%, rgba(7,16,39,0.98) 100%)",
+        boxShadow: "0 18px 40px rgba(0,0,0,0.2)",
+      }}
+    >
+      <div style={{ display: "grid", gap: 8, marginBottom: 24 }}>
+        <div
+          style={{
+            color: "#f2d067",
+            fontSize: 13,
+            fontWeight: 800,
+            letterSpacing: 0.5,
+            textTransform: "uppercase",
+          }}
+        >
+          O prêmio
+        </div>
+
+        <h2 style={{ margin: 0, fontSize: 32, lineHeight: 1.15, fontWeight: 900 }}>
+          O que o ganhador vive na prática
+        </h2>
+      </div>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1.05fr 0.95fr",
+          gap: 20,
+        }}
+      >
+        <div
+          style={{
+            borderRadius: 24,
+            padding: 24,
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,255,255,0.08)",
+          }}
+        >
+          <p
+            style={{
+              margin: 0,
+              color: "rgba(255,255,255,0.8)",
+              lineHeight: 1.85,
+              fontSize: 15,
+            }}
+          >
             A campanha oferece uma experiência oficial premium com Andressa Urach, planejada, produzida e organizada com regras claras, agenda definida e despesas principais cobertas pela campanha.
           </p>
 
-          <div className="mt-5 rounded-2xl border border-yellow-500/20 bg-yellow-500/5 p-4">
-            <p className="text-sm font-semibold text-yellow-300">
+          <div
+            style={{
+              marginTop: 20,
+              borderRadius: 20,
+              padding: 18,
+              background: "rgba(242,208,103,0.08)",
+              border: "1px solid rgba(242,208,103,0.16)",
+            }}
+          >
+            <div style={{ color: "#f2d067", fontWeight: 800, marginBottom: 8 }}>
               Formulação oficial recomendada
-            </p>
-            <p className="mt-2 text-sm leading-7 text-zinc-200">
+            </div>
+            <div style={{ lineHeight: 1.8, color: "rgba(255,255,255,0.9)" }}>
               Tenha uma experiência exclusiva, planejada e inesquecível com Andressa Urach, com despesas principais pagas pela campanha.
-            </p>
+            </div>
           </div>
 
-          <div className="mt-5">
-            <p className="text-sm font-semibold text-zinc-100">Inclui, por exemplo:</p>
-            <ul className="mt-3 space-y-2 text-sm text-zinc-300">
-              <li>• hotel + G.P.</li>
-              <li>• deslocamento local</li>
-              <li>• almoço ou jantar programado</li>
-              <li>• participação em ação registrada da campanha</li>
-            </ul>
+          <div style={{ marginTop: 22 }}>
+            <div style={{ fontWeight: 800, marginBottom: 12 }}>Inclui, por exemplo:</div>
+            <div style={{ display: "grid", gap: 12 }}>
+              <IncludedItem text="hotel + G.P." />
+              <IncludedItem text="deslocamento local" />
+              <IncludedItem text="almoço ou jantar programado" />
+              <IncludedItem text="participação em ação registrada da campanha" />
+            </div>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
-          <h3 className="text-xl font-semibold">Etapas da experiência oficial</h3>
+        <div
+          style={{
+            borderRadius: 24,
+            padding: 24,
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,255,255,0.08)",
+          }}
+        >
+          <div style={{ fontSize: 22, fontWeight: 900, marginBottom: 18 }}>
+            Etapas da experiência oficial
+          </div>
 
-          <div className="mt-5 space-y-4 text-sm text-zinc-300">
-            <div>
-              <p className="font-semibold text-white">Etapa 1 — Firmar o prêmio</p>
-              <p>contato oficial com o ganhador e assinatura de regulamento, imagem e conduta</p>
-            </div>
-
-            <div>
-              <p className="font-semibold text-white">Etapa 2 — Recepção</p>
-              <p>check-in e kit experiência Bigode VIP</p>
-            </div>
-
-            <div>
-              <p className="font-semibold text-white">Etapa 3 — Experiência principal</p>
-              <p>encontro em local previamente aprovado, almoço ou jantar e participação em ação registrada da campanha</p>
-            </div>
-
-            <div>
-              <p className="font-semibold text-white">Etapa 4 — Conteúdo</p>
-              <p>gravação de reels/stories, depoimento do ganhador e making of para uso em site e redes</p>
-            </div>
-
-            <div>
-              <p className="font-semibold text-white">Etapa 5 — Fechamento</p>
-              <p>postagem oficial, certificado ou lembrança da experiência e publicação do case do campeão</p>
-            </div>
+          <div style={{ display: "grid", gap: 14 }}>
+            <StepCard
+              title="Etapa 1 — Firmar o prêmio"
+              text="contato oficial com o ganhador e assinatura de regulamento, imagem e conduta"
+            />
+            <StepCard
+              title="Etapa 2 — Recepção"
+              text="check-in e kit experiência Bigode VIP"
+            />
+            <StepCard
+              title="Etapa 3 — Experiência principal"
+              text="encontro em local previamente aprovado, almoço ou jantar e participação em ação registrada da campanha"
+            />
+            <StepCard
+              title="Etapa 4 — Conteúdo"
+              text="gravação de reels, stories, depoimento do ganhador e making of para uso em site e redes"
+            />
+            <StepCard
+              title="Etapa 5 — Fechamento"
+              text="postagem oficial, certificado ou lembrança da experiência e publicação do case do campeão"
+            />
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+function IncludedItem({ text }: { text: string }) {
+  return (
+    <div
+      style={{
+        borderRadius: 16,
+        padding: "14px 16px",
+        background: "rgba(0,0,0,0.18)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        color: "rgba(255,255,255,0.88)",
+        fontWeight: 700,
+      }}
+    >
+      {text}
+    </div>
+  );
+}
+
+function StepCard({ title, text }: { title: string; text: string }) {
+  return (
+    <div
+      style={{
+        borderRadius: 18,
+        padding: 16,
+        background: "rgba(0,0,0,0.18)",
+        border: "1px solid rgba(255,255,255,0.08)",
+      }}
+    >
+      <div style={{ fontWeight: 800, marginBottom: 8 }}>{title}</div>
+      <div style={{ color: "rgba(255,255,255,0.78)", lineHeight: 1.7, fontSize: 14 }}>
+        {text}
+      </div>
+    </div>
   );
 }
