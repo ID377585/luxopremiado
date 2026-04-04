@@ -3,6 +3,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { getSiteUrl } from "@/lib/env";
+import type { VipUserState } from "@/lib/vip/types";
+import { canViewVipMenu } from "@/lib/vip/utils";
+import { VIP_EXPERIENCE_ROUTE } from "@/lib/vip/constants";
 
 const SITE_URL = getSiteUrl();
 
@@ -61,11 +64,46 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+async function getCurrentUserVipState(): Promise<VipUserState | null> {
+  /**
+   * SUBSTITUA ESTE MOCK pela sua lógica real de autenticação.
+   *
+   * Exemplos:
+   * - ler cookie/token
+   * - consultar sessão no servidor
+   * - buscar usuário no banco
+   * - retornar tier real: "BASE" | "VIP" | "VIP_ELITE"
+   */
+
+  return {
+    isLoggedIn: true,
+    tier: "VIP",
+    totalPoints: 4650,
+    ownPoints: 1180,
+    qualifiedAffiliates: 1,
+    requiredAffiliates: 3,
+    pointsToUnlockVip: 3350,
+    currentTickets: 2,
+    xpInCampaign: 10000,
+    campaignLevelsGained: 1,
+    joinedBeforeCampaign: false,
+  };
+
+  /**
+   * Exemplo para usuário não logado:
+   * return null;
+   */
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getCurrentUserVipState();
+  const showVipMenu = user ? canViewVipMenu(user) : false;
+  const userAreaHref = user?.isLoggedIn ? "/app" : "/login";
+
   return (
     <html lang="pt-BR">
       <body
@@ -122,16 +160,26 @@ export default function RootLayout({
               <Link href={`${DEFAULT_LANDING}#premio`} style={linkStyle}>
                 Prêmio
               </Link>
+
               <Link href={`${DEFAULT_LANDING}#pacotes`} style={linkStyle}>
                 Pacotes
               </Link>
+
               <Link href={`${DEFAULT_LANDING}#vencedores`} style={linkStyle}>
                 Vencedores
               </Link>
+
               <Link href={`${DEFAULT_LANDING}#transparencia`} style={linkStyle}>
                 Transparência
               </Link>
-              <Link href="/login" style={linkStyle}>
+
+              {showVipMenu && (
+                <Link href={VIP_EXPERIENCE_ROUTE} style={vipLinkStyle}>
+                  VIP
+                </Link>
+              )}
+
+              <Link href={userAreaHref} style={linkStyle}>
                 Área do usuário
               </Link>
             </nav>
@@ -212,6 +260,17 @@ const linkStyle: React.CSSProperties = {
   borderRadius: 999,
   background: "rgba(255,255,255,0.05)",
   border: "1px solid rgba(255,255,255,0.08)",
+};
+
+const vipLinkStyle: React.CSSProperties = {
+  color: "#071632",
+  textDecoration: "none",
+  fontWeight: 800,
+  padding: "8px 14px",
+  borderRadius: 999,
+  background: "#f2d067",
+  border: "1px solid rgba(242,208,103,0.45)",
+  boxShadow: "0 0 0 1px rgba(242,208,103,0.08) inset",
 };
 
 const footerLinkStyle: React.CSSProperties = {

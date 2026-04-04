@@ -10,16 +10,37 @@ function forbidden() {
   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 }
 
+function badRequest(message: string) {
+  return NextResponse.json({ error: message }, { status: 400 });
+}
+
 function normalizeVipTier(value: unknown): VipTier {
   return value === "vip" || value === "elite" ? value : "none";
+}
+
+function normalizeText(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeOptionalText(value: unknown) {
+  const normalized = normalizeText(value);
+  return normalized || null;
+}
+
+function normalizeNonNegativeInteger(value: unknown, fallback = 0) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(0, Math.round(parsed));
 }
 
 async function findAuthUserByEmail(email: string) {
   const supabase = createSupabaseServiceClient();
   const normalized = email.trim().toLowerCase();
+  const perPage = 200;
+  const maxPages = 1000;
 
-  for (let page = 1; page <= 5; page += 1) {
-    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: 200 });
+  for (let page = 1; page <= maxPages; page += 1) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage });
 
     if (error) {
       throw error;
@@ -30,7 +51,7 @@ async function findAuthUserByEmail(email: string) {
       return found;
     }
 
-    if (data.users.length < 200) {
+    if (data.users.length < perPage) {
       break;
     }
   }
@@ -193,9 +214,39 @@ export async function POST(request: Request) {
   };
 
   if (body.mode === "settings") {
+    const settings = body.settings ?? {};
+
+    if (
+      settings.defaultReloadBonusPercent !== undefined &&
+      normalizeNonNegativeInteger(settings.defaultReloadBonusPercent, 0) !== Number(settings.defaultReloadBonusPercent)
+    ) {
+      return badRequest("O percentual padrão de reload bônus é inválido.");
+    }
+
+    if (
+      settings.defaultBirthdayBonusCents !== undefined &&
+      normalizeNonNegativeInteger(settings.defaultBirthdayBonusCents, 0) !== Number(settings.defaultBirthdayBonusCents)
+    ) {
+      return badRequest("O bônus padrão de aniversário é inválido.");
+    }
+
+    const normalizedSettings = {
+      ...settings,
+      defaultReloadBonusPercent:
+        settings.defaultReloadBonusPercent === undefined
+          ? undefined
+          : normalizeNonNegativeInteger(settings.defaultReloadBonusPercent, 0),
+      defaultBirthdayBonusCents:
+        settings.defaultBirthdayBonusCents === undefined
+          ? undefined
+          : normalizeNonNegativeInteger(settings.defaultBirthdayBonusCents, 0),
+      vipHostChannel: normalizeOptionalText(settings.vipHostChannel),
+      eventNotes: normalizeOptionalText(settings.eventNotes),
+    };
+
     try {
-      const settings = await updateVipProgramSettings(body.settings ?? {});
-      return NextResponse.json({ settings });
+      const updatedSettings = await updateVipProgramSettings(normalizedSettings);
+      return NextResponse.json({ settings: updatedSettings });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Erro inesperado";
       return NextResponse.json({ error: message }, { status: 500 });
@@ -204,7 +255,16 @@ export async function POST(request: Request) {
 
   const email = body.email?.trim().toLowerCase();
   if (!email) {
-    return NextResponse.json({ error: "Informe o e-mail do usuário." }, { status: 400 });
+    return badRequest("Informe o e-mail do usuário.");
+  }
+
+  const vipPoints = normalizeNonNegativeInteger(body.vipPoints, 0);
+  const normalizedTier = normalizeVipTier(body.vipTier);
+  const manualOverride = Boolean(body.vipManualOverride);
+  const vipNotes = normalizeOptionalText(body.vipNotes);
+
+  if (manualOverride && normalizedTier === "none") {
+    return badRequest("Com override manual ativo, selecione um tier VIP válido.");
   }
 
   try {
@@ -215,8 +275,6 @@ export async function POST(request: Request) {
     }
 
     const supabase = createSupabaseServiceClient();
-    const normalizedTier = normalizeVipTier(body.vipTier);
-    const manualOverride = Boolean(body.vipManualOverride);
     const { data: existingProfile, error: profileError } = await supabase
       .from("profiles")
       .select("id, vip_unlocked_at")
@@ -234,10 +292,10 @@ export async function POST(request: Request) {
     const { error } = await supabase.from("profiles").upsert({
       id: authUser.id,
       vip_tier: storedTier,
-      vip_points: Math.max(0, Math.round(Number(body.vipPoints ?? 0))),
+      vip_points: vipPoints,
       vip_manual_override: manualOverride,
       vip_unlocked_at: unlockedAt,
-      vip_notes: body.vipNotes?.trim() || null,
+      vip_notes: vipNotes,
     });
 
     if (error) {

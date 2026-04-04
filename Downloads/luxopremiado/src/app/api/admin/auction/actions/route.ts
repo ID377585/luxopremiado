@@ -25,8 +25,20 @@ interface ActionBody {
   endsAt?: string;
 }
 
+const CRITICAL_ACTIONS_REQUIRING_REASON = new Set<AuctionAdminAction>([
+  "close",
+  "reopen",
+  "disqualify_bid",
+  "swap_winner",
+  "mark_defaulted",
+]);
+
 function forbidden() {
   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+}
+
+function badRequest(message: string) {
+  return NextResponse.json({ error: message }, { status: 400 });
 }
 
 async function ensureAdmin() {
@@ -37,6 +49,15 @@ async function ensureAdmin() {
 
   const allowed = await isAdminUser(user.id, user.email);
   return allowed ? user : null;
+}
+
+function normalizeReason(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function isValidDatetime(value: string) {
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed);
 }
 
 async function logAuctionEvent(params: {
@@ -68,9 +89,14 @@ export async function POST(request: NextRequest) {
   const raffleSlug = normalizeAuctionRaffleSlug(body.raffleSlug);
   const slug = body.slug?.trim() || null;
   const action = body.action;
+  const reason = normalizeReason(body.reason);
 
   if (!slug || !action) {
-    return NextResponse.json({ error: "Leilão e ação são obrigatórios." }, { status: 400 });
+    return badRequest("Leilão e ação são obrigatórios.");
+  }
+
+  if (CRITICAL_ACTIONS_REQUIRING_REASON.has(action) && !reason) {
+    return badRequest("Essa ação exige motivo/observação obrigatória.");
   }
 
   const supabase = createSupabaseServiceClient();
@@ -93,7 +119,7 @@ export async function POST(request: NextRequest) {
       .from("auctions")
       .update({
         paused_at: now,
-        pause_reason: body.reason?.trim() || "Lances pausados pela moderação.",
+        pause_reason: reason || "Lances pausados pela moderação.",
         updated_at: now,
       })
       .eq("id", auctionId);
@@ -104,7 +130,7 @@ export async function POST(request: NextRequest) {
       actorUserId: admin.id,
       type: "pause",
       headline: "Leilão pausado pela moderação.",
-      description: body.reason?.trim() || null,
+      description: reason || null,
     });
     return NextResponse.json({ ok: true });
   }
@@ -126,19 +152,19 @@ export async function POST(request: NextRequest) {
       actorUserId: admin.id,
       type: "resume",
       headline: "Leilão reaberto para lances.",
-      description: body.reason?.trim() || null,
+      description: reason || null,
     });
     return NextResponse.json({ ok: true });
   }
 
   if (action === "disqualify_bid") {
     if (!body.bidId) {
-      return NextResponse.json({ error: "Selecione o lance que será desclassificado." }, { status: 400 });
+      return badRequest("Selecione o lance que será desclassificado.");
     }
 
     const { data: bid, error: bidError } = await supabase
       .from("auction_bids")
-      .select("id, amount_cents, bidder_name, bidder_contact")
+      .select("id, amount_cents, bidder_name, bidder_contact, disqualified_at")
       .eq("auction_id", auctionId)
       .eq("id", body.bidId)
       .maybeSingle();
@@ -147,11 +173,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: bidError?.message ?? "Lance não encontrado." }, { status: 404 });
     }
 
+    if (bid.disqualified_at) {
+      return badRequest("Esse lance já está desclassificado.");
+    }
+
     const { error } = await supabase
       .from("auction_bids")
       .update({
         disqualified_at: now,
-        disqualified_reason: body.reason?.trim() || "Desclassificado pela moderação.",
+        disqualified_reason: reason,
         disqualified_by_user_id: admin.id,
       })
       .eq("id", body.bidId);
@@ -167,8 +197,11 @@ export async function POST(request: NextRequest) {
       actorUserId: admin.id,
       type: "disqualification",
       headline: "Lance removido da disputa.",
-      description: body.reason?.trim() || "Lance desclassificado pela moderação.",
+      description: reason,
       amountCents: Number(bid.amount_cents ?? 0),
+      payload: {
+        bidId: body.bidId,
+      },
     });
 
     return NextResponse.json({ ok: true });
@@ -214,6 +247,7 @@ export async function POST(request: NextRequest) {
       actorUserId: admin.id,
       type: "manual_close",
       headline: topBid ? "Leilão encerrado com vencedor definido." : "Leilão encerrado sem vencedor.",
+      description: reason,
       amountCents: topBid?.amount_cents ?? null,
     });
 
@@ -221,9 +255,20 @@ export async function POST(request: NextRequest) {
   }
 
   if (action === "reopen") {
-    const endsAt =
-      body.endsAt?.trim() ||
-      new Date(Math.max(Date.parse(String(auction.ends_at ?? now)), Date.now()) + 2 * 60 * 60 * 1000).toISOString();
+    const requestedEndsAt = body.endsAt?.trim() || "";
+    const fallbackEndsAt = new Date(
+      Math.max(Date.parse(String(auction.ends_at ?? now)), Date.now()) + 2 * 60 * 60 * 1000,
+    ).toISOString();
+
+    const endsAt = requestedEndsAt || fallbackEndsAt;
+
+    if (!isValidDatetime(endsAt)) {
+      return badRequest("A nova data de encerramento é inválida.");
+    }
+
+    if (Date.parse(endsAt) <= Date.now()) {
+      return badRequest("A nova data de encerramento deve estar no futuro.");
+    }
 
     const { error } = await supabase
       .from("auctions")
@@ -252,7 +297,10 @@ export async function POST(request: NextRequest) {
       actorUserId: admin.id,
       type: "reopen",
       headline: "Leilão reaberto pela moderação.",
-      description: `Novo encerramento programado para ${endsAt}.`,
+      description: `${reason} Novo encerramento programado para ${endsAt}.`,
+      payload: {
+        endsAt,
+      },
     });
 
     return NextResponse.json({ ok: true });
@@ -260,7 +308,7 @@ export async function POST(request: NextRequest) {
 
   if (action === "swap_winner") {
     if (!body.bidId) {
-      return NextResponse.json({ error: "Selecione o lance que será promovido a vencedor." }, { status: 400 });
+      return badRequest("Selecione o lance que será promovido a vencedor.");
     }
 
     const { data: bid, error: bidError } = await supabase
@@ -275,7 +323,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (bid.disqualified_at) {
-      return NextResponse.json({ error: "Esse lance está desclassificado e não pode virar vencedor." }, { status: 400 });
+      return badRequest("Esse lance está desclassificado e não pode virar vencedor.");
     }
 
     const { error } = await supabase
@@ -302,7 +350,11 @@ export async function POST(request: NextRequest) {
       actorUserId: admin.id,
       type: "winner_update",
       headline: "Vencedor do lote foi atualizado manualmente.",
+      description: reason,
       amountCents: bid.amount_cents ?? null,
+      payload: {
+        bidId: body.bidId,
+      },
     });
 
     return NextResponse.json({ ok: true });
@@ -335,7 +387,7 @@ export async function POST(request: NextRequest) {
             : null;
 
   if (!winnerStatusPayload) {
-    return NextResponse.json({ error: "Ação administrativa inválida." }, { status: 400 });
+    return badRequest("Ação administrativa inválida.");
   }
 
   const { error } = await supabase.from("auctions").update(winnerStatusPayload).eq("id", auctionId);
@@ -353,7 +405,7 @@ export async function POST(request: NextRequest) {
           : action === "mark_delivered"
             ? "Lote entregue ao vencedor."
             : "Vencedor marcado como inadimplente.",
-    description: body.reason?.trim() || null,
+    description: reason || null,
   });
 
   return NextResponse.json({ ok: true });
